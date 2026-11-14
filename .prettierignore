@@ -1,0 +1,10 @@
+.next
+out
+node_modules
+storybook-static
+playwright-report
+test-results
+coverage
+package-lock.json
+src/styles/tokens.css
+design-system/tokens.json

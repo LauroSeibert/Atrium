@@ -27,7 +27,7 @@ export function AtriumMark({ title = "Atrium", ...props }: SVGProps<SVGSVGElemen
 
 export function AtriumLogo({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 128 32" role="img" aria-label="Atrium" className={className} {...props}>
+    <svg viewBox="0 0 128 32" width="128" height="32" role="img" aria-label="Atrium" className={className} {...props}>
       <AtriumMark x="0" y="0" width="32" height="32" aria-hidden="true" title="" role="presentation" />
       <text
         x="42"

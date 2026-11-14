@@ -1,10 +1,4 @@
-// Utilitários compartilhados entre os scripts (Node) e a página /design-system/colors.
-import { readFileSync } from "node:fs";
-
-/** Lê e faz o parse de tokens.json. */
-export function loadTokens(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
-}
+// Utilitários puros (sem Node APIs): usados pelos scripts, pela página de cores e pelo Storybook.
 
 /** Resolve aliases W3C no formato "{grupo.subgrupo.token}" (recursivo). */
 export function resolveAlias(tokens, value, depth = 0) {

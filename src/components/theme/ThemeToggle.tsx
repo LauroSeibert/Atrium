@@ -14,7 +14,11 @@ const subscribe = () => () => {};
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   // Evita divergência de hidratação: o tema só é conhecido no cliente.
-  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 
   return (
     <div

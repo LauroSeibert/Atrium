@@ -14,12 +14,12 @@ O Tailwind teve os defaults de cor, raio, sombra, fonte e easing zerados: valore
 
 ## 2. Marca e proporção 60-30-10
 
-| Cor | HEX | Proporção | Onde entra |
-|---|---|---|---|
-| Polar Snow | `#FDFEFD` | **60 %** | Fundo da aplicação, áreas de leitura, texto sobre verde |
-| Soft Beige | `#E7DBC5` | **30 %** | Sidebar/seções (`bg-subtle`), chips, destaques, divisórias |
-| Hunter Green | `#023933` | **10 %** | Botão primário, links, item ativo, ícones de ação, texto forte |
-| Ocre | `#B87D30` | acento | **Só** gráficos e preenchimentos (≥ 3:1 como objeto gráfico), sempre com rótulo. Nunca texto |
+| Cor          | HEX       | Proporção | Onde entra                                                                                   |
+| ------------ | --------- | --------- | -------------------------------------------------------------------------------------------- |
+| Polar Snow   | `#FDFEFD` | **60 %**  | Fundo da aplicação, áreas de leitura, texto sobre verde                                      |
+| Soft Beige   | `#E7DBC5` | **30 %**  | Sidebar/seções (`bg-subtle`), chips, destaques, divisórias                                   |
+| Hunter Green | `#023933` | **10 %**  | Botão primário, links, item ativo, ícones de ação, texto forte                               |
+| Ocre         | `#B87D30` | acento    | **Só** gráficos e preenchimentos (≥ 3:1 como objeto gráfico), sempre com rótulo. Nunca texto |
 
 No tema escuro a lógica se inverte: o fundo é verde profundo (`#0B1F1D`, não preto) e o **beige vira a cor de ação** (`--primary`).
 
@@ -31,22 +31,22 @@ O neutro tem leve matiz verde para evitar cinza "morto".
 
 ## 4. Tokens semânticos — quando usar
 
-| Token | Use para | Não use para |
-|---|---|---|
-| `--bg` | Fundo da página | Cards |
-| `--bg-subtle` | Sidebar, faixas de seção, cabeçalho de tabela | Texto |
-| `--surface` | Cards, tabelas, painéis | Fundo da página |
-| `--surface-raised` | Popover, menu, modal, toast | Cards comuns |
-| `--surface-warm` | Chips, tags, avatar sem foto, destaque | Áreas grandes, **fundo de inputs/controles** (borda < 3:1), **texto de status** (success/warning < 4,5:1; chips de status usam o próprio `*-bg`) |
-| `--border` | **Divisórias decorativas** (linhas entre itens, contorno de card) | Contorno de input/checkbox (< 3:1) |
-| `--border-strong` | **Inputs, selects, checkboxes, radios, toggles**, hover de card | Divisórias (pesado demais) |
-| `--text` | Texto principal, títulos | — |
-| `--text-muted` | Rótulos, ajuda, metadados | Texto essencial longo |
-| `--primary` / `--primary-hover` | Botão primário, links, item ativo, ícone de ação | Fundos grandes |
-| `--on-primary` | Texto/ícone sobre `--primary` | Texto sobre fundo claro |
-| `--ring` | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` (o offset é obrigatório: `ring` × `primary` < 3:1) | Bordas comuns |
-| `--success/-bg`, `--warning/-bg`, `--danger/-bg`, `--info/-bg` | Badges, alertas, validação. Texto colorido sobre `-bg` **ou** sobre `surface` | Decoração (cor sempre acompanhada de ícone/texto) |
-| `--accent-ochre` | Séries de gráfico, preenchimentos | Texto |
+| Token                                                          | Use para                                                                                                               | Não use para                                                                                                                                     |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--bg`                                                         | Fundo da página                                                                                                        | Cards                                                                                                                                            |
+| `--bg-subtle`                                                  | Sidebar, faixas de seção, cabeçalho de tabela                                                                          | Texto                                                                                                                                            |
+| `--surface`                                                    | Cards, tabelas, painéis                                                                                                | Fundo da página                                                                                                                                  |
+| `--surface-raised`                                             | Popover, menu, modal, toast                                                                                            | Cards comuns                                                                                                                                     |
+| `--surface-warm`                                               | Chips, tags, avatar sem foto, destaque                                                                                 | Áreas grandes, **fundo de inputs/controles** (borda < 3:1), **texto de status** (success/warning < 4,5:1; chips de status usam o próprio `*-bg`) |
+| `--border`                                                     | **Divisórias decorativas** (linhas entre itens, contorno de card)                                                      | Contorno de input/checkbox (< 3:1)                                                                                                               |
+| `--border-strong`                                              | **Inputs, selects, checkboxes, radios, toggles**, hover de card                                                        | Divisórias (pesado demais)                                                                                                                       |
+| `--text`                                                       | Texto principal, títulos                                                                                               | —                                                                                                                                                |
+| `--text-muted`                                                 | Rótulos, ajuda, metadados                                                                                              | Texto essencial longo                                                                                                                            |
+| `--primary` / `--primary-hover`                                | Botão primário, links, item ativo, ícone de ação                                                                       | Fundos grandes                                                                                                                                   |
+| `--on-primary`                                                 | Texto/ícone sobre `--primary`                                                                                          | Texto sobre fundo claro                                                                                                                          |
+| `--ring`                                                       | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` (o offset é obrigatório: `ring` × `primary` < 3:1) | Bordas comuns                                                                                                                                    |
+| `--success/-bg`, `--warning/-bg`, `--danger/-bg`, `--info/-bg` | Badges, alertas, validação. Texto colorido sobre `-bg` **ou** sobre `surface`                                          | Decoração (cor sempre acompanhada de ícone/texto)                                                                                                |
+| `--accent-ochre`                                               | Séries de gráfico, preenchimentos                                                                                      | Texto                                                                                                                                            |
 
 ## 5. Contraste (Gate 1)
 
@@ -62,15 +62,15 @@ Todas as combinações usadas estão em [`contrast.json`](./contrast.json) e sã
 
 Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de cores.
 
-| Token | Antes | Depois | Motivo |
-|---|---|---|---|
-| `--border-strong` (claro) | `#CFC0A3` | `#95876C` | 1,58:1 sobre `bg-subtle`; input precisa de 3:1 |
-| `--text-muted` (claro) | `#5E6E6A` | `#546360` | 3,92:1 sobre `surface-warm` |
-| `--ring` (claro) | `#2F8F83` | `#26887C` | 2,95:1 sobre `surface-warm` |
-| `--border-strong` (escuro) | — | `#608983` | Não existia; `--border` escuro tem 1,34:1. Precisa de 3:1 também em `surface-raised` |
-| Ocre | `#C58A3E` | `#B87D30` | 2,61:1 sobre `bg-subtle`; série de gráfico precisa de 3:1 |
-| Estados (escuro) | — | 8 tokens | Não existiam; todos ≥ 4,5:1 |
-| `--surface-raised` | — | novo | Elevação no escuro = cor + borda |
+| Token                      | Antes     | Depois    | Motivo                                                                               |
+| -------------------------- | --------- | --------- | ------------------------------------------------------------------------------------ |
+| `--border-strong` (claro)  | `#CFC0A3` | `#95876C` | 1,58:1 sobre `bg-subtle`; input precisa de 3:1                                       |
+| `--text-muted` (claro)     | `#5E6E6A` | `#546360` | 3,92:1 sobre `surface-warm`                                                          |
+| `--ring` (claro)           | `#2F8F83` | `#26887C` | 2,95:1 sobre `surface-warm`                                                          |
+| `--border-strong` (escuro) | —         | `#608983` | Não existia; `--border` escuro tem 1,34:1. Precisa de 3:1 também em `surface-raised` |
+| Ocre                       | `#C58A3E` | `#B87D30` | 2,61:1 sobre `bg-subtle`; série de gráfico precisa de 3:1                            |
+| Estados (escuro)           | —         | 8 tokens  | Não existiam; todos ≥ 4,5:1                                                          |
+| `--surface-raised`         | —         | novo      | Elevação no escuro = cor + borda                                                     |
 
 ## 6. Tipografia, espaço, forma e movimento
 
@@ -88,7 +88,7 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 
 ## 7. Logo
 
-O átrio da *domus* romana visto de cima: o ladrilho é a casa, o quadrado com diagonais é o telhado de quatro águas (compluvium) e o quadrado central é o *impluvium*, o espelho d'água que recebe a chuva.
+O átrio da _domus_ romana visto de cima: o ladrilho é a casa, o quadrado com diagonais é o telhado de quatro águas (compluvium) e o quadrado central é o _impluvium_, o espelho d'água que recebe a chuva.
 
 - Componente: `src/components/brand/AtriumLogo.tsx` (`<AtriumMark />` e `<AtriumLogo />`), usa `--primary`/`--on-primary` e se adapta ao tema sozinho.
 - Arquivos avulsos: [`brand/atrium-mark.svg`](./brand/atrium-mark.svg) (adapta via `prefers-color-scheme`), [`brand/atrium-logo-light.svg`](./brand/atrium-logo-light.svg), [`brand/atrium-logo-dark.svg`](./brand/atrium-logo-dark.svg).
@@ -122,7 +122,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Foco visível e não obscurecido (2.4.7, 2.4.11):** sempre `outline: 2px solid var(--ring); outline-offset: 2px`; cabeçalho e coluna fixa (`--z-sticky`) não podem cobrir o elemento focado (use `scroll-margin`).
 - **Tamanho do alvo (2.5.8):** o mínimo da norma é 24×24 px; o padrão do projeto é maior: botão `md` com 40 px no desktop e 44 px no mobile. Ícone-botão em linha de tabela também respeita 40 px de área clicável.
 - **Erros (3.3.1, 3.3.3):** campo inválido mostra mensagem em texto junto ao campo, com ícone e `aria-describedby`, e a sugestão de correção ("CPF deve ter 11 dígitos"); inputs mantêm `--border-strong`.
-- **Mensagens de status (4.1.3):** toasts, "salvo" e a contagem de resultados após filtrar são anunciados por *live region* (`role="status"`), sem tirar o foco do usuário.
+- **Mensagens de status (4.1.3):** toasts, "salvo" e a contagem de resultados após filtrar são anunciados por _live region_ (`role="status"`), sem tirar o foco do usuário.
 - **Reflow e zoom (1.4.10, 1.4.4):** nada de rolagem horizontal da página em 320 px CSS ou com zoom de 200 %; tabelas largas rolam dentro do próprio contêiner.
 - **Arrastar (2.5.7):** todo card do kanban de leads tem alternativa sem arrastar: menu "Mover para…" (teclado e toque). O drag é só atalho.
 

@@ -14,7 +14,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { oklch, formatHex, clampChroma } from "culori";
-import { loadTokens, resolveAlias } from "../design-system/tokens-lib.mjs";
+import { resolveAlias } from "../design-system/tokens-lib.mjs";
+import { readJson as loadTokens } from "./read-json.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const TOKENS_JSON = resolve(root, "design-system/tokens.json");
@@ -24,8 +25,17 @@ const CHECK = process.argv.includes("--check");
 const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 // Luminosidade-alvo (OKLCH L) por degrau.
 const TARGET_L = {
-  50: 0.985, 100: 0.96, 200: 0.92, 300: 0.86, 400: 0.76, 500: 0.65,
-  600: 0.55, 700: 0.46, 800: 0.38, 900: 0.3, 950: 0.22,
+  50: 0.985,
+  100: 0.96,
+  200: 0.92,
+  300: 0.86,
+  400: 0.76,
+  500: 0.65,
+  600: 0.55,
+  700: 0.46,
+  800: 0.38,
+  900: 0.3,
+  950: 0.22,
 };
 
 function buildScale(anchorHex, anchorStep, { chromaOverride } = {}) {
@@ -169,7 +179,9 @@ if (CHECK) {
   const stale = [];
   if (readFileSync(TOKENS_JSON, "utf8") !== jsonOut) stale.push("design-system/tokens.json");
   let css = "";
-  try { css = readFileSync(TOKENS_CSS, "utf8"); } catch {}
+  try {
+    css = readFileSync(TOKENS_CSS, "utf8");
+  } catch {}
   if (css !== cssOut) stale.push("src/styles/tokens.css");
   if (stale.length) {
     console.error(`✗ Tokens desatualizados: ${stale.join(", ")}. Rode: npm run tokens`);

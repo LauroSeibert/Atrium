@@ -1,4 +1,9 @@
-export interface ContrastPair { fg: string; bg: string; min: number; use: string }
+export interface ContrastPair {
+  fg: string;
+  bg: string;
+  min: number;
+  use: string;
+}
 export interface ContrastResult extends ContrastPair {
   theme: "light" | "dark";
   fgValue: string;

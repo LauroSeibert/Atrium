@@ -5,7 +5,7 @@
 
 ## 1. O problema que estamos evitando
 
-Uma *hidden state machine* aparece quando um estado e suas transições existem só implicitamente:
+Uma _hidden state machine_ aparece quando um estado e suas transições existem só implicitamente:
 
 - Status alterado direto num componente (`lead.etapa = "fechado"`) ou com `setState` solto em vários lugares.
 - Combinações de booleanos que formam estados não declarados (`isLoading && !isError && hasData`), incluindo estados impossíveis (`isLoading && isError`).
@@ -14,7 +14,7 @@ Uma *hidden state machine* aparece quando um estado e suas transições existem 
 
 ## 2. Regras obrigatórias
 
-1. **Toda entidade com ciclo de vida tem uma máquina explícita** em `src/domain/<entidade>/estado.ts`: lista de estados, tabela de transições permitidas, *guards* (condições) e efeitos.
+1. **Toda entidade com ciclo de vida tem uma máquina explícita** em `src/domain/<entidade>/estado.ts`: lista de estados, tabela de transições permitidas, _guards_ (condições) e efeitos.
 2. **Um único ponto de mudança.** Só a função de transição do domínio (`transicionarLead`, `transicionarImovel`, `transicionarContrato`, `registrarPagamento`) altera o estado. UI, `fakeApi`, atalhos e ações em lote **chamam** essa função; nunca atribuem o campo.
 3. **A UI pergunta, não decide.** O que habilitar/mostrar vem do domínio (`transicoesPermitidas(entidade)` / `podeTransicionar(entidade, alvo)`). Nenhum `if (status === …)` de regra de negócio em componente.
 4. **Efeitos ficam na transição.** Gerar `Atividade` e o **registro de alteração** (§4), ajustar status do imóvel, preencher/limpar `motivoPerda`, montar o `desfazer` (RF-04): tudo dentro da função de transição, atomicamente.
@@ -32,12 +32,12 @@ Uma *hidden state machine* aparece quando um estado e suas transições existem 
 
 Etapas: `novo → contato → visita → proposta → fechado`, mais `perdido`. O lead pode ir para **qualquer** etapa (inclusive voltar ou pular), com só duas regras:
 
-| Transição | Guard | Efeitos |
-|---|---|---|
-| qualquer → `perdido` | `motivoPerda` informado (RF-32) | grava motivo |
-| `perdido` → outra | — | limpa `motivoPerda` |
-| `fechado` → outra | lead sem contrato vinculado | — |
-| todas | — | Atividade `etapaAlterada`; registro de alteração (§4); atualiza `ordem` na coluna |
+| Transição            | Guard                           | Efeitos                                                                           |
+| -------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| qualquer → `perdido` | `motivoPerda` informado (RF-32) | grava motivo                                                                      |
+| `perdido` → outra    | —                               | limpa `motivoPerda`                                                               |
+| `fechado` → outra    | lead sem contrato vinculado     | —                                                                                 |
+| todas                | —                               | Atividade `etapaAlterada`; registro de alteração (§4); atualiza `ordem` na coluna |
 
 ### 3.2 Imóvel (`status`)
 
@@ -57,10 +57,10 @@ stateDiagram-v2
   vendido --> disponivel: venda cancelada
 ```
 
-| Origem da transição | Permitidas |
-|---|---|
-| **Usuário** (RF-25, RF-49) | `disponivel ↔ reservado`, `disponivel/reservado → inativo` (com motivo), `inativo → disponivel` |
-| **Sistema**, só via máquina do contrato | `→ vendido`, `→ alugado`, `vendido/alugado → disponivel` |
+| Origem da transição                     | Permitidas                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Usuário** (RF-25, RF-49)              | `disponivel ↔ reservado`, `disponivel/reservado → inativo` (com motivo), `inativo → disponivel` |
+| **Sistema**, só via máquina do contrato | `→ vendido`, `→ alugado`, `vendido/alugado → disponivel`                                        |
 
 Guard: imóvel com contrato ativo não aceita transição do usuário.
 
@@ -75,11 +75,11 @@ stateDiagram-v2
   ativo --> cancelado: cancelar (motivo)
 ```
 
-| Transição | Guard | Efeitos |
-|---|---|---|
-| `rascunho → ativo` | imóvel `disponivel`/`reservado`; `tipo` = finalidade | imóvel → `vendido`/`alugado`; gera parcelas e comissões; Atividade |
-| `ativo → encerrado` | venda: escritura; locação: `fim` atingido | locação: imóvel → `disponivel`; Atividade |
-| `ativo/rascunho → cancelado` | `motivoCancelamento` (RF-48) | imóvel → `disponivel`; parcelas futuras deixam de valer; Atividade |
+| Transição                    | Guard                                                | Efeitos                                                            |
+| ---------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
+| `rascunho → ativo`           | imóvel `disponivel`/`reservado`; `tipo` = finalidade | imóvel → `vendido`/`alugado`; gera parcelas e comissões; Atividade |
+| `ativo → encerrado`          | venda: escritura; locação: `fim` atingido            | locação: imóvel → `disponivel`; Atividade                          |
+| `ativo/rascunho → cancelado` | `motivoCancelamento` (RF-48)                         | imóvel → `disponivel`; parcelas futuras deixam de valer; Atividade |
 
 `inadimplente` **não é estado**: é derivado (`ativo` + parcela atrasada).
 
@@ -96,6 +96,7 @@ Status derivado: `pago` (tem `pagoEm`) · `atrasado` (hoje > vencimento) · `aVe
 Objetivo: deixar claro **quem alterou preço, status ou valores monetários, quando, e de quanto para quanto**. A edição continua livre; só fica registrada.
 
 **O que é registrado:**
+
 - **Preço e valores monetários:** preço, condomínio e IPTU do imóvel; orçamento do lead; valor do contrato, taxa de administração, pagamento de parcela e comissão.
 - **Status:** status do imóvel, etapa do lead, status do contrato.
 

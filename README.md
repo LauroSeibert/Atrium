@@ -6,25 +6,30 @@
 
 Painel de administração para imobiliárias: minimalista, rápido e acessível. Esta versão usa **dados mock** e ilustrações SVG, sem backend.
 
-> O nome vem do *atrium* das casas romanas: o pátio central, aberto ao céu, em torno do qual a casa se organiza.
+> O nome vem do _atrium_ das casas romanas: o pátio central, aberto ao céu, em torno do qual a casa se organiza.
 
-## Stack atual
+## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 ligado aos design tokens · next-themes.
+Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 ligado aos design tokens · shadcn/ui + Radix · Lucide · Motion · Recharts · TanStack Table · React Hook Form + Zod · dnd-kit · Zustand · next-themes.
+Qualidade: ESLint (com regras de tokens e de fluxos críticos), Prettier, Vitest + Testing Library, Playwright + axe, Storybook.
 
 ## Rodando
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000 → /design-system/colors
+npm run dev          # http://localhost:3000 → /design-system/colors
+npm run storybook    # http://localhost:6006
 ```
 
-| Script | O que faz |
-|---|---|
-| `npm run tokens` | Gera escalas OKLCH e `src/styles/tokens.css` a partir de `design-system/tokens.json` |
-| `npm run check` | Tokens em dia + contraste WCAG + zero cores literais + typecheck |
-| `npm run check:contrast` | Verifica todas as combinações texto/fundo nos temas claro e escuro |
-| `npm run build` | Build de produção |
+| Script                              | O que faz                                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------- |
+| `npm run check`                     | Tokens em dia, contraste WCAG, zero cores literais, typecheck, lint e testes unitários |
+| `npm run test` / `test:e2e`         | Vitest / Playwright + axe (sobe o build na porta 3100)                                 |
+| `npm run lint` · `format`           | ESLint · Prettier                                                                      |
+| `npm run tokens`                    | Gera escalas OKLCH e `src/styles/tokens.css` a partir de `design-system/tokens.json`   |
+| `npm run build` · `build-storybook` | Build de produção do app e do Storybook                                                |
+
+Estrutura de pastas: [`src/README.md`](src/README.md). Requisitos e modelo: [`docs/`](docs/). Regras para agentes: [`CLAUDE.md`](CLAUDE.md).
 
 ## Design system
 
