@@ -1,0 +1,43 @@
+{
+  "$description": "Combinações de primeiro plano × fundo que o produto usa. Verificadas por scripts/check-contrast.mjs e exibidas em /design-system/colors. min: 4.5 = texto normal (WCAG 1.4.3 AA), 3 = texto grande, componentes de UI e foco (WCAG 1.4.11).",
+  "pairs": [
+    { "fg": "text", "bg": "bg", "min": 4.5, "use": "Texto principal" },
+    { "fg": "text", "bg": "bg-subtle", "min": 4.5, "use": "Texto na sidebar/seções" },
+    { "fg": "text", "bg": "surface", "min": 4.5, "use": "Texto em cards" },
+    { "fg": "text", "bg": "surface-raised", "min": 4.5, "use": "Texto em menus/modais" },
+    { "fg": "text", "bg": "surface-warm", "min": 4.5, "use": "Texto em chips/destaques" },
+    { "fg": "text-muted", "bg": "bg", "min": 4.5, "use": "Texto secundário" },
+    { "fg": "text-muted", "bg": "bg-subtle", "min": 4.5, "use": "Texto secundário na sidebar" },
+    { "fg": "text-muted", "bg": "surface", "min": 4.5, "use": "Texto secundário em cards" },
+    { "fg": "text-muted", "bg": "surface-warm", "min": 4.5, "use": "Texto secundário em chips" },
+    { "fg": "primary", "bg": "bg", "min": 4.5, "use": "Links" },
+    { "fg": "primary", "bg": "bg-subtle", "min": 4.5, "use": "Item ativo da navegação" },
+    { "fg": "primary", "bg": "surface", "min": 4.5, "use": "Links/ícones em cards" },
+    { "fg": "on-primary", "bg": "primary", "min": 4.5, "use": "Botão primário" },
+    { "fg": "on-primary", "bg": "primary-hover", "min": 4.5, "use": "Botão primário (hover)" },
+    { "fg": "border-strong", "bg": "bg", "min": 3, "use": "Borda de input" },
+    { "fg": "border-strong", "bg": "bg-subtle", "min": 3, "use": "Borda de input na sidebar" },
+    { "fg": "border-strong", "bg": "surface", "min": 3, "use": "Borda de input em card" },
+    { "fg": "ring", "bg": "bg", "min": 3, "use": "Anel de foco" },
+    { "fg": "ring", "bg": "bg-subtle", "min": 3, "use": "Anel de foco na sidebar" },
+    { "fg": "ring", "bg": "surface", "min": 3, "use": "Anel de foco em card" },
+    { "fg": "ring", "bg": "surface-warm", "min": 3, "use": "Anel de foco em chip" },
+    { "fg": "success", "bg": "success-bg", "min": 4.5, "use": "Badge/alerta de sucesso" },
+    { "fg": "success", "bg": "surface", "min": 4.5, "use": "Texto de sucesso em card" },
+    { "fg": "warning", "bg": "warning-bg", "min": 4.5, "use": "Badge/alerta de atenção" },
+    { "fg": "warning", "bg": "surface", "min": 4.5, "use": "Texto de atenção em card" },
+    { "fg": "danger", "bg": "danger-bg", "min": 4.5, "use": "Badge/alerta de erro" },
+    { "fg": "danger", "bg": "surface", "min": 4.5, "use": "Mensagem de erro de campo" },
+    { "fg": "info", "bg": "info-bg", "min": 4.5, "use": "Badge/alerta informativo" },
+    { "fg": "info", "bg": "surface", "min": 4.5, "use": "Texto informativo em card" },
+    { "fg": "text", "bg": "success-bg", "min": 4.5, "use": "Corpo de alerta de sucesso" },
+    { "fg": "text", "bg": "warning-bg", "min": 4.5, "use": "Corpo de alerta de atenção" },
+    { "fg": "text", "bg": "danger-bg", "min": 4.5, "use": "Corpo de alerta de erro" },
+    { "fg": "text", "bg": "info-bg", "min": 4.5, "use": "Corpo de alerta informativo" },
+    { "fg": "accent-ochre", "bg": "surface", "min": 2.5, "use": "Preenchimento de gráfico (sempre com rótulo/legenda; nunca texto)" }
+  ],
+  "decorative": {
+    "border": "Divisórias decorativas: isentas do 3:1 (WCAG 1.4.11 só exige 3:1 para limites que identificam um controle). Para inputs e controles use border-strong.",
+    "accent-ochre": "Ocre não carrega informação sozinho: o gráfico sempre tem rótulo/legenda em texto (1.4.1). Mínimo interno 2,5:1 só para legibilidade da forma."
+  }
+}
