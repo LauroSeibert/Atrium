@@ -106,12 +106,11 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RF-50 | Perfil do usuário atual (mock), tema e densidade. | M |
 | RF-51 | Controles de demonstração: latência e taxa de erro do `fakeApi`, e "restaurar dados mock". | S |
 
-### 2.8 Auditoria
+### 2.8 Registro de alterações
 
 | ID | Requisito | Prior. |
 |---|---|---|
-| RF-65 | Aba "Auditoria" no detalhe de imóvel, lead e contrato: quem, quando, campo, valor anterior → novo, motivo e origem. | M |
-| RF-66 | Tela Configurações → Auditoria com filtros (entidade, campo, autor, origem, período) e exportação CSV. | S |
+| RF-65 | Seção "Histórico de alterações" no detalhe de imóvel, lead e contrato: quem alterou preço, status ou valor monetário, quando, e valor anterior → novo. | M |
 
 ## 3. Requisitos não funcionais
 
@@ -137,7 +136,7 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RNF-18 | Mensagens de status (toasts, "salvo", contagem de resultados após filtrar) anunciadas por *live region* sem mover o foco (WCAG 4.1.3). | Teste com leitor de tela |
 | RNF-19 | Listas e tabelas com mais de 100 itens renderizados usam virtualização; a interação continua dentro da meta de INP. | Teste com volume extremo do mock |
 | RNF-20 | Fluxos críticos (etapa do lead, status do imóvel e do contrato, pagamento, comissão, desfazer) implementados como máquinas de estado explícitas em `src/domain/`, sendo o único ponto de mudança; nenhuma regra desses fluxos espalhada em componentes. | Testes por transição + revisão de código ([`ESTADOS-E-FLUXOS.md`](./ESTADOS-E-FLUXOS.md)) |
-| RNF-21 | Log de auditoria imutável (append-only) para toda alteração crítica (preços, status, valores, pagamentos, comissões, responsáveis), gravado na mesma transação da mudança; desfazer gera entrada compensatória. | Teste: cada transição crítica cria exatamente uma entrada; nenhuma API edita/apaga ([`ESTADOS-E-FLUXOS.md §4`](./ESTADOS-E-FLUXOS.md#4-log-de-auditoria)) |
+| RNF-21 | Toda alteração de preço, status ou valor monetário gera registro (quem, quando, campo, de → para), gravado pela função do domínio. | Teste: cada alteração desses campos cria um registro |
 
 ## 4. Fora de escopo (nesta versão)
 
@@ -167,7 +166,7 @@ Rotas do App Router (grupo `(dashboard)` compartilha o shell da Fase 7).
 | `/` | Dashboard | Gestor | RF-10…16 |
 | `/imoveis` | Imóveis — lista (grade/lista, filtros na URL) | Corretor | RF-20…23, RF-28, RF-49 |
 | `/imoveis/novo` | Imóvel — criação | Corretor | RF-27 |
-| `/imoveis/[id]` | Imóvel — detalhe (galeria, ficha, histórico, auditoria) | Corretor | RF-24…26, RF-29, RF-65 |
+| `/imoveis/[id]` | Imóvel — detalhe (galeria, ficha, histórico de alterações) | Corretor | RF-24…26, RF-29, RF-65 |
 | `/imoveis/[id]/editar` | Imóvel — edição | Corretor | RF-27 |
 | `/leads` | Leads — kanban (ou lista via `?view=lista`) | Corretor | RF-30…32, RF-35, RF-36, RF-38, RF-39 |
 | `/leads/[id]` | Lead — detalhe (abre como drawer sobre o kanban; acesso direto abre página) | Corretor | RF-33, RF-34, RF-37 |
@@ -175,7 +174,6 @@ Rotas do App Router (grupo `(dashboard)` compartilha o shell da Fase 7).
 | `/contratos/[id]` | Contrato — detalhe e cronograma | Financeiro | RF-42, RF-43, RF-46, RF-48 |
 | `/financeiro` | Financeiro — resumo | Gestor, Financeiro | RF-44, RF-45 |
 | `/configuracoes` | Configurações | Todos | RF-03, RF-08, RF-09, RF-50, RF-51 |
-| `/configuracoes/auditoria` | Log de auditoria | Gestor | RF-66 |
 | `/design-system/colors` | Referência: cores (Fase 1) | Time | — |
 | `/design-system/illustrations` | Referência: SVGs (Fase 5) | Time | — |
 
@@ -198,7 +196,7 @@ src/app/
       @drawer/(.)[id]/page.tsx     # rota interceptada: detalhe em drawer sobre o kanban
     contratos/  page.tsx · [id]/page.tsx
     financeiro/page.tsx
-    configuracoes/  page.tsx · auditoria/page.tsx
+    configuracoes/page.tsx
     design-system/  colors/page.tsx · illustrations/page.tsx
 ```
 
