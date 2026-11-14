@@ -84,7 +84,7 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 - **Duração:** `--dur-fast 120ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`. Com `prefers-reduced-motion`, todas viram 1 ms.
 - **Easing:** `ease-standard`, `ease-enter`, `ease-exit`, `ease-spring`.
 - **Peso:** `font-regular 400` · `font-medium 500` · `font-semibold 600` · `font-bold 700`. **Tracking:** `tracking-tight` · `tracking-normal` · `tracking-wide` (eyebrows em caixa alta).
-- **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-toast 50`.
+- **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-popover 45` (popover, menu, select, tooltip: abrem dentro de modais) · `--z-toast 50`.
 
 ## 7. Logo
 
