@@ -17,7 +17,7 @@ Uma *hidden state machine* aparece quando um estado e suas transições existem 
 1. **Toda entidade com ciclo de vida tem uma máquina explícita** em `src/domain/<entidade>/estado.ts`: lista de estados, tabela de transições permitidas, *guards* (condições) e efeitos.
 2. **Um único ponto de mudança.** Só a função de transição do domínio (`transicionarLead`, `transicionarImovel`, `transicionarContrato`, `registrarPagamento`) altera o estado. UI, `fakeApi`, atalhos e ações em lote **chamam** essa função; nunca atribuem o campo.
 3. **A UI pergunta, não decide.** O que habilitar/mostrar vem do domínio (`transicoesPermitidas(entidade)` / `podeTransicionar(entidade, alvo)`). Nenhum `if (status === …)` de regra de negócio em componente.
-4. **Efeitos ficam na transição.** Gerar `Atividade` e o **registro de alteração** (§4), ajustar status do imóvel, preencher/limpar `motivoPerda`, montar o `desfazer` (RF-04): tudo dentro da função de transição, atomicamente.
+4. **Efeitos ficam na transição.** Gerar `Atividade` e o **registro de alteração** (§4), ajustar status do imóvel, preencher/limpar `motivoPerda`, montar o `desfazer` quando a ação tiver (RF-04): tudo dentro da função de transição, atomicamente.
 5. **Estados derivados não são armazenados.** `inadimplente`, status da parcela, métricas e histórico do imóvel são calculados por funções puras em `src/domain/`, nunca gravados.
 6. **Estado de UI assíncrono é uma união discriminada**, não booleanos: `{ status: 'idle' | 'loading' | 'success' | 'error' | 'partial', … }`. Isso também garante os 5 estados obrigatórios de tela (RNF-09).
 7. **Transição inválida falha alto**: lança erro tipado (`TransicaoInvalida`) em vez de ignorar em silêncio. Os tipos TS tornam impossível passar um estado fora do enum.
@@ -30,32 +30,14 @@ Uma *hidden state machine* aparece quando um estado e suas transições existem 
 
 ### 3.1 Lead (`etapa`)
 
-```mermaid
-stateDiagram-v2
-  [*] --> novo
-  novo --> contato
-  contato --> visita
-  visita --> proposta
-  proposta --> fechado
-  novo --> perdido
-  contato --> perdido
-  visita --> perdido
-  proposta --> perdido
-  contato --> novo
-  visita --> contato
-  proposta --> visita
-  perdido --> novo: reabrir
-  fechado --> proposta: reabrir (sem contrato vinculado)
-```
+Etapas: `novo → contato → visita → proposta → fechado`, mais `perdido`. O lead pode ir para **qualquer** etapa (inclusive voltar ou pular), com só duas regras:
 
-| De → Para | Guard | Efeitos |
+| Transição | Guard | Efeitos |
 |---|---|---|
-| qualquer → `perdido` | `motivoPerda` informado (RF-32) | grava motivo; Atividade `etapaAlterada` |
-| `perdido` → `novo` | — | limpa `motivoPerda`; Atividade |
-| `proposta` → `fechado` | — | Atividade; oferece vincular contrato (RF-39) |
-| `fechado` → `proposta` | lead **sem** contrato vinculado | Atividade |
-| avançar/voltar uma etapa | — | Atividade; atualiza `ordem` na coluna |
-| saltos (ex.: `novo` → `proposta`) | **não permitidos**; o kanban mostra a coluna como alvo inválido | — |
+| qualquer → `perdido` | `motivoPerda` informado (RF-32) | grava motivo |
+| `perdido` → outra | — | limpa `motivoPerda` |
+| `fechado` → outra | lead sem contrato vinculado | — |
+| todas | — | Atividade `etapaAlterada`; registro de alteração (§4); atualiza `ordem` na coluna |
 
 ### 3.2 Imóvel (`status`)
 
