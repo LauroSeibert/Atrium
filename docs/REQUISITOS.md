@@ -129,6 +129,7 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RNF-17 | Todo gráfico (receita, funil, distribuição, financeiro) tem alternativa textual: tabela de dados acessível e resumo em texto. | axe + leitor de tela |
 | RNF-18 | Mensagens de status (toasts, "salvo", contagem de resultados após filtrar) anunciadas por *live region* sem mover o foco (WCAG 4.1.3). | Teste com leitor de tela |
 | RNF-19 | Listas e tabelas com mais de 100 itens renderizados usam virtualização; a interação continua dentro da meta de INP. | Teste com volume extremo do mock |
+| RNF-20 | Fluxos críticos (etapa do lead, status do imóvel e do contrato, pagamento, comissão, desfazer) implementados como máquinas de estado explícitas em `src/domain/`, sendo o único ponto de mudança; nenhuma regra desses fluxos espalhada em componentes. | Testes por transição + revisão de código ([`ESTADOS-E-FLUXOS.md`](./ESTADOS-E-FLUXOS.md)) |
 
 ## 4. Fora de escopo (nesta versão)
 

@@ -148,7 +148,7 @@ erDiagram
 
 ## 3. Regras e invariantes
 
-Garantidas pelo gerador do mock **e** pelas operações do `fakeApi` (que recusam mudanças que as violem).
+Garantidas pelo gerador do mock **e** pelas máquinas de estado do domínio, que são o único ponto de mudança de status (o `fakeApi` só as chama). Transições, guards e efeitos completos: [`ESTADOS-E-FLUXOS.md`](./ESTADOS-E-FLUXOS.md).
 
 1. Contrato de **venda** `ativo`/`encerrado` ⇒ imóvel `vendido`; contrato de **locação** `ativo` ⇒ imóvel `alugado`. Ao encerrar uma locação ou cancelar um contrato, o imóvel volta a `disponivel`.
 2. `vendido`/`alugado` só são atingidos via contrato (RF-25); `setStatusImovel` aceita apenas `disponivel ↔ reservado ↔ inativo` e recusa a mudança se o imóvel tiver contrato ativo.
