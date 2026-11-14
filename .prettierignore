@@ -8,3 +8,4 @@ coverage
 package-lock.json
 src/styles/tokens.css
 design-system/tokens.json
+playwright-report-stories

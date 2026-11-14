@@ -76,6 +76,8 @@
   --warning-bg: #F7EBD3;
   --danger: #B3261E;
   --danger-bg: #FBE5E3;
+  --danger-hover: #8F1E18;
+  --on-danger: #FFFFFF;
   --info: #0A5C52;
   --info-bg: #DDEEEB;
 
@@ -162,6 +164,8 @@
   --warning-bg: #F7EBD3;
   --danger: #B3261E;
   --danger-bg: #FBE5E3;
+  --danger-hover: #8F1E18;
+  --on-danger: #FFFFFF;
   --info: #0A5C52;
   --info-bg: #DDEEEB;
   --elevation-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
@@ -191,6 +195,8 @@
   --warning-bg: #3A2E14;
   --danger: #F2A39C;
   --danger-bg: #43201D;
+  --danger-hover: #F6BDB8;
+  --on-danger: #2A0F0D;
   --info: #8FD0C6;
   --info-bg: #123E3A;
 

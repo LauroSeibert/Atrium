@@ -294,6 +294,18 @@
       "bg": "bg-subtle",
       "min": 3,
       "use": "Série de gráfico sobre fundo de seção"
+    },
+    {
+      "fg": "on-danger",
+      "bg": "danger",
+      "min": 4.5,
+      "use": "Botão destrutivo"
+    },
+    {
+      "fg": "on-danger",
+      "bg": "danger-hover",
+      "min": 4.5,
+      "use": "Botão destrutivo (hover)"
     }
   ],
   "decorative": {

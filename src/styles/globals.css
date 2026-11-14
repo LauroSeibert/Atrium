@@ -30,6 +30,8 @@
   --color-warning-bg: var(--warning-bg);
   --color-danger: var(--danger);
   --color-danger-bg: var(--danger-bg);
+  --color-danger-hover: var(--danger-hover);
+  --color-on-danger: var(--on-danger);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
   --color-transparent: transparent;
@@ -90,6 +92,15 @@
   --default-transition-duration: var(--dur-base);
   --default-transition-timing-function: var(--easing-standard);
 
+  /* animações de entrada/saída (sobreposições). Durações e curvas dos tokens; com reduced-motion viram 1 ms. */
+  --animate-fade-in: fade-in var(--dur-base) var(--easing-enter);
+  --animate-fade-out: fade-out var(--dur-fast) var(--easing-exit);
+  --animate-scale-in: scale-in var(--dur-base) var(--easing-enter);
+  --animate-scale-out: scale-out var(--dur-fast) var(--easing-exit);
+  --animate-slide-in-right: slide-in-right var(--dur-slow) var(--easing-enter);
+  --animate-slide-out-right: slide-out-right var(--dur-base) var(--easing-exit);
+  --animate-slide-in-up: slide-in-up var(--dur-base) var(--easing-enter);
+
   /* grade de 4px: p-1 = 4px, p-2 = 8px, p-4 = 16px… */
   --spacing: var(--space-1);
 }
@@ -122,5 +133,44 @@
   .tnum {
     font-feature-settings: "tnum";
     font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes scale-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }

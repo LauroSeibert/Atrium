@@ -68,3 +68,5 @@ Thumbs.db
 
 # Claude local
 .claude/settings.local.json
+
+playwright-report-stories/

@@ -26,6 +26,8 @@ const twMerge = extendTailwindMerge({
         "warning-bg",
         "danger",
         "danger-bg",
+        "danger-hover",
+        "on-danger",
         "info",
         "info-bg",
       ],
