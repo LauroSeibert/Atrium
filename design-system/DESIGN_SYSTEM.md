@@ -19,7 +19,7 @@ O Tailwind teve os defaults de cor, raio, sombra, fonte e easing zerados: valore
 | Polar Snow | `#FDFEFD` | **60 %** | Fundo da aplicação, áreas de leitura, texto sobre verde |
 | Soft Beige | `#E7DBC5` | **30 %** | Sidebar/seções (`bg-subtle`), chips, destaques, divisórias |
 | Hunter Green | `#023933` | **10 %** | Botão primário, links, item ativo, ícones de ação, texto forte |
-| Ocre | `#C58A3E` | acento | **Só** gráficos e preenchimentos, sempre com rótulo. Nunca texto sobre fundo claro (2,97:1) |
+| Ocre | `#B87D30` | acento | **Só** gráficos e preenchimentos (≥ 3:1 como objeto gráfico), sempre com rótulo. Nunca texto |
 
 No tema escuro a lógica se inverte: o fundo é verde profundo (`#0B1F1D`, não preto) e o **beige vira a cor de ação** (`--primary`).
 
@@ -37,25 +37,26 @@ O neutro tem leve matiz verde para evitar cinza "morto".
 | `--bg-subtle` | Sidebar, faixas de seção, cabeçalho de tabela | Texto |
 | `--surface` | Cards, tabelas, painéis | Fundo da página |
 | `--surface-raised` | Popover, menu, modal, toast | Cards comuns |
-| `--surface-warm` | Chips, tags, avatar sem foto, destaque | Áreas grandes |
+| `--surface-warm` | Chips, tags, avatar sem foto, destaque | Áreas grandes, **fundo de inputs/controles** (borda < 3:1), **texto de status** (success/warning < 4,5:1; chips de status usam o próprio `*-bg`) |
 | `--border` | **Divisórias decorativas** (linhas entre itens, contorno de card) | Contorno de input/checkbox (< 3:1) |
 | `--border-strong` | **Inputs, selects, checkboxes, radios, toggles**, hover de card | Divisórias (pesado demais) |
 | `--text` | Texto principal, títulos | — |
 | `--text-muted` | Rótulos, ajuda, metadados | Texto essencial longo |
 | `--primary` / `--primary-hover` | Botão primário, links, item ativo, ícone de ação | Fundos grandes |
 | `--on-primary` | Texto/ícone sobre `--primary` | Texto sobre fundo claro |
-| `--ring` | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` | Bordas comuns |
+| `--ring` | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` (o offset é obrigatório: `ring` × `primary` < 3:1) | Bordas comuns |
 | `--success/-bg`, `--warning/-bg`, `--danger/-bg`, `--info/-bg` | Badges, alertas, validação. Texto colorido sobre `-bg` **ou** sobre `surface` | Decoração (cor sempre acompanhada de ícone/texto) |
 | `--accent-ochre` | Séries de gráfico, preenchimentos | Texto |
 
 ## 5. Contraste (Gate 1)
 
-Todas as combinações usadas estão em [`contrast.json`](./contrast.json) e são verificadas nos **dois temas** por `npm run check:contrast` (68/68 aprovadas).
+Todas as combinações usadas estão em [`contrast.json`](./contrast.json) e são verificadas nos **dois temas** por `npm run check:contrast` (todas aprovadas; o número exato aparece na página de cores).
 
 - Texto: **≥ 4,5:1** (WCAG 2.2, 1.4.3).
 - Bordas de controles e foco: **≥ 3:1** (1.4.11).
 - Divisórias decorativas (`--border`) são isentas: não identificam controles.
-- Cores com alpha são compostas sobre o fundo antes do cálculo.
+- Cores com alpha são compostas sobre o fundo antes do cálculo; fundos translúcidos são recusados pelo script.
+- Proibições de uso (combinações que **não** passam) ficam em `contrast.json → decorative`.
 
 ### Correções técnicas sobre o guia original
 
@@ -66,11 +67,14 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 | `--border-strong` (claro) | `#CFC0A3` | `#95876C` | 1,58:1 sobre `bg-subtle`; input precisa de 3:1 |
 | `--text-muted` (claro) | `#5E6E6A` | `#546360` | 3,92:1 sobre `surface-warm` |
 | `--ring` (claro) | `#2F8F83` | `#26887C` | 2,95:1 sobre `surface-warm` |
-| `--border-strong` (escuro) | — | `#57807A` | Não existia; `--border` escuro tem 1,34:1 |
+| `--border-strong` (escuro) | — | `#608983` | Não existia; `--border` escuro tem 1,34:1. Precisa de 3:1 também em `surface-raised` |
+| Ocre | `#C58A3E` | `#B87D30` | 2,61:1 sobre `bg-subtle`; série de gráfico precisa de 3:1 |
 | Estados (escuro) | — | 8 tokens | Não existiam; todos ≥ 4,5:1 |
 | `--surface-raised` | — | novo | Elevação no escuro = cor + borda |
 
 ## 6. Tipografia, espaço, forma e movimento
+
+> Nomes no CSS: os tokens de forma/movimento usam prefixos próprios em `tokens.css` (`--corner-*`, `--elevation-*`, `--easing-*`, `--weight-*`, `--line-height-*`, `--letter-spacing-*`) e o Tailwind os expõe com os nomes do guia (`--radius-*`, `--shadow-*`, `--ease-*`, `--font-weight-*`, `--leading-*`, `--tracking-*`). Isso evita variáveis que apontam para si mesmas. Os defaults do Tailwind nesses namespaces foram zerados, e `transition` usa `--dur-base` + `ease-standard`.
 
 - **Fonte:** Inter via `next/font` (`--font-sans`). Números de tabela/KPI com a classe `tnum` (`font-feature-settings: "tnum"`).
 - **Escala (1.2):** `text-xs 12` · `text-sm 14` · `text-base 16` · `text-lg 20` · `text-xl 24` · `text-2xl 32` · `text-3xl 40`. Corpo 14–16 px com `line-height 1.5`; títulos `1.2`.
@@ -79,6 +83,7 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 - **Sombra:** `shadow-1/2/3` com matiz verde. No escuro viram borda de 1 px (sombra não aparece em fundo escuro).
 - **Duração:** `--dur-fast 120ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`. Com `prefers-reduced-motion`, todas viram 1 ms.
 - **Easing:** `ease-standard`, `ease-enter`, `ease-exit`, `ease-spring`.
+- **Peso:** `font-regular 400` · `font-medium 500` · `font-semibold 600` · `font-bold 700`. **Tracking:** `tracking-tight` · `tracking-normal` · `tracking-wide` (eyebrows em caixa alta).
 - **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-toast 50`.
 
 ## 7. Logo

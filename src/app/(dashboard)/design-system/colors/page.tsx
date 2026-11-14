@@ -122,7 +122,7 @@ export default function ColorsPage() {
         <div className="flex flex-col gap-4">
           <AtriumLogo className="h-8 w-auto" />
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-widest text-text-muted uppercase">Design system</p>
+            <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">Design system</p>
             <h1 className="text-3xl font-semibold tracking-tight">Cores</h1>
             <p className="max-w-prose text-base text-text-muted">
               Paleta da marca, escalas derivadas em OKLCH e tokens semânticos. O código usa apenas os tokens
@@ -157,7 +157,7 @@ export default function ColorsPage() {
         <p className="text-sm text-text-muted">
           Ocre <code>{tokens.color.brand.ochre.$value}</code>{" "}
           <span className="inline-block size-3 rounded-full align-middle" style={swatch("brand-ochre")} aria-hidden="true" /> é
-          exclusivo de gráficos e preenchimentos: nunca texto sobre fundo claro (2,97:1).
+          exclusivo de gráficos e preenchimentos (≥ 3:1 como objeto gráfico, sempre com rótulo). Nunca texto.
         </p>
       </Section>
 

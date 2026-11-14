@@ -1,11 +1,47 @@
 {
   "$description": "Correções técnicas aplicadas sobre os valores originais do guia para cumprir o Gate 1 (contraste WCAG 2.2). 'to' aponta para o token atual.",
   "items": [
-    { "token": "--border-strong (claro)", "from": "#CFC0A3", "to": "{semantic.light.border-strong}", "why": "1,58:1 sobre bg-subtle. Bordas de input precisam de 3:1 (WCAG 1.4.11)." },
-    { "token": "--text-muted (claro)", "from": "#5E6E6A", "to": "{semantic.light.text-muted}", "why": "3,92:1 sobre surface-warm (chips). Agora ≥ 4,5:1 em todas as superfícies." },
-    { "token": "--ring (claro)", "from": "#2F8F83", "to": "{semantic.light.ring}", "why": "2,95:1 sobre surface-warm. O foco precisa de 3:1 em qualquer superfície." },
-    { "token": "--border-strong (escuro)", "from": "—", "to": "{semantic.dark.border-strong}", "why": "O guia não definia. O --border escuro (#1F4742) tem 1,34:1 e não serve para controles." },
-    { "token": "Estados no escuro", "from": "—", "to": "8 tokens", "why": "Sucesso, alerta, erro e info ganharam versões para o tema escuro, todas ≥ 4,5:1." },
-    { "token": "--surface-raised", "from": "—", "to": "novo", "why": "No escuro a elevação é cor + borda, porque sombra some em fundo escuro." }
+    {
+      "token": "--border-strong (claro)",
+      "from": "#CFC0A3",
+      "to": "{semantic.light.border-strong}",
+      "why": "1,58:1 sobre bg-subtle. Bordas de input precisam de 3:1 (WCAG 1.4.11)."
+    },
+    {
+      "token": "--text-muted (claro)",
+      "from": "#5E6E6A",
+      "to": "{semantic.light.text-muted}",
+      "why": "3,92:1 sobre surface-warm (chips). Agora ≥ 4,5:1 em todas as superfícies."
+    },
+    {
+      "token": "--ring (claro)",
+      "from": "#2F8F83",
+      "to": "{semantic.light.ring}",
+      "why": "2,95:1 sobre surface-warm. O foco precisa de 3:1 em qualquer superfície."
+    },
+    {
+      "token": "Ocre (marca)",
+      "from": "#C58A3E",
+      "to": "{color.brand.ochre}",
+      "why": "2,61:1 sobre bg-subtle. Séries de gráfico são objetos gráficos e precisam de 3:1 (WCAG 1.4.11)."
+    },
+    {
+      "token": "--border-strong (escuro)",
+      "from": "—",
+      "to": "{semantic.dark.border-strong}",
+      "why": "O guia não definia. O --border escuro (#1F4742) tem 1,34:1; o valor precisa de ≥ 3:1 também em surface-raised (modais)."
+    },
+    {
+      "token": "Estados no escuro",
+      "from": "—",
+      "to": "8 tokens",
+      "why": "Sucesso, alerta, erro e info ganharam versões para o tema escuro, todas ≥ 4,5:1."
+    },
+    {
+      "token": "--surface-raised",
+      "from": "—",
+      "to": "novo",
+      "why": "No escuro a elevação é cor + borda, porque sombra some em fundo escuro."
+    }
   ]
 }

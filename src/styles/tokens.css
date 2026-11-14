@@ -2,6 +2,9 @@
  * ARQUIVO GERADO — não edite à mão.
  * Fonte: design-system/tokens.json · Gerador: scripts/tokens.mjs (npm run tokens)
  * Único arquivo do código autorizado a conter valores de cor literais.
+ * Forma/movimento usam prefixos próprios (--corner-*, --elevation-*, --easing-*, --weight-*,
+ * --line-height-*); globals.css os expõe ao Tailwind com os nomes do guia (--radius-*,
+ * --shadow-*, --ease-*…), sem autorreferência.
  */
 
 :root {
@@ -11,7 +14,7 @@
   --brand-green: #023933;
   --brand-beige: #E7DBC5;
   --brand-snow: #FDFEFD;
-  --brand-ochre: #C58A3E;
+  --brand-ochre: #B87D30;
 
   /* escala green */
   --green-50: #F6FBFA;
@@ -66,7 +69,7 @@
   --primary-hover: #0A5C52;
   --on-primary: #FDFEFD;
   --ring: #26887C;
-  --accent-ochre: #C58A3E;
+  --accent-ochre: #B87D30;
   --success: #1F7A4D;
   --success-bg: #E3F2EA;
   --warning: #8A5A14;
@@ -77,7 +80,7 @@
   --info-bg: #DDEEEB;
 
   /* tipografia */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-base: 16px;
@@ -85,12 +88,15 @@
   --font-size-xl: 24px;
   --font-size-2xl: 32px;
   --font-size-3xl: 40px;
-  --leading-body: 1.5;
-  --leading-heading: 1.2;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  --line-height-body: 1.5;
+  --line-height-heading: 1.2;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.08em;
 
   /* espaçamento (grade 4px) */
   --space-1: 4px;
@@ -103,26 +109,26 @@
   --space-16: 64px;
 
   /* raio */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-full: 999px;
+  --corner-sm: 6px;
+  --corner-md: 10px;
+  --corner-lg: 14px;
+  --corner-xl: 20px;
+  --corner-full: 999px;
 
   /* sombra (matiz verde) */
-  --shadow-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
-  --shadow-2: 0px 4px 12px 0px rgb(2 57 51 / 0.10);
-  --shadow-3: 0px 12px 32px 0px rgb(2 57 51 / 0.16);
+  --elevation-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
+  --elevation-2: 0px 4px 12px 0px rgb(2 57 51 / 0.10);
+  --elevation-3: 0px 12px 32px 0px rgb(2 57 51 / 0.16);
 
   /* motion */
   --dur-fast: 120ms;
   --dur-base: 200ms;
   --dur-slow: 320ms;
   --dur-page: 450ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-enter: cubic-bezier(0, 0, 0, 1);
-  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-enter: cubic-bezier(0, 0, 0, 1);
+  --easing-exit: cubic-bezier(0.3, 0, 1, 1);
+  --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* z-index */
   --z-base: 0;
@@ -149,7 +155,7 @@
   --primary-hover: #0A5C52;
   --on-primary: #FDFEFD;
   --ring: #26887C;
-  --accent-ochre: #C58A3E;
+  --accent-ochre: #B87D30;
   --success: #1F7A4D;
   --success-bg: #E3F2EA;
   --warning: #8A5A14;
@@ -158,9 +164,9 @@
   --danger-bg: #FBE5E3;
   --info: #0A5C52;
   --info-bg: #DDEEEB;
-  --shadow-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
-  --shadow-2: 0px 4px 12px 0px rgb(2 57 51 / 0.10);
-  --shadow-3: 0px 12px 32px 0px rgb(2 57 51 / 0.16);
+  --elevation-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
+  --elevation-2: 0px 4px 12px 0px rgb(2 57 51 / 0.10);
+  --elevation-3: 0px 12px 32px 0px rgb(2 57 51 / 0.16);
 }
 
 .dark {
@@ -171,7 +177,7 @@
   --surface-raised: #183B37;
   --surface-warm: #2A4A44;
   --border: #1F4742;
-  --border-strong: #57807A;
+  --border-strong: #608983;
   --text: #FDFEFD;
   --text-muted: #A8B8B4;
   --primary: #E7DBC5;
@@ -189,9 +195,9 @@
   --info-bg: #123E3A;
 
   /* no escuro, elevação = cor + borda; sombra quase imperceptível */
-  --shadow-1: 0 0 0 1px var(--border);
-  --shadow-2: 0 0 0 1px var(--border);
-  --shadow-3: 0 0 0 1px var(--border-strong);
+  --elevation-1: 0 0 0 1px var(--border);
+  --elevation-2: 0 0 0 1px var(--border);
+  --elevation-3: 0 0 0 1px var(--border-strong);
 }
 
 @media (prefers-reduced-motion: reduce) {

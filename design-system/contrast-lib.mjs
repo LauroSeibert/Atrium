@@ -13,6 +13,7 @@ export function semanticValue(tokens, theme, name) {
 function flatten(fg, bg) {
   const f = parse(fg);
   const b = parse(bg);
+  if ((b.alpha ?? 1) < 1) throw new Error(`Fundo translúcido não pode ser medido sozinho: ${bg}`);
   const a = f.alpha ?? 1;
   return formatHex({ mode: "rgb", r: f.r * a + b.r * (1 - a), g: f.g * a + b.g * (1 - a), b: f.b * a + b.b * (1 - a) });
 }
