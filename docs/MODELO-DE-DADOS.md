@@ -143,6 +143,22 @@ erDiagram
 | dados | objeto por tipo | ex.: `{ de: 'visita', para: 'proposta' }` |
 | criadoEm | ISO | feed do dashboard (RF-13) e linhas do tempo (RF-26, RF-34). O histórico do imóvel é derivado daqui (atividades com o imóvel em `alvo` ou `relacionados`), não é armazenado à parte |
 
+### RegistroAuditoria (append-only)
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | `aud_…` | |
+| ocorridoEm | ISO | |
+| autorId | → Corretor \| `sistema` | persona atual no mock |
+| acao | ex.: `imovel.precoAlterado`, `lead.etapaAlterada`, `contrato.cancelado`, `parcela.pagamentoRegistrado`, `sistema.reset` | |
+| entidade | `{ tipo, id }` | |
+| alteracoes | `{ campo, de, para }[]` | valores brutos (centavos, enums) |
+| motivo | string \| null | obrigatório quando a transição exige |
+| origem | `ui \| lote \| atalho \| desfazer \| sistema` | |
+| correlacaoId | string \| null | agrupa ações em lote |
+| desfazId | → RegistroAuditoria \| null | entrada que esta compensa |
+
+Regras completas em [`ESTADOS-E-FLUXOS.md §4`](./ESTADOS-E-FLUXOS.md#4-log-de-auditoria). A `Atividade` ganha `desfeita: boolean`.
+
 ### MetricaMensal (derivada)
 `{ mes: 'AAAA-MM', receitaVendas, receitaLocacoes, comissoes, leadsNovos, visitas, contratosFechados }` — **calculada na consulta** (`getDashboard`/`getFinanceiro`) a partir de contratos, parcelas, comissões, leads e visitas, para refletir imediatamente qualquer alteração salva (ex.: RF-43). Não é armazenada; uma cópia pré-calculada existe só como *fixture* de teste para conferir o cálculo.
 
@@ -157,7 +173,8 @@ Garantidas pelo gerador do mock **e** pelas máquinas de estado do domínio, que
 5. Contrato **inadimplente** = `ativo` com ao menos uma parcela `atrasado` (derivado; RF-41/RF-44).
 6. `tipo` do contrato = `finalidade` do imóvel.
 7. Soma das parcelas de venda = `valor`; locação: uma parcela por mês de vigência, cada uma = `valor`.
-8. Toda mudança de etapa, status, preço, pagamento ou contrato gera uma `Atividade` (alimenta linhas do tempo, feed e notificações).
+8. Toda mudança de etapa, status, preço, pagamento ou contrato gera uma `Atividade` (alimenta linhas do tempo, feed e notificações) **e** um `RegistroAuditoria`, na mesma transação.
+9. `RegistroAuditoria` nunca é alterado nem removido; desfazer gera uma entrada compensatória.
 
 ## 4. Volume e casos de borda (para a Fase 5)
 
@@ -183,8 +200,9 @@ Casos embutidos: nome e título muito longos; imóvel sem cômodos (terreno) e s
 | `listNotificacoes()` · `marcarLida(id)` | RF-64 |
 | `search(termo)` | RF-02 |
 | `getPerfil()` · `savePerfil(dados)` | RF-50 |
+| `listAuditoria({ entidade?, campo?, autorId?, origem?, periodo? }, paginacao)` | RF-65, RF-66 (somente leitura; não existe operação de escrita direta) |
 | `resetMock()` · `configurar({ latencia, taxaErro })` | RF-51 |
 
-**Desfazer (RF-04):** toda operação de escrita retorna `{ resultado, desfazer }`, onde `desfazer()` restaura o estado anterior (snapshot da entidade + remoção da atividade gerada). Assim "Desfazer" funciona igual para mover lead, mudar status, registrar pagamento e favoritar.
+**Desfazer (RF-04):** toda operação de escrita retorna `{ resultado, desfazer }`, onde `desfazer()` restaura o estado anterior (snapshot da entidade como **nova transição**: gera auditoria compensatória e marca a `Atividade` original como `desfeita`, sem apagar nada). Assim "Desfazer" funciona igual para mover lead, mudar status, registrar pagamento e favoritar.
 
 Todas retornam `Promise` com latência de 300–800 ms e taxa de erro configurável.
