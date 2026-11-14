@@ -35,7 +35,7 @@ erDiagram
 | email, telefone | string | fictícios, sem dados reais |
 | creci | string | formato `CRECI-SP 123456-F` fictício |
 | avatar | `{ iniciais, variante? }` | ilustração SVG ou iniciais (Fase 5) |
-| papel | `gestor \| corretor \| financeiro` | informativo |
+| papel | `gestor \| corretor \| financeiro` | usado pelo seletor de persona (RF-08) |
 | metaMensal | centavos | para "meta x realizado" no dashboard |
 | ativo | boolean | |
 
@@ -169,7 +169,7 @@ Garantidas pelo gerador do mock **e** pelas máquinas de estado do domínio, que
 5. Contrato **inadimplente** = `ativo` com ao menos uma parcela `atrasado` (derivado; RF-41/RF-44).
 6. `tipo` do contrato = `finalidade` do imóvel.
 7. Soma das parcelas de venda = `valor`; locação: uma parcela por mês de vigência, cada uma = `valor`.
-8. Toda mudança de etapa, status, preço, pagamento ou contrato gera uma `Atividade` (alimenta linhas do tempo e feed); se mudou preço, status ou valor monetário, gera também um `RegistroAlteracao`.
+8. Toda mudança de etapa, status, preço, pagamento ou contrato gera uma `Atividade` (alimenta linhas do tempo, feed e notificações); se mudou preço, status ou valor monetário, gera também um `RegistroAlteracao`.
 
 ## 4. Volume e casos de borda (para a Fase 5)
 
@@ -181,7 +181,7 @@ Casos embutidos: nome e título muito longos; imóvel sem cômodos (terreno) e s
 | Função | Usada por |
 |---|---|
 | `getDashboard(periodo)` | RF-10…16 |
-| `listCorretores()` | filtros (RF-36), RF-16 |
+| `listCorretores()` | filtros (RF-36), RF-16, RF-08 |
 | `listImoveis(filtros, paginacao, ordem)` · `getImovel(id)` · `saveImovel(dados)` | RF-20…24, RF-27 |
 | `setStatusImovel(id, status, motivo?)` · `setStatusImoveis(ids, status)` | RF-25, RF-49 |
 | `toggleFavorito(id)` | RF-28 |
@@ -192,11 +192,12 @@ Casos embutidos: nome e título muito longos; imóvel sem cômodos (terreno) e s
 | `listContratos(filtros, paginacao, ordem)` · `getContrato(id)` | RF-40…42 |
 | `registrarPagamento(contratoId, numero)` · `cancelarContrato(id, motivo)` | RF-43, RF-48 |
 | `getFinanceiro(periodo)` | RF-44…46 |
+| `listNotificacoes()` · `marcarLida(id)` | RF-64 |
 | `search(termo)` | RF-02 |
 | `getPerfil()` · `savePerfil(dados)` | RF-50 |
 | `listAlteracoes(entidade)` | RF-65 |
 | `resetMock()` · `configurar({ latencia, taxaErro })` | RF-51 |
 
-**Desfazer (RF-04):** só `moveLead`, `setStatusImovel`, `cancelarContrato`/transições de contrato e `registrarPagamento` retornam `{ resultado, desfazer }`; `desfazer()` aplica a transição inversa (e gera registro de alteração como qualquer mudança).
+**Desfazer (RF-04):** toda operação de escrita retorna `{ resultado, desfazer }`, onde `desfazer()` restaura o estado anterior (snapshot da entidade + remoção da atividade gerada; como é uma alteração, também gera registro de alteração). Assim "Desfazer" funciona igual para mover lead, mudar status, registrar pagamento e favoritar.
 
 Todas retornam `Promise` com latência de 300–800 ms e taxa de erro configurável.

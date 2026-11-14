@@ -12,7 +12,7 @@
 | **Corretor(a)** | Gerir os próprios imóveis e leads rápido | Desktop no escritório, **celular na rua** (entre visitas) | Leads (kanban), Imóveis, detalhe do lead | Atualiza a etapa de um lead ou o status de um imóvel em ≤ 3 toques |
 | **Financeiro/administrativo** | Controlar contratos, vencimentos e repasses | Desktop, rotina diária/mensal | Contratos, Financeiro | Vê o que vence e o que está atrasado sem montar planilha |
 
-**Usuário no mock:** não há autenticação (ver §5); há um único usuário atual fixo, editável em Configurações (RF-50). "Meus leads" filtra pelo responsável = usuário atual.
+**Papéis no mock:** não há autenticação (ver §5). Um seletor de "usuário atual" nas Configurações alterna entre as três personas para demonstrar a visão de cada uma (ex.: o corretor vê "Meus leads" por padrão).
 
 ## 2. Requisitos funcionais
 
@@ -25,10 +25,11 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RF-01 | Navegação entre módulos por sidebar (desktop) e drawer (mobile), com item ativo destacado. | M |
 | RF-02 | Busca global e atalhos por paleta de comandos (⌘K / Ctrl+K): imóveis por código/título, leads por nome, contratos por número, e ações ("Novo imóvel", "Novo lead"). | M |
 | RF-03 | Alternar tema claro/escuro/sistema; preferência persistida. | M |
-| RF-04 | Toda ação que altera dados mostra feedback (toast). "Desfazer" no toast, por alguns segundos e só para a última ação, em ações imediatas (sem botão Salvar): mover lead, mudar status (imóvel/contrato) e registrar pagamento. Formulários com Salvar não têm desfazer: antes de salvar, "Cancelar" descarta as alterações. | M |
+| RF-04 | Toda ação que altera dados mostra feedback (toast) e, quando reversível, oferece "Desfazer". | M |
 | RF-05 | Ações destrutivas (inativar imóvel, marcar lead como perdido, cancelar contrato) pedem confirmação descrevendo o impacto. Não há exclusão definitiva no MVP. | M |
 | RF-06 | Filtros, ordenação, paginação e modo de visualização refletidos na URL (link compartilhável, botão voltar funciona). | M |
 | RF-07 | Formatação pt-BR: moeda (R$ 1.234,56), área (m²), datas (dd/mm/aaaa e relativas: "há 2 h"), telefone ((11) 91234-5678). | M |
+| RF-08 | Seletor de "usuário atual" (persona) que muda o recorte padrão das listas. | S |
 | RF-09 | Densidade de tabelas (confortável/compacta), persistida. | S |
 
 ### 2.2 Dashboard
@@ -94,7 +95,9 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 |---|---|---|
 | RF-60 | Sidebar recolhível (só ícones + tooltips), com estado persistido. | M |
 | RF-61 | Breadcrumb e cabeçalho de página (título, descrição, ação primária) em todas as telas. | M |
+| RF-62 | Badges de contagem na navegação (ex.: leads novos, parcelas atrasadas). | S |
 | RF-63 | No mobile: sidebar em drawer e barra de ação inferior com a ação primária da tela. | M |
+| RF-64 | Central de notificações in-app (mock), gerada a partir de atividades e vencimentos; marcar como lida. | S |
 
 ### 2.7 Configurações
 
@@ -142,7 +145,7 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 - Pagamentos, boletos, Pix e conciliação bancária.
 - Upload real de imagens e documentos (imóveis usam ilustrações SVG).
 - Integrações: portais imobiliários, WhatsApp, e-mail, calendário, assinatura eletrônica.
-- Notificações (push, e-mail ou central in-app).
+- Notificações push/e-mail (só a central in-app mock, RF-64).
 - Internacionalização (só pt-BR) e múltiplas moedas.
 - Geração de contrato em PDF.
 
@@ -166,15 +169,15 @@ Rotas do App Router (grupo `(dashboard)` compartilha o shell da Fase 7).
 | `/imoveis/[id]` | Imóvel — detalhe (galeria, ficha, histórico de alterações) | Corretor | RF-24…26, RF-29, RF-65 |
 | `/imoveis/[id]/editar` | Imóvel — edição | Corretor | RF-27 |
 | `/leads` | Leads — kanban (ou lista via `?view=lista`) | Corretor | RF-30…32, RF-35, RF-36, RF-38, RF-39 |
-| `/leads?lead=<id>` · `/leads/[id]` | Lead — detalhe (drawer sobre o kanban via query; página cheia no acesso direto) | Corretor | RF-33, RF-34, RF-37 |
+| `/leads/[id]` | Lead — detalhe (abre como drawer sobre o kanban; acesso direto abre página) | Corretor | RF-33, RF-34, RF-37 |
 | `/contratos` | Contratos — tabela | Financeiro | RF-40, RF-41, RF-47, RF-49 |
 | `/contratos/[id]` | Contrato — detalhe e cronograma | Financeiro | RF-42, RF-43, RF-46, RF-48 |
 | `/financeiro` | Financeiro — resumo | Gestor, Financeiro | RF-44, RF-45 |
-| `/configuracoes` | Configurações | Todos | RF-03, RF-09, RF-50, RF-51 |
+| `/configuracoes` | Configurações | Todos | RF-03, RF-08, RF-09, RF-50, RF-51 |
 | `/design-system/colors` | Referência: cores (Fase 1) | Time | — |
 | `/design-system/illustrations` | Referência: SVGs (Fase 5) | Time | — |
 
-**Globais (em todas as telas do shell):** sidebar/drawer (RF-01, RF-60), topbar com busca ⌘K (RF-02), alternador de tema (RF-03), breadcrumb (RF-61), toasts (RF-04, RNF-18), *skip link* (RNF-03).
+**Globais (em todas as telas do shell):** sidebar/drawer (RF-01, RF-60, RF-62), topbar com busca ⌘K (RF-02), notificações (RF-64), alternador de tema (RF-03), breadcrumb (RF-61), toasts (RF-04, RNF-18), *skip link* (RNF-03).
 
 **Estrutura no App Router (Next.js 16):**
 
@@ -185,8 +188,12 @@ src/app/
     layout.tsx                     # shell (Fase 7)
     page.tsx                       # "/" Dashboard — substitui o src/app/page.tsx provisório (redirect da Fase 1)
     imoveis/  page.tsx · novo/page.tsx · [id]/page.tsx · [id]/editar/page.tsx
-    leads/  page.tsx                 # kanban; o detalhe abre em drawer via ?lead=<id> (link compartilhável)
-            [id]/page.tsx            # detalhe em página cheia (acesso direto)
+    leads/
+      layout.tsx                   # renderiza {children} + {drawer}
+      page.tsx                     # kanban
+      [id]/page.tsx                # detalhe em página cheia (acesso direto / recarregar)
+      @drawer/default.tsx          # null
+      @drawer/(.)[id]/page.tsx     # rota interceptada: detalhe em drawer sobre o kanban
     contratos/  page.tsx · [id]/page.tsx
     financeiro/page.tsx
     configuracoes/page.tsx
@@ -202,7 +209,7 @@ flowchart LR
   I --> IN["/imoveis/novo"]
   I --> ID["/imoveis/[id]"] --> IE["/imoveis/[id]/editar"]
   ID -. leads interessados .-> LD
-  L --> LD["/leads?lead=id (drawer)"]
+  L --> LD["/leads/[id] (drawer)"]
   LD -. imóveis vistos .-> ID
   C --> CD["/contratos/[id]"]
   CD -. imóvel .-> ID
