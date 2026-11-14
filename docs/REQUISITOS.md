@@ -25,7 +25,7 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RF-01 | Navegação entre módulos por sidebar (desktop) e drawer (mobile), com item ativo destacado. | M |
 | RF-02 | Busca global e atalhos por paleta de comandos (⌘K / Ctrl+K): imóveis por código/título, leads por nome, contratos por número, e ações ("Novo imóvel", "Novo lead"). | M |
 | RF-03 | Alternar tema claro/escuro/sistema; preferência persistida. | M |
-| RF-04 | Toda ação que altera dados mostra feedback (toast). "Desfazer" no toast para: mover lead, mudar status (imóvel/contrato) e registrar pagamento. | M |
+| RF-04 | Toda ação que altera dados mostra feedback (toast). "Desfazer" no toast, por alguns segundos e só para a última ação, em ações imediatas (sem botão Salvar): mover lead, mudar status (imóvel/contrato) e registrar pagamento. Formulários com Salvar não têm desfazer: antes de salvar, "Cancelar" descarta as alterações. | M |
 | RF-05 | Ações destrutivas (inativar imóvel, marcar lead como perdido, cancelar contrato) pedem confirmação descrevendo o impacto. Não há exclusão definitiva no MVP. | M |
 | RF-06 | Filtros, ordenação, paginação e modo de visualização refletidos na URL (link compartilhável, botão voltar funciona). | M |
 | RF-07 | Formatação pt-BR: moeda (R$ 1.234,56), área (m²), datas (dd/mm/aaaa e relativas: "há 2 h"), telefone ((11) 91234-5678). | M |
