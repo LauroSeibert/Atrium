@@ -100,3 +100,78 @@ O átrio da *domus* romana visto de cima: o ladrilho é a casa, o quadrado com d
 2. `npm run tokens` (regenera escalas e `tokens.css`).
 3. `npm run check` (tokens em dia, contraste, zero hex, typecheck).
 4. Confira `/design-system/colors` nos dois temas.
+
+## 9. Princípios de UI/UX
+
+Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista de imóveis com filtros, kanban de leads, tabela de contratos/pagamentos). Em conflito, vale o token; o princípio explica o porquê.
+
+### 9.1 Heurísticas de Nielsen
+
+[10 Heurísticas de Usabilidade, Nielsen Norman Group](https://www.nngroup.com/articles/ten-usability-heuristics/): dez regras gerais que todo fluxo de interface deve respeitar.
+
+- **Visibilidade do status:** toda lista, kanban e tabela tem estados de carregando (skeleton com a forma final), vazio, erro e sucesso; ações assíncronas mostram progresso no próprio botão e confirmam em toast (`--z-toast`).
+- **Prevenção de erros:** ações destrutivas (excluir imóvel, cancelar contrato) pedem confirmação com o nome do item e oferecem "Desfazer" quando possível.
+- **Reconhecer em vez de lembrar:** filtros ativos da lista de imóveis aparecem como chips removíveis acima da tabela, com contagem de resultados.
+- **Consistência:** o mesmo componente para o mesmo papel (status de lead e de pagamento usam o mesmo `Badge`); nada de hex solto, só tokens semânticos (seção 4).
+
+### 9.2 WCAG 2.2
+
+[WCAG 2.2, W3C](https://www.w3.org/TR/WCAG22/): critérios de acessibilidade, nível AA como mínimo do projeto.
+
+- **Contraste (1.4.3, 1.4.11):** já verificado por `npm run check:contrast` (seção 5); não crie par de cor fora dos tokens sem rodar o gate.
+- **Foco visível e não obscurecido (2.4.7, 2.4.11):** sempre `outline: 2px solid var(--ring); outline-offset: 2px`; cabeçalho e coluna fixa (`--z-sticky`) não podem cobrir o elemento focado (use `scroll-margin`).
+- **Tamanho do alvo (2.5.8):** o mínimo da norma é 24×24 px; o padrão do projeto é maior: botão `md` com 40 px no desktop e 44 px no mobile. Ícone-botão em linha de tabela também respeita 40 px de área clicável.
+- **Erros (3.3.1, 3.3.3):** campo inválido mostra mensagem em texto junto ao campo, com ícone e `aria-describedby`, e a sugestão de correção ("CPF deve ter 11 dígitos"); inputs mantêm `--border-strong`.
+- **Mensagens de status (4.1.3):** toasts, "salvo" e a contagem de resultados após filtrar são anunciados por *live region* (`role="status"`), sem tirar o foco do usuário.
+- **Reflow e zoom (1.4.10, 1.4.4):** nada de rolagem horizontal da página em 320 px CSS ou com zoom de 200 %; tabelas largas rolam dentro do próprio contêiner.
+- **Arrastar (2.5.7):** todo card do kanban de leads tem alternativa sem arrastar: menu "Mover para…" (teclado e toque). O drag é só atalho.
+
+### 9.3 Laws of UX
+
+[Laws of UX](https://lawsofux.com/): coletânea de princípios de psicologia aplicados a interface.
+
+- **Hick:** menos opções por tela; filtros avançados da lista de imóveis ficam recolhidos em "Mais filtros", e ações secundárias da linha vão para um menu "⋯".
+- **Fitts:** alvos frequentes são grandes e próximos; ação principal do formulário fica no rodapé do cartão, alinhada à direita, com altura 40/44 px.
+- **Von Restorff:** um destaque por vista, ou seja, um único botão primário (`--primary`, a cor dos 10% do 60-30-10). Demais ações são secundárias ou fantasma; o KPI crítico (ex.: pagamentos em atraso) é o único com cor de alerta no valor. A seta de variação (▲▼) de cada KPI usa cor de sucesso/erro, sempre com ícone e texto, e não conta como destaque.
+- **Proximidade e Região comum:** campos relacionados ficam agrupados no mesmo card (`rounded-lg`) com espaço interno maior que o espaço entre grupos; KPIs de um mesmo tema compartilham um bloco.
+
+### 9.4 Movimento
+
+[Material Design 3: Motion](https://m3.material.io/styles/motion/overview) e [Apple HIG: Motion](https://developer.apple.com/design/human-interface-guidelines/motion): movimento com propósito, curto e interrompível.
+
+- **Propósito:** anime só para explicar mudança (card que muda de coluna, painel que abre, toast que entra). Nada de animação decorativa em tabelas ou KPIs.
+- **Curto:** hover e foco em `--dur-fast`; transições de componente em `--dur-base` com `ease-standard`; entrada com `ease-enter`, saída com `ease-exit`; `--dur-page` só para troca de página.
+- **Interrompível:** animar `opacity`/`transform`, nunca bloquear a interação enquanto anima.
+- **Reduzir movimento:** respeite `prefers-reduced-motion`; os tokens de duração já viram 1 ms, então use sempre os tokens, nunca `ms` literal.
+
+### 9.5 Refactoring UI
+
+[Refactoring UI, Wathan & Schoger](https://www.refactoringui.com/): táticas práticas de hierarquia visual.
+
+- **Hierarquia por peso e cor, não só tamanho:** valor do KPI em `font-semibold` + `tnum`; rótulo em `--text-muted` e `text-sm`.
+- **Menos bordas:** separe linhas da tabela com espaço e `--border` sutil (ou zebra leve), reservando `--border-strong` para controles interativos.
+- **Espaço generoso:** prefira `p-6` em cards e `gap-4` entre campos; densidade extra só em tabelas, por opção do usuário.
+- **Rebaixar o secundário:** metadados (data de criação, corretor, ID) em `--text-muted`; o que decide a ação (status, valor, vencimento) em texto normal.
+
+### 9.6 Gestalt e grade 4/8 px
+
+[Gestalt: Proximidade, Nielsen Norman Group](https://www.nngroup.com/articles/gestalt-proximity/): itens próximos são percebidos como relacionados.
+
+- **Só valores da grade de 4 px** (`--spacing: 4px`): `p-1/2/3/4/6/8`; sem `13px` ou `margin: 7px`. Prefira múltiplos de 8 entre seções.
+- **Espaço interno < espaço externo:** o intervalo entre rótulo e campo é menor que entre um campo e o próximo; entre colunas do kanban, maior que entre cards da mesma coluna.
+- **Raio coerente:** card `rounded-lg`, controles `rounded-md`, chips `rounded-full`; aninhado usa raio menor que o pai.
+- **Cor 60-30-10:** fundo neutro dominante, superfícies secundárias, `--primary` só no destaque.
+
+### Checklist de revisão de tela
+
+- [ ] Tem estados de carregando, vazio, erro, sucesso e parcial (dados incompletos ou falha em parte da tela).
+- [ ] Completa só com teclado: ordem de tab lógica, foco visível com `--ring`, Esc fecha overlays.
+- [ ] Uma única ação primária na vista; as demais são secundárias ou fantasma.
+- [ ] A cor nunca é o único sinal: status tem texto e/ou ícone além da cor.
+- [ ] Números, valores e datas em tabelas e KPIs usam `tnum` e alinhamento à direita.
+- [ ] Alvos clicáveis com 40 px (desktop) e 44 px (mobile); nunca abaixo de 24×24 px.
+- [ ] Todo arrastar (kanban, ordenação) tem alternativa "Mover para…".
+- [ ] Erros de formulário dizem o que houve e como corrigir, junto do campo.
+- [ ] Espaçamentos só da grade de 4 px; sem hex, sem `ms` e sem sombra literais.
+- [ ] Metadados em `--text-muted`; movimento só com tokens `--dur-*` e easings, e a tela funciona com `prefers-reduced-motion`.
+- [ ] Ações destrutivas pedem confirmação e oferecem desfazer.
