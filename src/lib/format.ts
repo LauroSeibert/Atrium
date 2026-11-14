@@ -194,8 +194,13 @@ function paraDate(data: Date | string): Date | null {
   if (typeof data === "string") {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
     if (m) {
+      const [a, mes, dia] = [Number(m[1]), Number(m[2]), Number(m[3])];
       // 15:00 UTC = 12:00 em São Paulo (UTC-3): mesmo dia em qualquer máquina.
-      d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 15));
+      d = new Date(Date.UTC(a, mes - 1, dia, 15));
+      // Rejeita datas inexistentes (ex.: 2026-02-30), que o Date "rola" adiante.
+      if (d.getUTCFullYear() !== a || d.getUTCMonth() !== mes - 1 || d.getUTCDate() !== dia) {
+        return null;
+      }
     } else {
       d = new Date(data);
     }
@@ -252,6 +257,8 @@ function diaCalendario(d: Date): number {
 /**
  * Formata uma data de forma relativa a `agora`.
  *
+ * - strings só com data ("2026-11-14") comparam por dia de calendário
+ *   (São Paulo): "hoje", "ontem", "amanhã", "há N dias"...
  * - menos de 60 s (passado ou futuro) → "agora"
  * - menos de 1 h → "há 5 min" / "em 5 min"
  * - menos de 24 h → "há 2 h" / "em 2 h"
@@ -265,16 +272,20 @@ export function formatRelativo(data: Date | string, agora: Date = new Date()): s
   const d = paraDate(data);
   if (!d) return INVALIDO;
 
+  const soData = typeof data === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data);
   const diffSeg = Math.trunc((d.getTime() - agora.getTime()) / 1000);
   const abs = Math.abs(diffSeg);
   const futuro = diffSeg > 0;
   const fmt = (n: number, un: string) => (futuro ? `em ${n} ${un}` : `há ${n} ${un}`);
 
-  if (abs < 60) return "agora";
-  if (abs < 3600) return fmt(Math.floor(abs / 60), "min");
-  if (abs < 86_400) return fmt(Math.floor(abs / 3600), "h");
+  if (!soData) {
+    if (abs < 60) return "agora";
+    if (abs < 3600) return fmt(Math.floor(abs / 60), "min");
+    if (abs < 86_400) return fmt(Math.floor(abs / 3600), "h");
+  }
 
   const dias = diaCalendario(d) - diaCalendario(agora);
+  if (dias === 0) return "hoje";
   if (dias === -1) return "ontem";
   if (dias === 1) return "amanhã";
   if (Math.abs(dias) > 30) return formatData(d);
@@ -290,13 +301,18 @@ export function formatRelativo(data: Date | string, agora: Date = new Date()): s
  * - 11 dígitos → "(11) 91234-5678"
  * - 10 dígitos → "(11) 3123-4567"
  * - 13/12 dígitos iniciando em 55 → "+55 (11) 91234-5678" / "+55 (11) 3123-4567"
- * Qualquer outro formato devolve a entrada original, inalterada.
+ * - 11 dígitos iniciando em 0800/0300/0500/0900 → "0800 123 4567"
+ * Qualquer outro formato (inclusive iniciado em 0) devolve a entrada original.
  *
  * @param digitos Telefone (com ou sem máscara).
  */
 export function formatTelefone(digitos: string): string {
   const d = digitos.replace(/\D/g, "");
+  if (/^0[3589]00\d{7}$/.test(d)) {
+    return `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+  }
   const local = (s: string): string | null => {
+    if (s.startsWith("0")) return null;
     if (s.length === 11) {
       return `(${s.slice(0, 2)}) ${s.slice(2, 7)}-${s.slice(7)}`;
     }

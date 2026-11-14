@@ -14,7 +14,7 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
-    trace: "off",
+    trace: "on-first-retry",
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], launchOptions: { executablePath } } },

@@ -19,7 +19,7 @@ Uma _hidden state machine_ aparece quando um estado e suas transições existem 
 3. **A UI pergunta, não decide.** O que habilitar/mostrar vem do domínio (`transicoesPermitidas(entidade)` / `podeTransicionar(entidade, alvo)`). Nenhum `if (status === …)` de regra de negócio em componente.
 4. **Efeitos ficam na transição.** Gerar `Atividade` e o **registro de alteração** (§4), ajustar status do imóvel, preencher/limpar `motivoPerda`, montar o `desfazer` (RF-04): tudo dentro da função de transição, atomicamente.
 5. **Estados derivados não são armazenados.** `inadimplente`, status da parcela, métricas e histórico do imóvel são calculados por funções puras em `src/domain/`, nunca gravados.
-6. **Estado de UI assíncrono é uma união discriminada**, não booleanos: `{ status: 'idle' | 'loading' | 'success' | 'error' | 'partial', … }`. Isso também garante os 5 estados obrigatórios de tela (RNF-09).
+6. **Estado de UI assíncrono é uma união discriminada**, não booleanos: `{ fase: 'idle' | 'loading' | 'success' | 'error' | 'partial', … }` (o discriminante se chama `fase`, não `status`, para não colidir com o status das entidades nem com a regra de lint de fluxos críticos). Isso também garante os 5 estados obrigatórios de tela (RNF-09).
 7. **Transição inválida falha alto**: lança erro tipado (`TransicaoInvalida`) em vez de ignorar em silêncio. Os tipos TS tornam impossível passar um estado fora do enum.
 8. **Testes por transição**: cada máquina tem teste cobrindo todas as transições permitidas, as proibidas, os guards e os efeitos (Fase 5/10).
 9. **Mudou a regra? Mude aqui primeiro.** Qualquer alteração em fluxo crítico atualiza este documento e a tabela em `estado.ts` no mesmo commit; a revisão (agente Opus) confere que não surgiu regra fora do domínio.

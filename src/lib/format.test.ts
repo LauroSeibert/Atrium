@@ -124,6 +124,12 @@ describe("formatData", () => {
     expect(formatData("2026-11-14T02:00:00Z")).toBe("13/11/2026");
     expect(formatData("2026-11-14T12:00:00Z")).toBe("14/11/2026");
   });
+  it("data-only inexistente é inválida (sem rolar)", () => {
+    expect(formatData("2026-02-30")).toBe("—");
+    expect(formatData("2026-13-01")).toBe("—");
+    expect(formatData("2026-02-29")).toBe("—");
+    expect(formatData("2028-02-29")).toBe("29/02/2028");
+  });
   it("inválida", () => {
     expect(formatData("lixo")).toBe("—");
   });
@@ -183,6 +189,17 @@ describe("formatRelativo", () => {
     expect(formatRelativo(delta(-31 * D), agora)).toBe("14/10/2026");
     expect(formatRelativo(delta(31 * D), agora)).toBe("15/12/2026");
   });
+  it("data-only compara por dia de calendário", () => {
+    expect(formatRelativo("2026-11-14", agora)).toBe("hoje");
+    expect(formatRelativo("2026-11-15", agora)).toBe("amanhã");
+    expect(formatRelativo("2026-11-11", agora)).toBe("há 3 dias");
+    expect(formatRelativo("2026-11-16", agora)).toBe("em 2 dias");
+    expect(formatRelativo("2026-10-14", agora)).toBe("14/10/2026");
+    expect(formatRelativo("2026-02-30", agora)).toBe("—");
+  });
+  it("timestamps mantêm granularidade de hora", () => {
+    expect(formatRelativo(delta(-4 * H), agora)).toBe("há 4 h");
+  });
   it("inválida", () => {
     expect(formatRelativo("x", agora)).toBe("—");
   });
@@ -199,6 +216,15 @@ describe("formatTelefone", () => {
   it("com código do país", () => {
     expect(formatTelefone("5511912345678")).toBe("+55 (11) 91234-5678");
     expect(formatTelefone("+55 11 3123-4567")).toBe("+55 (11) 3123-4567");
+  });
+  it("0800 e similares", () => {
+    expect(formatTelefone("08001234567")).toBe("0800 123 4567");
+    expect(formatTelefone("0300 123 4567")).toBe("0300 123 4567");
+    expect(formatTelefone("09001234567")).toBe("0900 123 4567");
+  });
+  it("outros iniciados em 0 ficam inalterados", () => {
+    expect(formatTelefone("01112345678")).toBe("01112345678");
+    expect(formatTelefone("0112345678")).toBe("0112345678");
   });
   it("inválido devolve a entrada", () => {
     expect(formatTelefone("123")).toBe("123");
