@@ -11,7 +11,8 @@ export default defineConfig({
   reporter: process.env.CI
     ? [["github"], ["html", { open: "never", outputFolder: "playwright-report-stories" }]]
     : "list",
-  use: { baseURL: `http://localhost:${PORT}`, locale: "pt-BR", trace: "off" },
+  // reducedMotion: o axe varre sem fades em andamento (opacidade < 1 gera falso positivo de contraste).
+  use: { baseURL: `http://localhost:${PORT}`, locale: "pt-BR", trace: "off", reducedMotion: "reduce" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { executablePath } } }],
   webServer: {
     command: `npx http-server storybook-static -p ${PORT} -s -c-1`,

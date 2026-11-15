@@ -28,6 +28,7 @@ export function TabsTrigger({ className, children, count, ...props }: TabsTrigge
         "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-transparent",
+        "after:transition-colors after:duration-(--dur-base) after:ease-standard",
         "data-[state=active]:text-text data-[state=active]:after:bg-primary",
         className,
       )}
@@ -48,7 +49,8 @@ export function TabsContent({ className, ...props }: ComponentProps<typeof TabsP
   return (
     <TabsPrimitive.Content
       className={cn(
-        "pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        // Troca de aba (Fase 9): o painel novo entra com fade curto (o Radix desmonta o inativo).
+        "animate-fade-in pt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
       {...props}

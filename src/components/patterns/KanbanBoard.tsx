@@ -24,6 +24,7 @@ import { GripVertical } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ETAPAS, type Etapa, type Lead, type Permissao } from "@/domain";
 import { cn } from "@/lib/cn";
+import { paraCss, useTransicaoToken } from "@/lib/motion";
 import { formatMoeda } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
 import { Badge } from "../ui/Badge";
@@ -113,6 +114,9 @@ function CartaoArrastavel({
   onAbrir,
   onMover,
   agora,
+  transicao,
+  chegando,
+  onChegou,
 }: {
   lead: Lead;
   responsavel: string;
@@ -121,19 +125,25 @@ function CartaoArrastavel({
   onAbrir: (id: string) => void;
   onMover: (id: string, para: Etapa) => void;
   agora?: Date;
+  /** Deslocamento dos vizinhos durante o arraste (tokens; 1 ms com reduced-motion). */
+  transicao: { duration: number; easing: string };
+  /** O card acabou de ser solto/movido aqui: entra com um "snap" curto. */
+  chegando: boolean;
+  onChegou: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: lead.id,
     data: { etapa: lead.etapa },
     disabled: { droppable: negado },
-    transition: null,
+    transition: transicao,
     attributes: { roleDescription: "lead arrastável" },
   });
   return (
     <li
       ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform) }}
-      className={cn(isDragging && "opacity-40")}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={cn(isDragging && "opacity-40", chegando && "animate-scale-in")}
+      onAnimationEnd={chegando ? (e) => e.target === e.currentTarget && onChegou() : undefined}
     >
       <LeadCard
         lead={lead}
@@ -181,6 +191,8 @@ function Coluna({
       aria-labelledby={titulo}
       className={cn(
         "flex w-72 shrink-0 flex-col gap-3 rounded-lg border bg-bg-subtle p-3 sm:w-80",
+        // coluna-alvo destaca com transição curta (Fase 9)
+        "transition-colors duration-(--dur-fast) ease-standard",
         negado ? "border-danger bg-danger-bg" : isOver ? "border-primary" : "border-border",
       )}
     >
@@ -227,6 +239,19 @@ function Quadro({
   const idContexto = useId();
   const [ativoId, setAtivoId] = useState<string | null>(null);
   const [aviso, setAviso] = useState("");
+  // Estado só visual: qual card acabou de ser movido, para animar a chegada na coluna de destino.
+  const [chegada, setChegada] = useState<{ id: string; para: Etapa } | null>(null);
+  const transicaoBase = useTransicaoToken("--dur-base", "--easing-standard");
+  const { duration: duracaoMs, easing } = paraCss(transicaoBase);
+  const transicao = useMemo(() => ({ duration: duracaoMs, easing }), [duracaoMs, easing]);
+  const limparChegada = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (limparChegada.current && clearTimeout(limparChegada.current)), []);
+  /** Marca a chegada; se o movimento não acontecer (ex.: diálogo de perda cancelado), expira sozinha. */
+  const marcarChegada = (id: string, para: Etapa) => {
+    setChegada({ id, para });
+    if (limparChegada.current) clearTimeout(limparChegada.current);
+    limparChegada.current = setTimeout(() => setChegada(null), 5000);
+  };
   const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => void (temporizador.current && clearTimeout(temporizador.current)), []);
   const sensores = useSensors(
@@ -270,6 +295,7 @@ function Quadro({
       ? coluna.filter((l) => l.id !== leadId).length
       : coluna.findIndex((l) => l.id === overId);
     if (para === origem.etapa && ordem === coluna.findIndex((l) => l.id === leadId)) return; // não mudou
+    marcarChegada(leadId, para);
     onMover({ leadId, para, ordem });
   }
 
@@ -278,6 +304,7 @@ function Quadro({
     // Limpa depois de anunciar, para que a mesma frase repetida seja anunciada de novo.
     if (temporizador.current) clearTimeout(temporizador.current);
     temporizador.current = setTimeout(() => setAviso(""), 1500);
+    marcarChegada(leadId, para);
     onMover({ leadId, para, ordem: colunas.get(para)?.length ?? 0 });
   }
 
@@ -313,6 +340,9 @@ function Quadro({
                 onAbrir={onAbrir}
                 onMover={moverPorMenu}
                 agora={agora}
+                transicao={transicao}
+                chegando={chegada?.id === lead.id && chegada.para === lead.etapa}
+                onChegou={() => setChegada(null)}
               />
             )}
           />

@@ -142,6 +142,7 @@ for (const [k, n] of entries(tokens.shadow)) {
 push();
 push("  /* motion */");
 for (const [k, n] of entries(tokens.duration)) push(`  --dur-${k}: ${n.$value};`);
+for (const [k, n] of entries(tokens.loop ?? {})) push(`  --loop-${k}: ${n.$value};`);
 for (const [k, n] of entries(tokens.easing)) push(`  --easing-${k}: cubic-bezier(${n.$value.join(", ")});`);
 push();
 push("  /* z-index */");

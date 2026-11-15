@@ -332,7 +332,7 @@ export function TelaContratos() {
               onTentarNovamente={recarregar}
             >
               {(d) => (
-                <div className="flex flex-col gap-4">
+                <div className="flex animate-fade-in flex-col gap-4">
                   <ul aria-label="Contratos em cartões" className="flex flex-col gap-3">
                     {d.itens.map((l) => (
                       <li key={l.contrato.id}>

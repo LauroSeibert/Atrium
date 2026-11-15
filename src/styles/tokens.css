@@ -140,6 +140,7 @@
   --dur-base: 200ms;
   --dur-slow: 320ms;
   --dur-page: 450ms;
+  --loop-shimmer: 1400ms;
   --easing-standard: cubic-bezier(0.2, 0, 0, 1);
   --easing-enter: cubic-bezier(0, 0, 0, 1);
   --easing-exit: cubic-bezier(0.3, 0, 1, 1);

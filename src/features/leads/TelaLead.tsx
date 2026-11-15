@@ -139,7 +139,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
         const etapa = ETAPA_UI[lead.etapa];
         const i = lead.interesse;
         return (
-          <div className="flex flex-col gap-4">
+          <div className="flex animate-fade-in flex-col gap-4">
             <DefinirTrilha rotulo={lead.nome} />
             <div className="flex flex-wrap items-center gap-3">
               <Badge tone={etapa.tom}>{etapa.rotulo}</Badge>

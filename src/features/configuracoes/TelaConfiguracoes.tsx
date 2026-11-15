@@ -90,7 +90,7 @@ function SecaoPerfil({ perfil }: { perfil: Corretor }) {
   };
 
   return (
-    <form onSubmit={salvar} noValidate>
+    <form onSubmit={salvar} noValidate className="animate-fade-in">
       <FormSection id="perfil" titulo="Perfil">
         <Field label="Nome" requirement="required" error={erros.nome}>
           <Input value={rascunho.nome} onChange={(e) => editar("nome", e.target.value)} autoComplete="name" />

@@ -97,7 +97,7 @@ function Conteudo<T>({ dados, p, visao }: { dados: T; p: ChartCardProps<T>; visa
   const idResumo = useId();
   const tabela = p.tabela(dados);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex animate-fade-in flex-col gap-4">
       {/* Resumo textual (RNF-17) só para leitor de tela: a tabela é a alternativa visível (menos é mais). */}
       <Text id={idResumo} size="sm" tone="muted" className="sr-only">
         {p.resumo(dados)}

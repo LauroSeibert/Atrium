@@ -414,7 +414,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
             erro={{ titulo: "Não foi possível carregar os imóveis" }}
           >
             {(d) => (
-              <div className="flex min-w-0 flex-col gap-4">
+              <div className="flex min-w-0 animate-fade-in flex-col gap-4">
                 <ul
                   aria-label="Imóveis"
                   className={

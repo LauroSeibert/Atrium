@@ -4,6 +4,7 @@
  * lê `--dur-*` e `--easing-*` do documento, então `prefers-reduced-motion` (tokens → 1 ms) vale aqui também.
  */
 import { useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 
 export type TokenDuracao = "--dur-fast" | "--dur-base" | "--dur-slow" | "--dur-page";
 export type TokenEasing = "--easing-standard" | "--easing-enter" | "--easing-exit" | "--easing-spring";
@@ -50,4 +51,25 @@ export function useTransicaoToken(dur: TokenDuracao, easing: TokenEasing = "--ea
     () => JSON.stringify(SEM_MOVIMENTO),
   );
   return JSON.parse(chave) as TransicaoMotion;
+}
+
+/** Mesma transição em formato CSS (ex.: dnd-kit): `{ duration: ms, easing: "cubic-bezier(…)" }`. */
+export function paraCss(t: TransicaoMotion): { duration: number; easing: string } {
+  return { duration: Math.round(t.duration * 1000), easing: `cubic-bezier(${t.ease.join(", ")})` };
+}
+
+type DocumentoComTransicao = Document & { startViewTransition?: (atualizar: () => void) => unknown };
+
+/**
+ * Aplica uma troca visual global (ex.: tema) com crossfade das View Transitions, quando o navegador
+ * suporta e o usuário não pediu menos movimento. Sem suporte, aplica direto (sem flash: o next-themes
+ * já desliga as transições de cor durante a troca). Duração e curva vêm do CSS (`--dur-base`).
+ */
+export function trocarComTransicao(aplicar: () => void): void {
+  if (typeof document === "undefined") return aplicar();
+  const doc = document as DocumentoComTransicao;
+  const reduzido = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (!doc.startViewTransition || reduzido) return aplicar();
+  // flushSync: o React aplica a troca (e seus efeitos) dentro do callback, antes do quadro novo ser capturado.
+  doc.startViewTransition(() => flushSync(aplicar));
 }

@@ -32,6 +32,7 @@ import {
 } from "@/components/patterns/CommandPalette";
 import { Toaster } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { trocarComTransicao } from "@/lib/motion";
 import { usePreferencia } from "@/lib/preferencias";
 import { useRecurso, type Recurso } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
@@ -133,7 +134,7 @@ export function PainelShell({
             id: "tema",
             rotulo: resolvedTheme === "dark" ? "Usar tema claro" : "Usar tema escuro",
             icone: resolvedTheme === "dark" ? Sun : Moon,
-            onSelect: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+            onSelect: () => trocarComTransicao(() => setTheme(resolvedTheme === "dark" ? "light" : "dark")),
           },
           {
             id: "menu",
@@ -227,7 +228,7 @@ export function PainelShell({
               <ThemeMenu
                 tema={tema}
                 temaResolvido={montado ? (resolvedTheme as "light" | "dark") : undefined}
-                onTemaChange={setTheme}
+                onTemaChange={(t) => trocarComTransicao(() => setTheme(t))}
               />
             }
             usuario={

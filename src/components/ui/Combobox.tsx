@@ -108,7 +108,7 @@ export function Combobox({
           sideOffset={4}
           className={cn(
             "z-(--z-popover) w-(--radix-popover-trigger-width) rounded-md border border-border bg-surface-raised p-1 shadow-2",
-            "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
+            "origin-(--radix-popover-content-transform-origin) data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
           )}
         >
           <Command

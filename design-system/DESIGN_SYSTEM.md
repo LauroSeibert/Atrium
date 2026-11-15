@@ -82,7 +82,7 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 - **Espaçamento:** grade de 4 px (`--spacing: 4px` → `p-1 = 4`, `p-2 = 8`, `p-3 = 12`, `p-4 = 16`, `p-6 = 24`, `p-8 = 32`, `p-12 = 48`, `p-16 = 64`). Prefira esses passos.
 - **Raio:** `rounded-sm 6` · `rounded-md 10` · `rounded-lg 14` (cards) · `rounded-xl 20` · `rounded-full`.
 - **Sombra:** `shadow-1/2/3` com matiz verde. No escuro viram borda de 1 px (sombra não aparece em fundo escuro).
-- **Duração:** `--dur-fast 120ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`. Com `prefers-reduced-motion`, todas viram 1 ms.
+- **Duração:** `--dur-fast 120ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`. Com `prefers-reduced-motion`, todas viram 1 ms. Laços: `--loop-shimmer 1400ms` (skeleton); não vira 1 ms, o laço é desligado.
 - **Easing:** `ease-standard`, `ease-enter`, `ease-exit`, `ease-spring`.
 - **Peso:** `font-regular 400` · `font-medium 500` · `font-semibold 600` · `font-bold 700`. **Tracking:** `tracking-tight` · `tracking-normal` · `tracking-wide` (eyebrows em caixa alta).
 - **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-popover 45` (popover, menu, select, tooltip: abrem dentro de modais) · `--z-toast 50`.
@@ -152,7 +152,28 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Propósito:** anime só para explicar mudança (card que muda de coluna, painel que abre, toast que entra). Nada de animação decorativa em tabelas ou KPIs.
 - **Curto:** hover e foco em `--dur-fast`; transições de componente em `--dur-base` com `ease-standard`; entrada com `ease-enter`, saída com `ease-exit`; `--dur-page` só para troca de página.
 - **Interrompível:** animar `opacity`/`transform`, nunca bloquear a interação enquanto anima.
-- **Reduzir movimento:** respeite `prefers-reduced-motion`; os tokens de duração já viram 1 ms, então use sempre os tokens, nunca `ms` literal.
+- **Reduzir movimento:** respeite `prefers-reduced-motion`; os tokens de duração já viram 1 ms, então use sempre os tokens, nunca `ms` literal. Laços param (`animation-iteration-count: 1` global; o Spinner, com `data-giro`, segue girando por ser status essencial), o shimmer some e hovers não deslocam (`motion-reduce:hover:translate-y-0`).
+
+#### Catálogo de movimento (Fase 9)
+
+| Contexto | Efeito | Token |
+|---|---|---|
+| Troca de módulo | `animate-page-in` (fade + 8 px) no `template.tsx` | `--dur-slow`, enter |
+| Conteúdo carregado | raiz do conteúdo (não o skeleton) com `animate-fade-in`; não repete no refetch | `--dur-base`, enter |
+| Skeleton | `animate-shimmer`: faixa clara atravessa (`bg-subtle`; no escuro `border-strong`/25), só `transform` | `--loop-shimmer` |
+| Botão | `active:scale-98` | `--dur-fast` |
+| Card interativo | `hover:-translate-y-0.5` + `shadow-2`; `active` volta | `--dur-base`, standard |
+| Popover, menu, select, combobox | `scale-in`/`scale-out` a partir da origem do gatilho (`origin-(--radix-…-transform-origin)`); chevron do select gira | `--dur-base` / `--dur-fast` |
+| Dialog / Drawer | overlay em fade; conteúdo `scale-in` ou slide lateral; saída mais curta | `--dur-base`–`--dur-slow` |
+| Toast | entra `slide-in-up`, sai em fade; arrastar para a direita segue o dedo e sai deslizando | `--dur-base` / `--dur-fast` |
+| Abas | painel novo `animate-fade-in`; sublinhado troca de cor com transição | `--dur-base` |
+| Checkbox, radio, favoritar | só transição de cor/fundo; sem keyframe (repetiria em todos os itens marcados na carga) | `--dur-fast` |
+| Sidebar | largura animada; rótulos e logo entram em fade ao expandir; indicador ativo desliza (`layoutId`) | `--dur-base` / `--dur-slow` |
+| Kanban | vizinhos deslizam no arraste; card levantado com `rotate-1` + `shadow-3`; coluna-alvo destaca; card entra com `scale-in` ao chegar (keyframe usa a propriedade `scale`, que compõe com o `transform` do dnd-kit) | `--dur-base` / `--dur-fast` |
+| Galeria | slide novo entra em fade ao trocar de cômodo | `--dur-base` |
+| Tema | crossfade via View Transitions (`trocarComTransicao`), pulado com reduced-motion | `--dur-base` |
+
+Fora do catálogo, de propósito: count-up de KPI, stagger de cards e reordenação animada de listas (chamam atenção sem explicar mudança).
 
 ### 10.5 Refactoring UI
 

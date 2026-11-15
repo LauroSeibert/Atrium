@@ -283,7 +283,7 @@ export function DataTable<T extends object>({
         erro={{ titulo: "Não foi possível carregar a lista" }}
       >
         {(pagina) => (
-          <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex min-w-0 animate-fade-in flex-col gap-3">
             <Table
               aria-label={ariaLabel}
               density={densidade}

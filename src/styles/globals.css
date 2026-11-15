@@ -117,6 +117,9 @@
   --animate-slide-out-left: slide-out-left var(--dur-base) var(--easing-exit);
   /* transição de rota (Fase 7): fade + deslocamento curto, só opacity/transform */
   --animate-page-in: slide-in-up var(--dur-slow) var(--easing-enter);
+  /* Fase 9 — microinterações. Laço do skeleton é desligado com reduced-motion (ver guarda abaixo). */
+  --animate-shimmer: shimmer var(--loop-shimmer) var(--easing-standard) infinite;
+  --animate-swipe-out-right: swipe-out-right var(--dur-fast) var(--easing-exit);
 
   /* grade de 4px: p-1 = 4px, p-2 = 8px, p-4 = 16px… */
   --spacing: var(--space-1);
@@ -176,16 +179,17 @@
     opacity: 0;
   }
 }
+/* `scale` (propriedade própria) compõe com `translate`/`transform` (Dialog centralizado, dnd-kit). */
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    scale: 0.96;
   }
 }
 @keyframes scale-out {
   to {
     opacity: 0;
-    transform: scale(0.96);
+    scale: 0.96;
   }
 }
 @keyframes slide-in-right {
@@ -212,6 +216,44 @@
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+/* Toast arrastado para a direita: continua de onde o dedo soltou (Radix). */
+@keyframes swipe-out-right {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Troca de tema (RF-03): crossfade curto via View Transitions, sem flash; `trocarComTransicao` pula com reduced-motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--easing-standard);
+}
+
+/*
+ * Guarda de movimento reduzido: as durações já viram 1 ms nos tokens; aqui nenhum laço roda
+ * (um laço de 1 ms piscaria). O Spinner (`data-giro`) segue girando: é status essencial.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *:not([data-giro]),
+  ::before,
+  ::after {
+    animation-iteration-count: 1 !important;
   }
 }
 

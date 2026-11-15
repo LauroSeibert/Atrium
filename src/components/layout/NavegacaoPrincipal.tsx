@@ -86,7 +86,8 @@ export function NavegacaoPrincipal({
                 />
               ) : null}
               <Icon icon={item.icone} size={20} className="relative" />
-              {recolhida ? null : <span className="relative min-w-0 flex-1 truncate">{item.rotulo}</span>}
+              {/* rótulo entra com fade ao expandir a sidebar (some na hora ao recolher: saída mais rápida) */}
+              {recolhida ? null : <span className="relative min-w-0 flex-1 animate-fade-in truncate">{item.rotulo}</span>}
               {n > 0 && item.contador ? (
                 <span
                   aria-hidden="true"

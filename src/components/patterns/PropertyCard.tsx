@@ -126,7 +126,7 @@ export function BotaoFavorito({
       onClick={() => onAlternarFavorito?.(imovel.id)}
       className={cn(
         alvo,
-        "relative z-10 bg-surface/90",
+        "relative z-10 bg-surface/90 transition-colors duration-(--dur-fast) ease-standard",
         imovel.favorito && "text-danger [&_svg]:fill-current",
         className,
       )}

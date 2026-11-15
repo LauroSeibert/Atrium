@@ -47,7 +47,7 @@ export function ChangeLog({ estado, autores, agora, onTentarNovamente, className
         onTentarNovamente={onTentarNovamente}
       >
         {(dados) => (
-          <ol aria-label="Histórico de alterações" className="flex flex-col divide-y divide-border">
+          <ol aria-label="Histórico de alterações" className="flex animate-fade-in flex-col divide-y divide-border">
             {dados.map((r) => (
               <li key={r.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0">
                 <p className="text-sm font-medium text-text">{rotuloCampo(r.campo)}</p>

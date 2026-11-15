@@ -132,7 +132,7 @@ export function AgendaList({
             grupos.set(dia, [...(grupos.get(dia) ?? []), i]);
           }
           return (
-            <div role="group" aria-label={ariaLabel} className="flex flex-col gap-6">
+            <div role="group" aria-label={ariaLabel} className="flex animate-fade-in flex-col gap-6">
               {[...grupos].map(([dia, lista]) => (
                 <section key={dia} aria-label={tituloDoDia(dia, agora)} className="flex flex-col gap-3">
                   <h3 className="text-sm font-medium text-text-muted">{tituloDoDia(dia, agora)}</h3>

@@ -158,7 +158,7 @@ export function ActivityFeed({
           const itens = (lista: readonly Atividade[]) => (
             <ol
               aria-label={agruparPorDia ? undefined : ariaLabel}
-              className={cn("flex flex-col", variante === "feed" && "gap-4")}
+              className={cn("flex flex-col", variante === "feed" && "gap-4", !agruparPorDia && "animate-fade-in")}
             >
               {lista.map((a, i) => (
                 <Item
@@ -180,7 +180,7 @@ export function ActivityFeed({
             grupos.set(dia, [...(grupos.get(dia) ?? []), a]);
           }
           return (
-            <div role="group" aria-label={ariaLabel} className="flex flex-col gap-6">
+            <div role="group" aria-label={ariaLabel} className="flex animate-fade-in flex-col gap-6">
               {[...grupos].map(([dia, lista]) => (
                 <section key={dia} aria-label={tituloDoDia(dia, agora)} className="flex flex-col gap-3">
                   <h3 className="text-sm font-medium text-text-muted">{tituloDoDia(dia, agora)}</h3>

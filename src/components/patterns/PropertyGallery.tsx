@@ -82,7 +82,13 @@ export function PropertyGallery({
         aria-label="Cômodos do imóvel. Use as setas para navegar."
         className="relative rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        <div role="group" aria-roledescription="slide" aria-label={`${atual + 1} de ${total}: ${comodo.nome}`}>
+        <div
+          key={atual}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${atual + 1} de ${total}: ${comodo.nome}`}
+          className="animate-fade-in"
+        >
           <PropertyImage tipo={tipo} comodo={comodo.tipo} titulo={comodo.nome} />
         </div>
         {total > 1 ? (

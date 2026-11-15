@@ -14,7 +14,8 @@ const sizes = { 16: "size-4", 20: "size-5", 24: "size-6" } as const;
 export function Spinner({ size = 20, label, className }: SpinnerProps) {
   return (
     <span role={label ? "status" : undefined} className={cn("inline-flex", className)}>
-      <LoaderCircle strokeWidth={1.5} aria-hidden="true" className={cn(sizes[size], "animate-spin")} />
+      <LoaderCircle strokeWidth={1.5} aria-hidden="true" data-giro=""
+        className={cn(sizes[size], "animate-spin")} />
       {label ? <span className="sr-only">{label}</span> : null}
     </span>
   );

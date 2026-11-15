@@ -63,7 +63,7 @@ export function MetaRealizado({
         onTentarNovamente={onTentarNovamente}
       >
         {(d) => (
-          <ul className="flex flex-col gap-5">
+          <ul className="flex animate-fade-in flex-col gap-5">
             <Linha rotulo="Geral" m={d.total} />
             {ordenados(d).map((m) => (
               <Linha key={m.corretorId} rotulo={nomeDe(m.corretorId)} m={m} />

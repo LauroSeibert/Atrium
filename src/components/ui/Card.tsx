@@ -6,8 +6,10 @@ import { Icon } from "./Icon";
 
 const base = "relative rounded-lg border bg-surface text-text shadow-1";
 const interactiveClasses = [
-  "block cursor-pointer text-left transition duration-(--dur-fast) ease-standard",
-  "hover:border-border-strong hover:shadow-2",
+  // Hover (Fase 9): elevação + 2 px para cima; sem deslocamento com reduced-motion.
+  "block cursor-pointer text-left transition duration-(--dur-base) ease-standard",
+  "hover:-translate-y-0.5 hover:border-border-strong hover:shadow-2 motion-reduce:hover:translate-y-0",
+  "active:translate-y-0 active:shadow-1",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
 ];
 

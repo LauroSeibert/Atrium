@@ -24,7 +24,11 @@ export function DropdownMenuContent({
     <MenuPrimitive.Portal>
       <MenuPrimitive.Content
         sideOffset={sideOffset}
-        className={cn(panel, "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in", className)}
+        className={cn(
+          panel,
+          "origin-(--radix-dropdown-menu-content-transform-origin) data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
+          className,
+        )}
         {...props}
       />
     </MenuPrimitive.Portal>
@@ -116,7 +120,11 @@ export function DropdownMenuSubContent({ className, ...props }: ComponentProps<t
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.SubContent
-        className={cn(panel, "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in", className)}
+        className={cn(
+          panel,
+          "origin-(--radix-dropdown-menu-content-transform-origin) data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
+          className,
+        )}
         {...props}
       />
     </MenuPrimitive.Portal>

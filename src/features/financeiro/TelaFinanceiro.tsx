@@ -152,7 +152,7 @@ export function TelaFinanceiro() {
               {(faixas) => (
                 <ul
                   aria-label="Parcelas atrasadas por faixa de atraso"
-                  className="flex flex-col divide-y divide-border"
+                  className="flex animate-fade-in flex-col divide-y divide-border"
                 >
                   {faixas.map((f) => (
                     <li

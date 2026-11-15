@@ -137,7 +137,7 @@ function Cronograma({
 }: { itens: ItemParcela[]; resumo: ResumoCronograma } & Omit<AcaoProps, "item">) {
   const uid = useId();
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex animate-fade-in flex-col gap-4">
       <Resumo resumo={resumo} />
       <p role="status" className="sr-only">
         {acao.fase === "enviando" ? `Registrando pagamento da parcela ${acao.numero}…` : ""}

@@ -81,7 +81,7 @@ export function Select({
         aria-describedby={control["aria-describedby"]}
         aria-invalid={control["aria-invalid"]}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border bg-surface px-3 text-left text-text",
+          "group flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border bg-surface px-3 text-left text-text",
           size === "lg" ? "h-11 text-base" : "h-10 text-sm",
           "transition duration-(--dur-fast) ease-standard",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
@@ -94,7 +94,11 @@ export function Select({
           <SelectPrimitive.Value placeholder={placeholder} />
         </span>
         <SelectPrimitive.Icon>
-          <Icon icon={ChevronDown} size={16} className="text-text-muted" />
+          <Icon
+            icon={ChevronDown}
+            size={16}
+            className="text-text-muted transition-transform duration-(--dur-base) ease-standard group-data-[state=open]:rotate-180"
+          />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
@@ -103,7 +107,7 @@ export function Select({
           sideOffset={4}
           className={cn(
             "z-(--z-popover) max-h-72 min-w-(--radix-select-trigger-width) overflow-hidden rounded-md border border-border bg-surface-raised p-1 shadow-2",
-            "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
+            "origin-(--radix-select-content-transform-origin) data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
           )}
         >
           <SelectPrimitive.Viewport>

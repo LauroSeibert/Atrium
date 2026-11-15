@@ -63,9 +63,9 @@ export function Sidebar({
           aria-label="Atrium, ir para o Dashboard"
         >
           {recolhida ? (
-            <AtriumMark className="size-8" aria-hidden="true" title="" />
+            <AtriumMark className="size-8 animate-fade-in" aria-hidden="true" title="" />
           ) : (
-            <AtriumLogo aria-hidden="true" className="h-8 w-auto" />
+            <AtriumLogo aria-hidden="true" className="h-8 w-auto animate-fade-in" />
           )}
         </Link>
       </div>
