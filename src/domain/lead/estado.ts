@@ -53,6 +53,16 @@ export function destinosLead(base: Pick<Base, "contratos">, lead: Lead) {
   }));
 }
 
+/**
+ * Permissão de soltar o cartão em cada coluna do kanban (RF-31): na própria coluna é reordenar
+ * (sempre permitido); nas outras, a regra de transição.
+ */
+export function permissoesDeSoltar(base: Pick<Base, "contratos">, lead: Lead): Record<Etapa, Permissao> {
+  return Object.fromEntries(
+    ETAPAS.map((para) => [para, para === lead.etapa ? PERMITIDO : podeTransicionarLead(base, lead, para)]),
+  ) as Record<Etapa, Permissao>;
+}
+
 /** Renumera uma coluna 0…n colocando `lead` na posição `ordem` (limitada ao tamanho). */
 function reposicionar(t: Transacao, lead: Lead, etapa: Etapa, ordem: number | undefined) {
   const coluna = t

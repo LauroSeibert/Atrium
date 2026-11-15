@@ -42,11 +42,28 @@ export function repasse(contrato: Contrato, parcela: Parcela): number {
   return parcela.valor - Math.round((parcela.valor * contrato.taxaAdministracao) / 100);
 }
 
-export type ResumoCronograma = { total: number; pagas: number; recebido: number; atrasadas: number; emAtraso: number };
+export type ResumoCronograma = {
+  total: number;
+  pagas: number;
+  recebido: number;
+  atrasadas: number;
+  emAtraso: number;
+  /** Parcelas a vencer (nem pagas, nem atrasadas, nem canceladas). */
+  qtdAReceber: number;
+  aReceber: number;
+};
 
 /** Resumo do cronograma de parcelas (RF-42): pagas x de y, total recebido e em atraso. */
 export function resumoCronograma(contrato: Contrato, hoje: string): ResumoCronograma {
-  const r: ResumoCronograma = { total: contrato.parcelas.length, pagas: 0, recebido: 0, atrasadas: 0, emAtraso: 0 };
+  const r: ResumoCronograma = {
+    total: contrato.parcelas.length,
+    pagas: 0,
+    recebido: 0,
+    atrasadas: 0,
+    emAtraso: 0,
+    qtdAReceber: 0,
+    aReceber: 0,
+  };
   for (const p of contrato.parcelas) {
     const st = statusParcela(contrato, p, hoje);
     if (st === "pago") {
@@ -55,7 +72,29 @@ export function resumoCronograma(contrato: Contrato, hoje: string): ResumoCronog
     } else if (st === "atrasado") {
       r.atrasadas++;
       r.emAtraso += p.valor;
+    } else if (st === "aVencer") {
+      r.qtdAReceber++;
+      r.aReceber += p.valor;
     }
   }
   return r;
+}
+
+export type LinhaRepasse = { numero: number; vencimento: string; pagoEm: string; aluguel: number; repasse: number };
+
+/**
+ * Repasses ao proprietário (RF-46): um por aluguel já pago. `null` quando não se aplica (venda ou
+ * locação sem taxa de administração), para a UI não decidir isso.
+ */
+export function repassesDoContrato(contrato: Contrato): LinhaRepasse[] | null {
+  if (contrato.tipo !== "locacao" || contrato.taxaAdministracao === null) return null;
+  return contrato.parcelas
+    .filter((p): p is Parcela & { pagoEm: string } => p.pagoEm !== null)
+    .map((p) => ({
+      numero: p.numero,
+      vencimento: p.vencimento,
+      pagoEm: p.pagoEm,
+      aluguel: p.valor,
+      repasse: repasse(contrato, p),
+    }));
 }

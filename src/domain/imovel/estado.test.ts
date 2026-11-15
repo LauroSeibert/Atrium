@@ -6,6 +6,7 @@ import {
   TRANSICOES_SISTEMA,
   TRANSICOES_USUARIO,
   alternarFavorito,
+  opcoesLoteImovel,
   podeTransicionarImovel,
   salvarImovel,
   temContratoAtivo,
@@ -318,5 +319,20 @@ describe("alternarFavorito (RF-28)", () => {
     const m2 = alternarFavorito(m.base, "imv_a", CTX);
     expect(m2.resultado.favorito).toBe(false);
     expect(m.desfazer(m.base, CTX_DEPOIS).base.imoveis).toEqual(base.imoveis);
+  });
+});
+
+describe("opcoesLoteImovel (RF-49)", () => {
+  it("permite o destino se ao menos um aceita, soma os aplicáveis e herda exigeMotivo", () => {
+    const disp = transicoesPermitidasImovel(baseMinima(), imovel({ status: "disponivel" }));
+    const inat = transicoesPermitidasImovel(baseMinima(), imovel({ status: "inativo" }));
+    const op = Object.fromEntries(opcoesLoteImovel([disp, inat]).map((o) => [o.para, o]));
+    expect(op.reservado).toMatchObject({ aplicaveis: 1, permissao: { ok: true } });
+    expect(op.disponivel).toMatchObject({ aplicaveis: 1, permissao: { ok: true } });
+    expect(op.inativo).toMatchObject({ aplicaveis: 1, exigeMotivo: true });
+  });
+  it("nenhum aceita: negado com motivo", () => {
+    const vendido = transicoesPermitidasImovel(baseMinima(), imovel({ status: "vendido" }));
+    expect(opcoesLoteImovel([vendido]).every((o) => !o.permissao.ok)).toBe(true);
   });
 });

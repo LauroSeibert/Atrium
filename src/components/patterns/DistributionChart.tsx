@@ -121,7 +121,6 @@ export function DistributionChartCard({
       onTentarNovamente={onTentarNovamente}
       estaVazio={distribuicaoVazia}
       tituloVazio="Nenhum imóvel cadastrado"
-      descricaoVazio="Cadastre imóveis para ver a distribuição por tipo."
       resumo={(d) => resumoDistribuicao(d, unidade)}
       tabela={(d) => tabelaDistribuicao(d, rotuloCategoria)}
       grafico={(d) => <DistributionChart dados={d} unidade={unidade} />}

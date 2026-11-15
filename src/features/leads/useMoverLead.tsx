@@ -32,7 +32,7 @@ export function useMoverLead() {
 
   async function ofertarVinculo(lead: Lead) {
     // RF-39 (opcional): contratos existentes dos imóveis do lead que o domínio aceita vincular.
-    const vinculaveis = await fakeApi.listContratosVinculaveis(lead.id);
+    const vinculaveis = await fakeApi.listContratosVinculaveis(lead.id).catch(() => []);
     const candidatos = vinculaveis.map((c) => ({
       id: c.id,
       rotulo: `${c.numero}${c.imovel ? ` · ${c.imovel.codigo}` : ""}`,
@@ -50,7 +50,7 @@ export function useMoverLead() {
       if (p.exigeMotivo) setFase({ fase: "erro", mensagem: r.erro.message });
       return false;
     }
-    if (para === "fechado" && lead.etapa !== "fechado") void ofertarVinculo(r.resultado);
+    void ofertarVinculo(r.resultado);
     return true;
   }
 
@@ -84,7 +84,7 @@ export function useMoverLead() {
         titulo={pedido ? `Marcar ${pedido.lead.nome} como perdido?` : "Marcar como perdido?"}
         impactos={[
           "O lead sai do funil ativo e vai para a coluna Perdido.",
-          "O motivo fica registrado na linha do tempo. Você pode desfazer logo depois.",
+          "O motivo fica registrado na linha do tempo.",
         ]}
         motivo={{
           tipo: "select",
@@ -127,7 +127,7 @@ function DialogoVinculo({
       <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>Vincular contrato?</DialogTitle>
-          <DialogDescription>{lead.nome} foi fechado. Se já existe contrato, ligue-o a este lead.</DialogDescription>
+          <DialogDescription>Ligue {lead.nome} a um contrato existente.</DialogDescription>
         </DialogHeader>
         <Field label="Contrato" requirement="optional">
           <Select

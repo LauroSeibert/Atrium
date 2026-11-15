@@ -106,12 +106,10 @@ describe("TelaLeads (RF-30…32, RF-35, RF-36, RF-38)", () => {
   });
 
   it("alterna para a lista com ?view=lista (RF-38) e abre o lead", async () => {
-    const user = userEvent.setup();
     montar("view=lista");
     const [primeiro] = await fakeApi.listLeads();
-    await user.click(await screen.findByRole("button", { name: primeiro!.nome }));
-    expect(roteador.push).toHaveBeenCalledWith(expect.stringMatching(/^\/leads\/lead_/));
-    expect(primeiro).toBeDefined();
+    const link = await screen.findByRole("link", { name: primeiro!.nome });
+    expect(link).toHaveAttribute("href", expect.stringMatching(/^\/leads\/lead_/));
   });
 
   it("corretor abre em 'Meus leads' (RF-08, RF-36)", async () => {

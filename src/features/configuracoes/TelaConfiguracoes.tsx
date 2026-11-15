@@ -6,7 +6,7 @@
  */
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PAPEL_ROTULO } from "@/components/layout/UserMenu";
 import { ConfirmDestructive, type FaseConfirmacao } from "@/components/patterns/ConfirmDestructive";
@@ -24,12 +24,14 @@ import { Input } from "@/components/ui/Input";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/Slider";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import type { TableDensity } from "@/components/ui/Table";
 import { dadosPerfilSchema, type Corretor } from "@/domain";
 import { paraErroApi } from "@/mocks/services/erros";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { usePreferencia } from "@/lib/preferencias";
+import { combinar } from "@/lib/recurso";
 import { executarEscrita } from "@/features/dados/escrita";
 import { invalidarDados } from "@/features/dados/revisao";
 import { useConsulta } from "@/features/dados/useConsulta";
@@ -158,6 +160,7 @@ export function TelaConfiguracoes() {
     try {
       await fakeApi.setUsuarioAtual(id);
       invalidarDados();
+      toast({ tone: "success", title: "Usuário trocado" });
     } catch (e) {
       toast({ tone: "error", title: "Não foi possível trocar de usuário", description: paraErroApi(e).message });
     }
@@ -177,10 +180,18 @@ export function TelaConfiguracoes() {
     toast({ tone: "success", title: "Dados mock restaurados" });
   };
 
-  const opcoesPersona =
-    "dados" in corretores.estado && corretores.estado.dados
-      ? corretores.estado.dados.map((c) => ({ value: c.id, label: `${c.nome} (${PAPEL_ROTULO[c.papel]})` }))
-      : [];
+  const persona = useMemo(
+    () =>
+      combinar(perfil.estado, corretores.estado, (p, lista) => ({
+        atualId: p.id,
+        opcoes: lista.map((c) => ({ value: c.id, label: `${c.nome} (${PAPEL_ROTULO[c.papel]})` })),
+      })),
+    [perfil.estado, corretores.estado],
+  );
+  const recarregarPersona = () => {
+    perfil.recarregar();
+    corretores.recarregar();
+  };
 
   return (
     <>
@@ -228,15 +239,18 @@ export function TelaConfiguracoes() {
         </FormSection>
 
         <FormSection id="usuario" titulo="Usuário atual">
-          <Field label="Entrar como">
-            <Select
-              options={opcoesPersona}
-              value={("dados" in perfil.estado ? perfil.estado.dados?.id : undefined) ?? ""}
-              onValueChange={(id) => void trocarPersona(id)}
-              placeholder="Carregando…"
-              disabled={opcoesPersona.length === 0}
-            />
-          </Field>
+          <EstadoRecurso
+            estado={persona}
+            carregando={<Skeleton shape="rect" className="h-10" />}
+            erro={{ titulo: "Não foi possível carregar os usuários" }}
+            onTentarNovamente={recarregarPersona}
+          >
+            {(p) => (
+              <Field label="Entrar como">
+                <Select options={p.opcoes} value={p.atualId} onValueChange={(id) => void trocarPersona(id)} />
+              </Field>
+            )}
+          </EstadoRecurso>
         </FormSection>
 
         <FormSection id="demonstracao" titulo="Demonstração">

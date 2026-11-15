@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ActivityFeed } from "@/components/patterns/ActivityFeed";
 import { ChangeLog } from "@/components/patterns/ChangeLog";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
+import { SectionCard } from "@/components/patterns/SectionCard";
 import {
   ETAPA_UI,
   FINALIDADE_ROTULO,
@@ -19,7 +20,6 @@ import {
 } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { DrawerBody, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/Drawer";
 import {
   DropdownMenu,
@@ -41,17 +41,6 @@ import { AgendarVisita } from "./AgendarVisita";
 import { useMoverLead } from "./useMoverLead";
 
 export type TelaLeadProps = { id: string; modo: "pagina" | "drawer" };
-
-function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
-  return (
-    <Card asChild>
-      <section aria-label={titulo} className="flex flex-col gap-3 p-4">
-        <h2 className="text-lg font-semibold text-text">{titulo}</h2>
-        {children}
-      </section>
-    </Card>
-  );
-}
 
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
@@ -119,6 +108,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
   const { mover, dialogos } = useMoverLead();
   const [visitaAberta, setVisitaAberta] = useState(false);
   const nome = "dados" in estado && estado.dados ? estado.dados.lead.nome : undefined;
+  const nivel = modo === "drawer" ? 3 : 2;
   const naoEncontrado =
     estado.fase === "error" && estado.erro instanceof ErroApi && estado.erro.tipo === "naoEncontrado";
 
@@ -132,7 +122,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
     modo === "drawer" ? (
       <DrawerHeader>
         <DrawerTitle className="break-words">{nome ?? "Lead"}</DrawerTitle>
-        <DrawerDescription className="sr-only">Detalhes, linha do tempo e histórico do lead.</DrawerDescription>
+        <DrawerDescription className="sr-only">Detalhes do lead</DrawerDescription>
       </DrawerHeader>
     ) : (
       <PageHeader titulo={nome ?? "Lead"} />
@@ -142,11 +132,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
     <EstadoRecurso
       estado={estado}
       carregando={<CarregandoLead />}
-      erro={
-        naoEncontrado
-          ? { titulo: "Lead não encontrado", descricao: "O lead pode ter sido removido ou o endereço está incorreto." }
-          : { titulo: "Não foi possível carregar o lead" }
-      }
+      erro={naoEncontrado ? { titulo: "Lead não encontrado" } : { titulo: "Não foi possível carregar o lead" }}
       onTentarNovamente={naoEncontrado ? undefined : recarregar}
     >
       {({ lead, responsavel, imoveisVistos, visitas, contrato, transicoes }) => {
@@ -185,70 +171,66 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
             </div>
             {contrato ? <p className="text-sm text-text-muted">Contrato vinculado: {contrato.numero}</p> : null}
 
-            <Secao titulo="Contato e interesse">
+            <SectionCard headingLevel={nivel} titulo="Contato e interesse">
               <dl className="flex flex-col">
                 <Linha rotulo="Telefone">
                   {lead.contato.telefone ? (
-                    <a
-                      className="inline-flex items-center gap-1 text-primary underline"
-                      href={`tel:${lead.contato.telefone}`}
-                    >
-                      <Phone size={16} aria-hidden="true" />
-                      {formatTelefone(lead.contato.telefone)}
-                    </a>
+                    <Button asChild variant="link">
+                      <a href={`tel:${lead.contato.telefone}`}>
+                        <Phone size={16} aria-hidden="true" />
+                        {formatTelefone(lead.contato.telefone)}
+                      </a>
+                    </Button>
                   ) : (
-                    "Não informado"
+                    "—"
                   )}
                 </Linha>
                 <Linha rotulo="E-mail">
                   {lead.contato.email ? (
-                    <a
-                      className="inline-flex items-center gap-1 text-primary underline"
-                      href={`mailto:${lead.contato.email}`}
-                    >
-                      <Mail size={16} aria-hidden="true" />
-                      {lead.contato.email}
-                    </a>
+                    <Button asChild variant="link">
+                      <a href={`mailto:${lead.contato.email}`}>
+                        <Mail size={16} aria-hidden="true" />
+                        {lead.contato.email}
+                      </a>
+                    </Button>
                   ) : (
-                    "Não informado"
+                    "—"
                   )}
                 </Linha>
                 <Linha rotulo="Origem">{ORIGEM_ROTULO[lead.origem]}</Linha>
-                <Linha rotulo="Orçamento">
-                  {lead.orcamento === null ? "Sem orçamento" : formatMoeda(lead.orcamento)}
-                </Linha>
+                <Linha rotulo="Orçamento">{lead.orcamento === null ? "—" : formatMoeda(lead.orcamento)}</Linha>
                 <Linha rotulo="Finalidade">{FINALIDADE_ROTULO[i.finalidade]}</Linha>
                 <Linha rotulo="Tipos">
-                  {i.tipos.length ? i.tipos.map((t) => TIPO_IMOVEL_ROTULO[t]).join(", ") : "Qualquer tipo"}
+                  {i.tipos.length ? i.tipos.map((t) => TIPO_IMOVEL_ROTULO[t]).join(", ") : "—"}
                 </Linha>
-                <Linha rotulo="Bairros">{i.bairros.length ? i.bairros.join(", ") : "Qualquer bairro"}</Linha>
-                <Linha rotulo="Quartos (mínimo)">{i.quartosMin ?? "Não informado"}</Linha>
-                <Linha rotulo="Responsável">{responsavel?.nome ?? "Sem responsável"}</Linha>
+                <Linha rotulo="Bairros">{i.bairros.length ? i.bairros.join(", ") : "—"}</Linha>
+                <Linha rotulo="Quartos (mínimo)">{i.quartosMin ?? "—"}</Linha>
+                <Linha rotulo="Responsável">{responsavel?.nome ?? "—"}</Linha>
               </dl>
-            </Secao>
+            </SectionCard>
 
-            <Secao titulo="Imóveis vistos">
-              {imoveisVistos.length === 0 ? (
-                <p className="text-sm text-text-muted">Nenhum imóvel visto ainda.</p>
-              ) : (
+            {imoveisVistos.length > 0 ? (
+              <SectionCard headingLevel={nivel} titulo="Imóveis vistos">
                 <ul className="flex flex-col gap-2">
                   {imoveisVistos.map((im) => (
                     <li key={im.id} className="text-sm break-words">
-                      <Link href={`/imoveis/${im.id}`} className="text-primary underline">
-                        {im.codigo} · {im.titulo}
-                      </Link>
+                      <Button asChild variant="link" className="text-left whitespace-normal">
+                        <Link href={`/imoveis/${im.id}`}>
+                          {im.codigo} · {im.titulo}
+                        </Link>
+                      </Button>
                     </li>
                   ))}
                 </ul>
-              )}
-              {visitas.length > 0 ? (
-                <p className="text-sm text-text-muted">
-                  {visitas.length} {visitas.length === 1 ? "visita registrada" : "visitas registradas"}
-                </p>
-              ) : null}
-            </Secao>
+                {visitas.length > 0 ? (
+                  <p className="text-sm text-text-muted">
+                    {visitas.length} {visitas.length === 1 ? "visita registrada" : "visitas registradas"}
+                  </p>
+                ) : null}
+              </SectionCard>
+            ) : null}
 
-            <Secao titulo="Linha do tempo">
+            <SectionCard headingLevel={nivel} titulo="Linha do tempo">
               <FormNota leadId={lead.id} />
               <ActivityFeed
                 estado={atividades}
@@ -257,11 +239,11 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
                 aria-label="Linha do tempo do lead"
                 onTentarNovamente={recarregarAtividades}
               />
-            </Secao>
+            </SectionCard>
 
-            <Secao titulo="Histórico de alterações">
+            <SectionCard headingLevel={nivel} titulo="Histórico de alterações">
               <ChangeLog estado={alteracoes} autores={autores} onTentarNovamente={recarregarAlteracoes} />
-            </Secao>
+            </SectionCard>
 
             <AgendarVisita leadId={lead.id} aberto={visitaAberta} onAbertoChange={setVisitaAberta} />
           </div>

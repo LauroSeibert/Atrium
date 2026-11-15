@@ -3,10 +3,10 @@ import { fn } from "storybook/test";
 import { calcularDashboard, type Kpi } from "@/domain";
 import { AGORA_HISTORIAS, BASE_HISTORIAS } from "@/mocks/data/historias";
 import type { Recurso } from "@/lib/recurso";
-import { StatCard } from "./StatCard";
+import { StatCard, type DadosStat } from "./StatCard";
 
 const dash = calcularDashboard(BASE_HISTORIAS, "mesAtual", AGORA_HISTORIAS);
-const ok = (k: Kpi): Recurso<Kpi> => ({ fase: "success", dados: k });
+const ok = (k: DadosStat): Recurso<DadosStat> => ({ fase: "success", dados: k });
 
 // RF-44: inadimplência % (fração) com o período anterior; subir é ruim. Série ilustrativa de 6 meses.
 const inadimplencia: Kpi = { valor: 0.0448, anterior: 0.031, tendencia: [0.02, 0.025, 0.028, 0.03, 0.031, 0.0448] };
@@ -45,12 +45,19 @@ export const AltaBoa: Story = {
     estado: ok({ valor: 18, anterior: 12, tendencia: [4, 6, 5, 9, 12, 18] }),
   },
 };
-export const SemVariacao: Story = {
+export const VariacaoZero: Story = {
   args: {
     rotulo: "Visitas agendadas",
     formato: "numero",
     estado: ok({ valor: 7, anterior: 7, tendencia: [5, 7, 6, 8, 7, 7] }),
   },
+};
+/** Sem `anterior`: só rótulo e valor, sem variação nem tendência (RF-42, RF-44). */
+export const SemVariacao: Story = {
+  args: { rotulo: "A receber", formato: "moedaCompleta", estado: ok({ valor: 1_845_000 }) },
+};
+export const SemVariacaoAlerta: Story = {
+  args: { rotulo: "Atrasado", formato: "moedaCompleta", estado: ok({ valor: 420_000, tom: "alerta" }) },
 };
 export const AnteriorZero: Story = {
   args: {

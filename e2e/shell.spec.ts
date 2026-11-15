@@ -17,7 +17,7 @@ const MODULOS = [
 ] as const;
 
 /** O nome do link pode ganhar o contador ("Leads, 3 leads novos"): casa pelo início. */
-const nomeDoItem = (rotulo: string) => new RegExp(`^${rotulo}(,|$)`);
+const nomeDoItem = (rotulo: string) => new RegExp(`^${rotulo}\\s*(,|$)`);
 
 const menuPrincipal = (page: Page) => page.getByRole("complementary", { name: "Menu principal" });
 const trilha = (page: Page) => page.getByRole("navigation", { name: "Trilha de navegação" });
@@ -31,6 +31,15 @@ async function aguardarCarregado(page: Page) {
 
 async function semRolagemHorizontal(page: Page) {
   return page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+}
+
+/** Abre o primeiro imóvel da lista e devolve o código mostrado na trilha (dados reais do mock). */
+async function abrirPrimeiroImovel(page: Page): Promise<string> {
+  await page.goto("/imoveis?corretor=todos");
+  await page.getByRole("list", { name: "Imóveis" }).getByRole("link").first().click();
+  const atual = trilha(page).locator("li").last();
+  await expect(atual).toHaveText(/^AT-\d{4}$/);
+  return (await atual.textContent())!.trim();
 }
 
 test.describe("shell no desktop", () => {
@@ -53,25 +62,39 @@ test.describe("shell no desktop", () => {
     }
   });
 
-  test("detalhe de imóvel mantém Imóveis ativo e a trilha mostra Imóveis › abc (RF-01, RF-61)", async ({ page }) => {
-    await page.goto("/imoveis/abc");
-    await expect(page.getByRole("heading", { level: 1, name: "Imóvel abc" })).toBeVisible();
+  test("detalhe de imóvel mantém Imóveis ativo e a trilha mostra Imóveis › código (RF-01, RF-61)", async ({ page }) => {
+    const codigo = await abrirPrimeiroImovel(page);
+    await expect(page).toHaveURL(/\/imoveis\/[^/]+$/);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(menuPrincipal(page).getByRole("link", { name: nomeDoItem("Imóveis") })).toHaveAttribute(
       "aria-current",
       "page",
     );
     await expect(trilha(page).getByText("Imóveis", { exact: true })).toBeVisible();
-    await expect(trilha(page).getByText("abc", { exact: true })).toBeVisible();
+    await expect(trilha(page).getByText(codigo, { exact: true })).toBeVisible();
   });
 
-  test("edição de imóvel mostra a trilha Imóveis › abc › Editar (RF-61)", async ({ page }) => {
-    await page.goto("/imoveis/abc/editar");
-    await expect(page.getByRole("heading", { level: 1, name: "Editar imóvel abc" })).toBeVisible();
+  test("id inexistente mostra não encontrado, com Imóveis ativo (RF-01, RF-61)", async ({ page }) => {
+    await page.goto("/imoveis/abc");
+    await expect(page.getByRole("heading", { level: 1, name: "Imóvel" })).toBeVisible();
+    await expect(page.getByText("Imóvel não encontrado")).toBeVisible();
     await expect(menuPrincipal(page).getByRole("link", { name: nomeDoItem("Imóveis") })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    for (const rotulo of ["Imóveis", "abc", "Editar"]) {
+    await expect(trilha(page).getByText("Imóveis", { exact: true })).toBeVisible();
+  });
+
+  test("edição de imóvel mostra a trilha Imóveis › código › Editar (RF-61)", async ({ page }) => {
+    const codigo = await abrirPrimeiroImovel(page);
+    await page.getByRole("link", { name: "Editar" }).first().click();
+    await expect(page).toHaveURL(/\/imoveis\/[^/]+\/editar$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Editar imóvel" })).toBeVisible();
+    await expect(menuPrincipal(page).getByRole("link", { name: nomeDoItem("Imóveis") })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    for (const rotulo of ["Imóveis", codigo, "Editar"]) {
       await expect(trilha(page).getByText(rotulo, { exact: true })).toBeVisible();
     }
   });

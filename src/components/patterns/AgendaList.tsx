@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { formatData, formatRelativo } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
 import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "./EmptyState";
@@ -72,12 +73,9 @@ export function AgendaListSkeleton() {
 function Item({ item }: { item: ItemAgenda }) {
   const ui = TIPO_UI[item.tipo];
   const titulo = item.href ? (
-    <Link
-      href={item.href}
-      className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-    >
-      {item.titulo}
-    </Link>
+    <Button asChild variant="link" className="justify-start text-left whitespace-normal">
+      <Link href={item.href}>{item.titulo}</Link>
+    </Button>
   ) : (
     item.titulo
   );
@@ -118,12 +116,7 @@ export function AgendaList({
         carregando={<AgendaListSkeleton />}
         estaVazio={(d) => d.length === 0}
         vazio={
-          <EmptyState
-            tamanho="compacto"
-            ilustracao="semResultados"
-            titulo="Nenhum compromisso nos próximos dias"
-            descricao="Visitas agendadas e vencimentos aparecem aqui."
-          />
+          <EmptyState tamanho="compacto" ilustracao="semResultados" titulo="Nenhum compromisso nos próximos dias" />
         }
         erro={{ titulo: "Não foi possível carregar os compromissos" }}
         onTentarNovamente={onTentarNovamente}

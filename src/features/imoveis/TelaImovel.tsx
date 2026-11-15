@@ -7,21 +7,21 @@ import Link from "next/link";
 import { ChevronDown, Pencil } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { PageSkeleton } from "@/components/layout/PageSkeleton";
 import { ActivityFeed } from "@/components/patterns/ActivityFeed";
 import { ChangeLog } from "@/components/patterns/ChangeLog";
 import { ErrorState } from "@/components/patterns/ErrorState";
 import { FeatureChips } from "@/components/patterns/FeatureChips";
 import { BotaoFavorito, PrecoImovel, SelosImovel } from "@/components/patterns/PropertyCard";
 import { PropertyGallery } from "@/components/patterns/PropertyGallery";
+import { SectionCard } from "@/components/patterns/SectionCard";
 import { SpecList } from "@/components/patterns/SpecList";
 import { STATUS_CONTRATO_UI, STATUS_IMOVEL_UI, TIPO_IMOVEL_ROTULO } from "@/components/patterns/rotulos";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
-import { Heading, Text } from "@/components/ui/Typography";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Text } from "@/components/ui/Typography";
 import { paraErroApi } from "@/mocks/services/erros";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { executarEscrita } from "@/features/dados/escrita";
@@ -38,16 +38,24 @@ const VOLTAR = (
   </Button>
 );
 
-function Secao({ titulo, children, className }: { titulo: string; children: React.ReactNode; className?: string }) {
+function CarregandoImovel() {
   return (
-    <Card asChild className={className}>
-      <section aria-label={titulo} className="flex min-w-0 flex-col gap-4 p-4 md:p-6">
-        <Heading level={2} size="lg">
-          {titulo}
-        </Heading>
-        {children}
-      </section>
-    </Card>
+    <>
+      <PageHeader titulo="Imóvel" />
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label="Carregando imóvel"
+        className="grid grid-cols-1 gap-6 xl:grid-cols-3"
+      >
+        <Skeleton shape="rect" className="aspect-4/3 h-auto rounded-lg xl:col-span-2" />
+        <div className="flex flex-col gap-3">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -64,11 +72,7 @@ export function TelaImovel({ id }: { id: string }) {
       <>
         <PageHeader titulo="Imóvel" />
         {naoEncontrado ? (
-          <ErrorState
-            titulo="Imóvel não encontrado"
-            descricao="O link pode estar errado ou o imóvel não existe mais."
-            acao={VOLTAR}
-          />
+          <ErrorState titulo="Imóvel não encontrado" acao={VOLTAR} />
         ) : (
           <ErrorState
             titulo="Não foi possível carregar o imóvel"
@@ -79,7 +83,7 @@ export function TelaImovel({ id }: { id: string }) {
       </>
     );
   }
-  return <PageSkeleton variante="detalhe" />;
+  return <CarregandoImovel />;
 }
 
 function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
@@ -152,31 +156,22 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
             fachada={imovel.fachada}
             titulo={imovel.titulo}
           />
-          <Secao titulo="Sobre o imóvel">
-            {imovel.descricao ? (
-              <Text className="break-words whitespace-pre-line">{imovel.descricao}</Text>
-            ) : (
-              <Text tone="muted">Sem descrição.</Text>
-            )}
+          <SectionCard titulo="Sobre o imóvel">
+            {imovel.descricao ? <Text className="break-words whitespace-pre-line">{imovel.descricao}</Text> : null}
             <FeatureChips diferenciais={imovel.diferenciais} />
-          </Secao>
-          <Secao titulo="Ficha técnica">
+          </SectionCard>
+          <SectionCard titulo="Ficha técnica">
             <SpecList imovel={imovel} />
-          </Secao>
+          </SectionCard>
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
-          <Secao titulo="Resumo">
+          <SectionCard titulo="Resumo">
             <PrecoImovel imovel={imovel} />
             <SelosImovel imovel={imovel} />
             {imovel.motivoInativo ? (
               <Text tone="muted" size="sm">
                 Motivo: {imovel.motivoInativo}
-              </Text>
-            ) : null}
-            {transicoes.length === 0 ? (
-              <Text tone="muted" size="sm">
-                O status segue o contrato.
               </Text>
             ) : null}
             <Text size="sm" className="break-words">
@@ -189,34 +184,26 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
                 <Avatar name={corretor.nome} size={32} />
                 <span className="min-w-0 break-words">{corretor.nome}</span>
               </p>
-            ) : (
-              <Text tone="muted" size="sm">
-                Sem corretor responsável.
-              </Text>
-            )}
-          </Secao>
+            ) : null}
+          </SectionCard>
 
-          <Secao titulo="Leads e contratos">
+          <SectionCard titulo="Leads e contratos">
             {leadsInteressados > 0 ? (
-              <Link
-                href={`/leads?imovel=${id}`}
-                className="w-fit rounded-sm text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                {leadsInteressados === 1 ? "1 lead interessado" : `${leadsInteressados} leads interessados`}
-              </Link>
+              <Button asChild variant="link" className="w-fit">
+                <Link href={`/leads?imovel=${id}`}>
+                  {leadsInteressados === 1 ? "1 lead interessado" : `${leadsInteressados} leads interessados`}
+                </Link>
+              </Button>
             ) : (
-              <Text tone="muted">Nenhum lead interessado ainda.</Text>
+              <Text tone="muted">Nenhum lead interessado</Text>
             )}
             {contratos.length > 0 ? (
               <ul aria-label="Contratos do imóvel" className="flex flex-col gap-2">
                 {contratos.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-2">
-                    <Link
-                      href={`/contratos/${c.id}`}
-                      className="tnum rounded-sm text-sm underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                    >
-                      {c.numero}
-                    </Link>
+                    <Button asChild variant="link" className="tnum text-sm">
+                      <Link href={`/contratos/${c.id}`}>{c.numero}</Link>
+                    </Button>
                     <Badge tone={STATUS_CONTRATO_UI[c.status].tom} size="sm">
                       {STATUS_CONTRATO_UI[c.status].rotulo}
                     </Badge>
@@ -224,22 +211,22 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
                 ))}
               </ul>
             ) : null}
-          </Secao>
+          </SectionCard>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Secao titulo="Histórico">
+        <SectionCard titulo="Histórico">
           <ActivityFeed
             estado={atividades.estado}
             autores={autores}
             aria-label="Histórico do imóvel"
             onTentarNovamente={atividades.recarregar}
           />
-        </Secao>
-        <Secao titulo="Histórico de alterações">
+        </SectionCard>
+        <SectionCard titulo="Histórico de alterações">
           <ChangeLog estado={alteracoes.estado} autores={autores} onTentarNovamente={alteracoes.recarregar} />
-        </Secao>
+        </SectionCard>
       </div>
 
       <DialogoStatusImovel alvo={alvoStatus} onFechar={() => setAlvoStatus(null)} />

@@ -31,7 +31,7 @@ describe("TelaFinanceiro (RF-44, RF-45)", () => {
     const fin = await fakeApi.getFinanceiro("mesAtual");
     render(<TelaFinanceiro />);
     const recebida = await screen.findByRole("group", { name: "Receita recebida" });
-    expect(texto(recebida)).toContain(texto(formatMoeda(fin.recebido, { semCentavos: true })));
+    expect(texto(recebida)).toContain(texto(formatMoeda(fin.recebido)));
     expect(screen.getByRole("group", { name: "Inadimplência" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Comissões" })).toBeInTheDocument();
     const faixas = screen.getByRole("list", { name: "Parcelas atrasadas por faixa de atraso" });
@@ -43,7 +43,7 @@ describe("TelaFinanceiro (RF-44, RF-45)", () => {
     const fin = await fakeApi.getFinanceiro("ultimos12");
     render(<TelaFinanceiro />);
     const recebida = await screen.findByRole("group", { name: "Receita recebida" });
-    expect(texto(recebida)).toContain(texto(formatMoeda(fin.recebido, { semCentavos: true })));
+    expect(texto(recebida)).toContain(texto(formatMoeda(fin.recebido)));
     expect(screen.getByRole("combobox", { name: "Período" })).toHaveTextContent("Últimos 12 meses");
   });
 

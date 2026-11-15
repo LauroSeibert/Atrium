@@ -4,11 +4,13 @@
  * RF-29 `?imovel=`). Contêiner: liga o KanbanBoard/DataTable ao fakeApi e à URL. Regras de etapa vêm do domínio.
  */
 import { Columns3, List, UserCheck, UserPlus } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { PERMITIDO, type Etapa, type Lead } from "@/domain";
+import { negar, recortePadrao, type Etapa, type Lead } from "@/domain";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DataTable, type DataTableColuna } from "@/components/patterns/DataTable";
+import { ErrorState } from "@/components/patterns/ErrorState";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
 import { KanbanBoard, type MoverLeadEvento } from "@/components/patterns/KanbanBoard";
 import { ETAPA_UI, ORIGEM_ROTULO } from "@/components/patterns/rotulos";
@@ -23,7 +25,7 @@ import { ORIGENS, type NovoLead, type Origem } from "@/domain";
 import { formatMoeda, formatRelativo } from "@/lib/format";
 import { usePreferencia } from "@/lib/preferencias";
 import type { Pagina } from "@/lib/paginacao";
-import type { Recurso } from "@/lib/recurso";
+import { mapear, type Recurso } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { AcaoLink } from "@/features/shell/AcaoLink";
 import { useEscrita } from "@/features/dados/escrita";
@@ -44,21 +46,6 @@ const TODOS = "todos";
 const ehPeriodo = (v: string | undefined): v is Periodo => v !== undefined && v in PERIODOS;
 const ehOrigem = (v: string | undefined): v is Origem => ORIGENS.includes(v as Origem);
 
-function mapear<T, U>(estado: Recurso<T>, f: (d: T) => U): Recurso<U> {
-  switch (estado.fase) {
-    case "idle":
-      return estado;
-    case "loading":
-      return { fase: "loading", dados: estado.dados === undefined ? undefined : f(estado.dados) };
-    case "success":
-      return { fase: "success", dados: f(estado.dados) };
-    case "partial":
-      return { fase: "partial", dados: f(estado.dados), aviso: estado.aviso };
-    case "error":
-      return { fase: "error", erro: estado.erro, dados: estado.dados === undefined ? undefined : f(estado.dados) };
-  }
-}
-
 export function TelaLeads() {
   const router = useRouter();
   const pathname = usePathname();
@@ -74,8 +61,12 @@ export function TelaLeads() {
   const lido = useMemo(() => new URLSearchParams(ativa ? qsAtual : qsCongelado), [ativa, qsAtual, qsCongelado]);
   const valor = (chave: string) => lido.get(chave) ?? undefined;
 
-  const { estado: perfilEstado } = useConsulta(useCallback(() => fakeApi.getPerfil(), []));
-  const { estado: corretoresEstado } = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
+  const { estado: perfilEstado, recarregar: recarregarPerfil } = useConsulta(
+    useCallback(() => fakeApi.getPerfil(), []),
+  );
+  const { estado: corretoresEstado, recarregar: recarregarCorretores } = useConsulta(
+    useCallback(() => fakeApi.listCorretores(), []),
+  );
   const perfil = "dados" in perfilEstado ? perfilEstado.dados : undefined;
   const corretores = useMemo(
     () => ("dados" in corretoresEstado ? (corretoresEstado.dados ?? []) : []),
@@ -83,7 +74,7 @@ export function TelaLeads() {
   );
 
   // RF-08: sem escolha explícita, o corretor vê só os dele; "todos" desliga o recorte.
-  const padraoResponsavel = perfil?.papel === "corretor" ? perfil.id : undefined;
+  const padraoResponsavel = perfil ? recortePadrao(perfil) : undefined;
   const bruto = valor("responsavel");
   const responsavelId = bruto === TODOS ? undefined : (bruto ?? padraoResponsavel);
   const perfilPronto = perfilEstado.fase === "success" || perfilEstado.fase === "partial";
@@ -104,13 +95,12 @@ export function TelaLeads() {
   );
 
   const carregar = useCallback(async () => {
-    const de = ehPeriodo(periodo) ? new Date(Date.now() - PERIODOS[periodo] * 86_400_000).toISOString() : undefined;
     const leads = await fakeApi.listLeads({
       busca: busca || undefined,
       responsavelId,
       origens: ehOrigem(origem) ? [origem] : undefined,
       imovelId,
-      de,
+      ultimosDias: ehPeriodo(periodo) ? PERIODOS[periodo] : undefined,
     });
     return { leads };
   }, [busca, responsavelId, origem, periodo, imovelId]);
@@ -126,12 +116,8 @@ export function TelaLeads() {
   const responsaveis = useMemo(() => Object.fromEntries(corretores.map((c) => [c.id, c.nome])), [corretores]);
   // Destinos e permissões chegam prontos do domínio em cada lead (fakeApi.listLeads → destinosLead).
   const destinosDe = (lead: Lead) => leadPorId(lead.id)?.destinos ?? [];
-  /** Soltar na própria coluna só reordena (sempre permitido); entre colunas, o domínio decide. */
-  const podeSoltar = (leadId: string, para: Etapa) => {
-    const lead = leadPorId(leadId);
-    if (!lead || lead.etapa === para) return PERMITIDO;
-    return lead.destinos.find((d) => d.etapa === para)?.permissao ?? PERMITIDO;
-  };
+  /** O domínio já decidiu cada coluna (a própria = reordenar); sem o lead, nega. */
+  const podeSoltar = (leadId: string, para: Etapa) => leadPorId(leadId)?.soltar[para] ?? negar("Lead não encontrado.");
   function aoMover({ leadId, para, ordem }: MoverLeadEvento) {
     const lead = leadPorId(leadId);
     if (!lead) return;
@@ -197,12 +183,8 @@ export function TelaLeads() {
       cabecalho: "Lead",
       fixa: "inicio",
       celula: (l) => (
-        <Button
-          variant="link"
-          onClick={() => abrir(l.id)}
-          className="h-auto max-w-56 justify-start text-left break-words whitespace-normal"
-        >
-          {l.nome}
+        <Button asChild variant="link" className="max-w-56 justify-start text-left break-words whitespace-normal">
+          <Link href={`/leads/${l.id}`}>{l.nome}</Link>
         </Button>
       ),
     },
@@ -227,6 +209,23 @@ export function TelaLeads() {
     p.set("novo", "1");
     return `/leads?${p.toString()}`;
   })();
+
+  const falhaBase = [perfilEstado, corretoresEstado].find((e) => e.fase === "error" && e.dados === undefined);
+  if (falhaBase) {
+    return (
+      <>
+        <PageHeader titulo="Leads" />
+        <ErrorState
+          titulo="Não foi possível carregar os leads"
+          onTentarNovamente={() => {
+            recarregarPerfil();
+            recarregarCorretores();
+            recarregar();
+          }}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -330,7 +329,7 @@ export function TelaLeads() {
             estado={listaEstado}
             onTentarNovamente={recarregar}
             onPaginaChange={(p) => definir({ pagina: String(p) })}
-            vazio={{ titulo: "Nenhum lead encontrado", descricao: "Ajuste os filtros ou cadastre um novo lead." }}
+            vazio={{ titulo: "Nenhum lead encontrado" }}
           />
         )}
       </div>
@@ -347,7 +346,7 @@ export function TelaLeads() {
         <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>Novo lead</DialogTitle>
-            <DialogDescription className="sr-only">Nome, contato e origem bastam para registrar.</DialogDescription>
+            <DialogDescription className="sr-only">Novo lead</DialogDescription>
           </DialogHeader>
           <LeadForm
             valoresIniciais={perfil ? ({ nome: "", contato: {}, responsavelId: perfil.id } as NovoLead) : undefined}

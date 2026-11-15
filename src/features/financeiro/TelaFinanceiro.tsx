@@ -8,19 +8,19 @@ import { useCallback } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ChartCard } from "@/components/patterns/ChartCard";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
-import { IndicadorCard, type DadosIndicador } from "@/components/patterns/IndicadorCard";
 import { RevenueChartCard } from "@/components/patterns/RevenueChart";
-import { Card } from "@/components/ui/Card";
+import { SectionCard } from "@/components/patterns/SectionCard";
+import { StatCard } from "@/components/patterns/StatCard";
+import { Button } from "@/components/ui/Button";
+import { Progress } from "@/components/ui/Progress";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { Heading } from "@/components/ui/Typography";
 import { PERIODOS, type Periodo } from "@/domain";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { useParametrosUrl } from "@/features/dados/useParametrosUrl";
-import type { Recurso } from "@/lib/recurso";
-import { formatMoeda, formatNumero, formatPercentual } from "@/lib/format";
+import { formatMoeda, formatNumero } from "@/lib/format";
+import { mapear } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
-import { BarrasHorizontais } from "./BarrasHorizontais";
 
 const PERIODO_ROTULO: Record<Periodo, string> = {
   mesAtual: "Mês atual",
@@ -39,22 +39,6 @@ const ePeriodo = (v: string | undefined): v is Periodo => PERIODOS.includes(v as
 type Financeiro = Awaited<ReturnType<typeof fakeApi.getFinanceiro>>;
 type Dados = { fin: Financeiro; corretores: Record<string, string> };
 
-/** Deriva um `Recurso` de outro mantendo a fase (a mesma consulta alimenta todos os blocos). */
-function mapear<T, U>(r: Recurso<T>, f: (d: T) => U): Recurso<U> {
-  switch (r.fase) {
-    case "idle":
-      return r;
-    case "loading":
-      return { fase: "loading", dados: r.dados === undefined ? undefined : f(r.dados) };
-    case "success":
-      return { fase: "success", dados: f(r.dados) };
-    case "partial":
-      return { fase: "partial", dados: f(r.dados), aviso: r.aviso };
-    case "error":
-      return { fase: "error", erro: r.erro, dados: r.dados === undefined ? undefined : f(r.dados) };
-  }
-}
-
 const dinheiro = (c: number) => formatMoeda(c, { semCentavos: true });
 const parcelas = (n: number) => `${formatNumero(n)} ${n === 1 ? "parcela" : "parcelas"}`;
 
@@ -70,7 +54,8 @@ export function TelaFinanceiro() {
   const { estado, recarregar } = useConsulta(carregar);
 
   const ref = REFERENCIA[periodo];
-  const ind = (f: (d: Dados) => DadosIndicador): Recurso<DadosIndicador> => mapear(estado, f);
+  const valor = (f: (d: Dados) => number, alerta = false) =>
+    mapear(estado, (d) => ({ valor: f(d), tom: alerta && f(d) > 0 ? ("alerta" as const) : ("neutro" as const) }));
 
   const faixasEstado = mapear(estado, (d) => d.fin.atrasadasPorFaixa);
   const comissoesEstado = mapear(estado, (d) =>
@@ -96,33 +81,35 @@ export function TelaFinanceiro() {
         }
       />
       <div className="flex min-w-0 flex-col gap-6">
-        <section aria-label="Indicadores financeiros" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <IndicadorCard
+        <h2 className="sr-only">Indicadores</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
             rotulo="Receita recebida"
-            estado={ind((d) => ({ valor: dinheiro(d.fin.recebido), detalhe: `Pagamentos recebidos ${ref}` }))}
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.recebido)}
             onTentarNovamente={recarregar}
           />
-          <IndicadorCard
+          <StatCard
             rotulo="A receber"
-            estado={ind((d) => ({ valor: dinheiro(d.fin.aReceber), detalhe: `Parcelas a vencer ${ref}` }))}
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.aReceber)}
             onTentarNovamente={recarregar}
           />
-          <IndicadorCard
+          <StatCard
             rotulo="Inadimplência"
-            estado={ind((d) => ({
-              valor: dinheiro(d.fin.inadimplencia.valor),
-              detalhe: `${formatPercentual(d.fin.inadimplencia.percentual)} das parcelas vencidas`,
-              tom: d.fin.inadimplencia.valor > 0 ? "alerta" : "neutro",
-            }))}
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.inadimplencia.valor, true)}
             onTentarNovamente={recarregar}
           />
-          <IndicadorCard
+          <StatCard
             rotulo="Comissões"
-            estado={ind((d) => ({ valor: dinheiro(d.fin.comissoes), detalhe: `Competência ${ref}` }))}
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.comissoes)}
             onTentarNovamente={recarregar}
           />
-        </section>
+        </div>
 
+        <h2 className="sr-only">Receita e comissões</h2>
         <RevenueChartCard estado={mapear(estado, (d) => d.fin.receitaPorMes)} onTentarNovamente={recarregar} />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -132,7 +119,6 @@ export function TelaFinanceiro() {
             onTentarNovamente={recarregar}
             estaVazio={(d) => d.length === 0}
             tituloVazio="Nenhuma comissão no período"
-            descricaoVazio="As comissões de contratos ativos e encerrados aparecem aqui."
             resumo={(d) => {
               const total = d.reduce((s, i) => s + i.valor, 0);
               return `${dinheiro(total)} em comissões ${ref}. Maior: ${d[0]!.rotulo}, com ${d[0]!.texto}.`;
@@ -142,13 +128,21 @@ export function TelaFinanceiro() {
               colunas: [{ rotulo: "Corretor" }, { rotulo: "Comissão", alinhar: "right" }],
               linhas: d.map((i) => [i.rotulo, i.texto]),
             })}
-            grafico={(d) => <BarrasHorizontais itens={d} />}
+            grafico={(d) => {
+              const maior = Math.max(1, ...d.map((i) => i.valor));
+              return (
+                <ul className="flex flex-col gap-3">
+                  {d.map((i) => (
+                    <li key={i.id}>
+                      <Progress value={(i.valor / maior) * 100} label={`${i.rotulo}: ${i.texto}`} hideValue />
+                    </li>
+                  ))}
+                </ul>
+              );
+            }}
           />
 
-          <Card className="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
-            <Heading level={3} size="lg">
-              Parcelas atrasadas
-            </Heading>
+          <SectionCard titulo="Parcelas atrasadas">
             <EstadoRecurso
               estado={faixasEstado}
               carregando={<Skeleton shape="rect" className="h-40" />}
@@ -174,13 +168,11 @@ export function TelaFinanceiro() {
                       <div className="flex items-baseline gap-3">
                         <span className="tnum font-semibold text-text">{dinheiro(f.valor)}</span>
                         {f.quantidade > 0 ? (
-                          <Link
-                            href="/contratos?status=inadimplente"
-                            aria-label={`Ver contratos inadimplentes (faixa ${f.faixa} dias)`}
-                            className="text-sm text-primary underline-offset-4 hover:underline"
-                          >
-                            Ver contratos
-                          </Link>
+                          <Button asChild variant="link">
+                            <Link href="/contratos?status=inadimplente" aria-label="Ver contratos inadimplentes">
+                              Ver contratos
+                            </Link>
+                          </Button>
                         ) : null}
                       </div>
                     </li>
@@ -188,7 +180,7 @@ export function TelaFinanceiro() {
                 </ul>
               )}
             </EstadoRecurso>
-          </Card>
+          </SectionCard>
         </div>
       </div>
     </>

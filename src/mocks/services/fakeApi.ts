@@ -20,6 +20,10 @@ import {
   criarLead,
   contratosVinculaveis,
   destinosLead,
+  diasDeAtraso,
+  permissoesDeSoltar,
+  repassesDoContrato,
+  resumoCronograma,
   ETAPAS,
   estaInadimplente,
   proximoVencimento,
@@ -213,7 +217,19 @@ export const fakeApi = {
   },
 
   // --- Dashboard e financeiro ----------------------------------------------
-  getDashboard: (periodo: Periodo = "mesAtual") => ler((b) => calcularDashboard(b, periodo, agoraIso())),
+  getDashboard: (periodo: Periodo = "mesAtual") =>
+    ler((b) => ({
+      ...calcularDashboard(b, periodo, agoraIso()),
+      /** "Agora" do relógio do mock (Hoje/Amanhã na agenda). */
+      agora: agoraIso(),
+      /** Rótulos das entidades citadas (atividades, agenda, metas), para a tela não buscar listas inteiras. */
+      nomes: {
+        imoveis: Object.fromEntries(b.imoveis.map((i) => [i.id, `${i.titulo} (${i.codigo})`])),
+        leads: Object.fromEntries(b.leads.map((l) => [l.id, l.nome])),
+        corretores: Object.fromEntries(b.corretores.map((c) => [c.id, c.nome])),
+        contratos: Object.fromEntries(b.contratos.map((c) => [c.id, c.numero])),
+      },
+    })),
   getFinanceiro: (periodo: Periodo = "mesAtual") => ler((b) => calcularFinanceiro(b, periodo, agoraIso())),
 
   // --- Corretores e perfil (RF-08, RF-50) -----------------------------------
@@ -268,7 +284,7 @@ export const fakeApi = {
         transicoes: transicoesPermitidasImovel(b, imovel),
         contratos: b.contratos
           .filter((c) => c.imovelId === id)
-          .map((c) => ({ id: c.id, numero: c.numero, status: c.status })),
+          .map((c) => ({ id: c.id, numero: c.numero, status: statusExibicao(c, agoraIso()) })),
         leadsInteressados: b.leads.filter((l) => l.imoveisVistos.includes(id)).length,
       };
     }),
@@ -307,24 +323,33 @@ export const fakeApi = {
       /** Criados entre (ISO, inclusive). */
       de?: string;
       ate?: string;
+      /** Criados nos últimos N dias (relógio do mock). */
+      ultimosDias?: number;
     } = {},
   ) =>
-    ler((b) =>
-      b.leads
-        .filter(
-          (l) =>
-            (!filtros.busca || contem(l.nome, filtros.busca)) &&
-            (!filtros.responsavelId || l.responsavelId === filtros.responsavelId) &&
-            (!filtros.origens?.length || filtros.origens.includes(l.origem)) &&
-            (!filtros.etapas?.length || filtros.etapas.includes(l.etapa)) &&
-            (!filtros.imovelId || l.imoveisVistos.includes(filtros.imovelId)) &&
-            (!filtros.de || l.criadoEm >= filtros.de) &&
-            (!filtros.ate || l.criadoEm <= filtros.ate),
-        )
-        .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem)
-        // Destinos de cada lead (RF-31/32), decididos pelo domínio.
-        .map((l) => ({ ...l, destinos: destinosLead(b, l) })),
-    ),
+    ler((b) => {
+      const desde =
+        filtros.ultimosDias === undefined
+          ? undefined
+          : new Date(relogio().getTime() - filtros.ultimosDias * 86_400_000).toISOString();
+      return (
+        b.leads
+          .filter(
+            (l) =>
+              (!filtros.busca || contem(l.nome, filtros.busca)) &&
+              (!filtros.responsavelId || l.responsavelId === filtros.responsavelId) &&
+              (!filtros.origens?.length || filtros.origens.includes(l.origem)) &&
+              (!filtros.etapas?.length || filtros.etapas.includes(l.etapa)) &&
+              (!filtros.imovelId || l.imoveisVistos.includes(filtros.imovelId)) &&
+              (!filtros.de || l.criadoEm >= filtros.de) &&
+              (!filtros.ate || l.criadoEm <= filtros.ate) &&
+              (!desde || l.criadoEm >= desde),
+          )
+          .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem)
+          // Destinos e colunas aceitas de cada lead (RF-31/32), decididos pelo domínio.
+          .map((l) => ({ ...l, destinos: destinosLead(b, l), soltar: permissoesDeSoltar(b, l) }))
+      );
+    }),
   /** RF-39: contratos existentes que o domínio aceita vincular ao lead. */
   listContratosVinculaveis: (leadId: string) =>
     ler((b) => {
@@ -412,9 +437,15 @@ export const fakeApi = {
         lead: contrato.leadId ? (buscar(b, "leads", contrato.leadId) ?? null) : null,
         statusExibicao: statusExibicao(contrato, hoje),
         inadimplente: estaInadimplente(contrato, hoje),
-        parcelas: contrato.parcelas.map((p) => ({ ...p, status: statusParcela(contrato, p, hoje) })),
-        /** "Hoje" do relógio do mock (dias de atraso na UI usam o mesmo relógio do domínio). */
-        hoje,
+        parcelas: contrato.parcelas.map((p) => ({
+          ...p,
+          status: statusParcela(contrato, p, hoje),
+          diasAtraso: diasDeAtraso(p, hoje),
+        })),
+        /** Pago, a receber e atrasado (RF-42). */
+        resumo: resumoCronograma(contrato, hoje),
+        /** Repasses ao proprietário (RF-46); `null` quando não se aplica. */
+        repasses: repassesDoContrato(contrato),
         transicoes: transicoesPermitidasContrato(b, contrato, hoje),
       };
     }),

@@ -1,7 +1,7 @@
 "use client";
 /**
  * Confirmação de mudança de status de um ou mais imóveis (RF-25, RF-49, RF-05). Quem pode ir para onde,
- * e se exige motivo, chega pronto do domínio (`opcoesDeStatus` / `transicoes` do fakeApi); aqui só se confirma e grava.
+ * e se exige motivo, chega pronto do domínio (`opcoesLoteImovel` / `transicoes` do fakeApi); aqui só se confirma e grava.
  */
 import { useEffect } from "react";
 import { ConfirmDestructive, type FaseConfirmacao } from "@/components/patterns/ConfirmDestructive";

@@ -245,13 +245,7 @@ export function PaymentSchedule({
         estado={estado}
         carregando={<PaymentScheduleSkeleton />}
         estaVazio={(d) => d.length === 0}
-        vazio={
-          <EmptyState
-            ilustracao="semContratos"
-            titulo="Sem parcelas"
-            descricao="Este contrato ainda não tem parcelas geradas. Elas aparecem quando o contrato é assinado."
-          />
-        }
+        vazio={<EmptyState ilustracao="semContratos" titulo="Sem parcelas" />}
         erro={{ titulo: "Não foi possível carregar as parcelas" }}
         onTentarNovamente={onTentarNovamente}
       >

@@ -40,6 +40,8 @@ Etapas: `novo → contato → visita → proposta → fechado`, mais `perdido`. 
 | `fechado` → outra    | lead sem contrato vinculado     | —                                                                                 |
 | todas                | —                               | Atividade `etapaAlterada`; registro de alteração (§4); atualiza `ordem` na coluna |
 
+A UI recebe pronto (via `fakeApi.listLeads`): `destinosLead` (cada etapa de destino com `Permissao` e `exigeMotivo`, para "Mover para…") e `permissoesDeSoltar` (cada coluna do kanban; a própria coluna = reordenar, sempre permitido). Lead não encontrado na tela = soltar negado. Após qualquer movimento a UI pergunta `contratosVinculaveis` (RF-39: só lead `fechado`, contratos dos imóveis vistos, sem lead e não cancelados) e só oferece o vínculo se vier algum.
+
 ### 3.2 Imóvel (`status`)
 
 ```mermaid
@@ -65,6 +67,8 @@ stateDiagram-v2
 
 Guard: imóvel com contrato ativo não aceita transição do usuário.
 
+Na lista, cada imóvel chega com `transicoesPermitidasImovel` (já com o guard); o menu de lote (RF-49) usa `opcoesLoteImovel`, que permite um destino se ao menos um selecionado aceita (os demais são recusados por `transicionarImoveis` e listados no toast).
+
 ### 3.3 Contrato (`status`)
 
 ```mermaid
@@ -84,6 +88,8 @@ stateDiagram-v2
 
 `inadimplente` **não é estado**: é derivado (`ativo` + parcela atrasada).
 
+Derivados entregues prontos à tela do contrato: `statusParcela` e `diasDeAtraso` por parcela, `resumoCronograma` (pagas, recebido, atrasadas, em atraso, a receber) e `repassesDoContrato` (RF-46; `null` quando não se aplica: venda ou locação sem taxa). Tudo pelo relógio do mock, nunca pelo relógio do navegador.
+
 ### 3.4 Parcela (derivada + uma ação)
 
 Status derivado: `pago` (tem `pagoEm`) · `cancelada` (contrato cancelado, não paga) · `atrasado` (hoje > vencimento) · `aVencer`. A única ação é `registrarPagamento` (e seu `desfazer`), permitida só em contrato `ativo` e parcela não paga.
@@ -101,6 +107,10 @@ Vincular contrato a lead (RF-39): só lead `fechado`, contrato sem lead e não c
 ### 3.7 Notificações e badges do shell (derivados)
 
 Não são máquinas de estado: são leituras derivadas, calculadas em `src/domain/notificacoes/notificacoes.ts` (antes ficavam no `fakeApi`). `listarNotificacoes` usa a mesma regra de `statusParcela` (vence em até 3 dias → `vencimento`; vencida → `atraso`; só contratos `ativo`) e as atividades de outras pessoas dos últimos 14 dias; `lida` vem da lista de ids lidos do usuário (único estado guardado, sem transição de negócio). `contadoresNavegacao` conta leads em `novo` e parcelas atrasadas de contratos ativos (mesma regra do "inadimplente"). O shell só exibe.
+
+### 3.8 Recorte por persona (RF-08)
+
+`recortePadrao(usuario)` (`src/domain/corretor/operacoes.ts`): corretor vê só os registros dos quais é responsável; gestor e financeiro veem tudo. Imóveis e Leads usam essa função para o filtro inicial; o usuário pode desfazer o recorte.
 
 ## 4. Registro de alterações
 

@@ -150,14 +150,7 @@ export function ActivityFeed({
         estado={estado}
         carregando={<ActivityFeedSkeleton variante={variante} />}
         estaVazio={(d) => d.length === 0}
-        vazio={
-          <EmptyState
-            tamanho="compacto"
-            ilustracao="semResultados"
-            titulo="Nenhuma atividade ainda"
-            descricao="Quando algo acontecer, aparece aqui."
-          />
-        }
+        vazio={<EmptyState tamanho="compacto" ilustracao="semResultados" titulo="Nenhuma atividade ainda" />}
         erro={{ titulo: "Não foi possível carregar as atividades" }}
         onTentarNovamente={onTentarNovamente}
       >

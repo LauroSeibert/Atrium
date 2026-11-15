@@ -7,6 +7,7 @@ import {
   parcelasAtrasadas,
   proximoVencimento,
   repasse,
+  repassesDoContrato,
   resumoCronograma,
   statusExibicao,
   statusParcela,
@@ -133,6 +134,23 @@ describe("resumoCronograma (RF-42)", () => {
       recebido: 100_000,
       atrasadas: 1,
       emAtraso: 200_000,
+      qtdAReceber: 1,
+      aReceber: 300_000,
     });
+  });
+});
+
+describe("repassesDoContrato (RF-46)", () => {
+  it("locação: um repasse por aluguel pago, descontada a taxa", () => {
+    const c = contratoLocacao({
+      parcelas: [parcela(1, "2026-09-01", PAGO, 100_000), parcela(2, "2026-10-01", null, 100_000)],
+    });
+    expect(repassesDoContrato(c)).toEqual([
+      { numero: 1, vencimento: "2026-09-01", pagoEm: PAGO, aluguel: 100_000, repasse: 90_000 },
+    ]);
+  });
+  it("venda ou locação sem taxa: não se aplica (null)", () => {
+    expect(repassesDoContrato(contrato())).toBeNull();
+    expect(repassesDoContrato(contratoLocacao({ taxaAdministracao: null }))).toBeNull();
   });
 });

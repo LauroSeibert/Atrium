@@ -1,11 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { Kpi } from "@/domain";
 import { formatMoeda } from "@/lib/format";
-import { resumoTendencia, StatCard, StatCardSkeleton, variacaoKpi, variacaoPontos } from "./StatCard";
+import { resumoTendencia, StatCard, type DadosStat, StatCardSkeleton, variacaoKpi, variacaoPontos } from "./StatCard";
 
-const ok = (k: Kpi) => ({ fase: "success" as const, dados: k });
+const ok = (k: DadosStat) => ({ fase: "success" as const, dados: k });
 
 describe("variacaoPontos", () => {
   it("diferença em pontos percentuais, não relativa", () => {
@@ -97,6 +96,17 @@ describe("StatCard (RF-10, RF-44)", () => {
       <StatCard rotulo="Leads" formato="numero" estado={ok({ valor: 1000, anterior: 100, tendencia: [100, 1000] })} />,
     );
     expect(screen.getByText(/Alta de 900,0%/)).toBeInTheDocument();
+  });
+
+  it("sem anterior não mostra variação nem tendência; tom alerta pinta o valor", () => {
+    const { container } = render(
+      <StatCard rotulo="Atrasado" formato="moedaCompleta" estado={ok({ valor: 12345, tom: "alerta" })} />,
+    );
+    const grupo = screen.getByRole("group", { name: "Atrasado" });
+    expect(grupo.textContent).toContain(formatMoeda(12345));
+    expect(screen.queryByText(/vs\. mês anterior|Sem dados no período/)).not.toBeInTheDocument();
+    expect(container.querySelector("svg")).toBeNull();
+    expect(grupo.querySelector("p.text-danger")).not.toBeNull();
   });
 
   it("exporta o skeleton", () => {

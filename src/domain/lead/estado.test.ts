@@ -9,6 +9,7 @@ import {
   contratosVinculaveis,
   criarLead,
   destinosLead,
+  permissoesDeSoltar,
   podeTransicionarLead,
   podeVincularContrato,
   temContratoVinculado,
@@ -125,6 +126,15 @@ describe("lead: destinosLead e contratosVinculaveis (RF-31, RF-39)", () => {
     });
     expect(contratosVinculaveis(base, l).map((c) => c.id)).toEqual(["c1"]);
     expect(contratosVinculaveis(base, { ...l, etapa: "proposta" })).toEqual([]);
+  });
+});
+
+describe("lead: permissoesDeSoltar (RF-31)", () => {
+  it("própria coluna reordena; colunas proibidas trazem o motivo", () => {
+    const l = lead({ etapa: "fechado" });
+    const p = permissoesDeSoltar(baseMinima({ leads: [l], contratos: [contrato({ leadId: "lead_a" })] }), l);
+    expect(p.fechado.ok).toBe(true);
+    expect(p.novo.ok).toBe(false);
   });
 });
 

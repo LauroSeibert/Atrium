@@ -98,7 +98,8 @@ function Conteudo<T>({ dados, p, visao }: { dados: T; p: ChartCardProps<T>; visa
   const tabela = p.tabela(dados);
   return (
     <div className="flex flex-col gap-4">
-      <Text id={idResumo} size="sm" tone="muted">
+      {/* Resumo textual (RNF-17) só para leitor de tela: a tabela é a alternativa visível (menos é mais). */}
+      <Text id={idResumo} size="sm" tone="muted" className="sr-only">
         {p.resumo(dados)}
       </Text>
       {visao === "grafico" ? (
@@ -137,7 +138,7 @@ export function ChartCard<T>(props: ChartCardProps<T>) {
     onTentarNovamente,
     estaVazio,
     tituloVazio = "Sem dados no período",
-    descricaoVazio = "Quando houver movimento, o gráfico aparece aqui.",
+    descricaoVazio,
     headingLevel = 3,
     className,
   } = props;

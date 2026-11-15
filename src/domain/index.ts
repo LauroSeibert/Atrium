@@ -21,6 +21,10 @@ export {
   salvarImovel,
   alternarFavorito,
   temContratoAtivo,
+  opcoesLoteImovel,
+  DESTINOS_USUARIO_IMOVEL,
+  type OpcaoLoteImovel,
+  type TransicaoImovel,
   type ResultadoLote,
 } from "./imovel/estado";
 export * from "./lead/estado";

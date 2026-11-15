@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import { Download, LayoutGrid, List, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/patterns/EmptyState";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
@@ -28,15 +28,17 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
-import { PERMITIDO, type Corretor } from "@/domain";
+import { opcoesLoteImovel, PERMITIDO, recortePadrao, type Corretor, type Imovel, type TransicaoImovel } from "@/domain";
 import { formatArea, formatMoeda } from "@/lib/format";
+import { baixarCsv } from "@/lib/csv";
 import { usePreferencia } from "@/lib/preferencias";
+import { useTelaLarga } from "@/lib/useMidia";
 import { fakeApi, type OrdemImoveis } from "@/mocks/services/fakeApi";
 import { executarEscrita } from "@/features/dados/escrita";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { DEBOUNCE_BUSCA_MS, useParametrosUrl } from "@/features/dados/useParametrosUrl";
 import { AcaoLink } from "@/features/shell/AcaoLink";
-import { baixarCsv, gerarCsvImoveis } from "./csv";
+import { gerarCsvImoveis } from "./csv";
 import { DialogoStatusImovel, type AlvoStatus } from "./DialogoStatusImovel";
 import { FiltrosAvancados, FiltrosPrincipais } from "./ControlesFiltros";
 import {
@@ -48,7 +50,8 @@ import {
   VISUALIZACOES,
   type Visualizacao,
 } from "./filtros";
-import { opcoesDeStatus, type ImovelComTransicoes } from "./statusImovel";
+
+type ImovelComTransicoes = Imovel & { transicoes: readonly TransicaoImovel[] };
 
 const ROTULO_ORDEM: { value: OrdemImoveis; label: string }[] = [
   { value: "recentes", label: "Mais recentes" },
@@ -56,23 +59,6 @@ const ROTULO_ORDEM: { value: OrdemImoveis; label: string }[] = [
   { value: "precoDesc", label: "Maior preço" },
   { value: "area", label: "Maior área" },
 ];
-
-const assinarMedia = (consulta: string) => (avisar: () => void) => {
-  if (typeof window.matchMedia !== "function") return () => {};
-  const m = window.matchMedia(consulta);
-  m.addEventListener("change", avisar);
-  return () => m.removeEventListener("change", avisar);
-};
-
-/** `true` a partir de 768 px (tabela); abaixo, a lista vira cartões. Sem matchMedia (jsdom) vale desktop. */
-function useTelaLarga(): boolean {
-  const consulta = "(min-width: 768px)";
-  return useSyncExternalStore(
-    useMemo(() => assinarMedia(consulta), []),
-    () => (typeof window.matchMedia === "function" ? window.matchMedia(consulta).matches : true),
-    () => true,
-  );
-}
 
 function SkeletonListagem() {
   return (
@@ -129,8 +115,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   }, [p.view, view, pagina, definir]);
 
   // Recorte padrão da persona (RF-08): corretor vê os dele; `corretor=todos` desfaz.
-  const corretorEfetivo =
-    p.corretor === "todos" ? undefined : (p.corretor ?? (usuario.papel === "corretor" ? usuario.id : undefined));
+  const corretorEfetivo = p.corretor === "todos" ? undefined : (p.corretor ?? recortePadrao(usuario));
 
   const corretores = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
   const bairros = useConsulta(useCallback(() => fakeApi.listBairros(), []));
@@ -176,7 +161,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   );
 
   const acoesDoImovel = (imovel: ImovelComTransicoes): AcaoImovel[] =>
-    opcoesDeStatus([imovel])
+    opcoesLoteImovel([imovel.transicoes])
       .filter((o) => o.permissao.ok)
       .map((o) => ({
         id: `status-${o.para}`,
@@ -195,14 +180,14 @@ function Listagem({ usuario }: { usuario: Corretor }) {
       permissao: PERMITIDO,
       onExecutar: (ids) => {
         const escolhidos = ids.map((id) => selecao[id]).filter((i): i is ImovelComTransicoes => !!i);
-        baixarCsv(gerarCsvImoveis(escolhidos, nomeDe), "imoveis.csv");
+        baixarCsv("imoveis.csv", gerarCsvImoveis(escolhidos, nomeDe));
         toast({
           tone: "success",
           title: `${escolhidos.length} ${escolhidos.length === 1 ? "imóvel exportado" : "imóveis exportados"}`,
         });
       },
     },
-    ...opcoesDeStatus(Object.values(selecao)).map<DataTableAcaoEmLote>((o) => ({
+    ...opcoesLoteImovel(Object.values(selecao).map((i) => i.transicoes)).map<DataTableAcaoEmLote>((o) => ({
       id: `status-${o.para}`,
       rotulo: `Marcar como ${STATUS_IMOVEL_UI[o.para].rotulo.toLowerCase()}`,
       permissao: o.permissao,
@@ -226,7 +211,6 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   const vazio = semFiltros ? (
     <EmptyState
       titulo="Nenhum imóvel cadastrado"
-      descricao="Cadastre o primeiro imóvel para começar."
       acao={
         <AcaoLink href="/imoveis/novo" icone={Plus}>
           Novo imóvel
@@ -236,7 +220,6 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   ) : (
     <EmptyState
       titulo="Nenhum imóvel encontrado"
-      descricao="Nenhum imóvel combina com a busca e os filtros."
       acao={
         <Button variant="secondary" onClick={limparTudo}>
           Limpar filtros
@@ -253,13 +236,11 @@ function Listagem({ usuario }: { usuario: Corretor }) {
       className: "min-w-64",
       celula: (i) => (
         <div className="flex min-w-0 flex-col">
-          <Link
-            href={`/imoveis/${i.id}`}
-            className="line-clamp-2 font-medium text-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            title={i.titulo}
-          >
-            {i.titulo}
-          </Link>
+          <Button asChild variant="link" className="justify-start text-left font-medium whitespace-normal">
+            <Link href={`/imoveis/${i.id}`} title={i.titulo} className="line-clamp-2">
+              {i.titulo}
+            </Link>
+          </Button>
           <span className="tnum text-xs text-text-muted">
             {i.codigo} · {i.endereco.bairro}
           </span>
@@ -397,9 +378,6 @@ function Listagem({ usuario }: { usuario: Corretor }) {
             linhasSkeleton={POR_PAGINA}
             vazio={{
               titulo: semFiltros ? "Nenhum imóvel cadastrado" : "Nenhum imóvel encontrado",
-              descricao: semFiltros
-                ? "Cadastre o primeiro imóvel para começar."
-                : "Nenhum imóvel combina com a busca e os filtros.",
               acao: semFiltros ? (
                 <AcaoLink href="/imoveis/novo" icone={Plus}>
                   Novo imóvel

@@ -48,10 +48,17 @@ describe("TelaConfiguracoes", () => {
   it("mostra erro com taxa de erro 1 e recupera em Tentar de novo", async () => {
     __reiniciarParaTeste({ agora: AGORA, config: { taxaErro: 1 } });
     renderizar();
-    const botao = await screen.findByRole("button", { name: /tentar de novo/i });
+    const botoes = await screen.findAllByRole("button", { name: /tentar de novo/i });
     fakeApi.configurar({ taxaErro: 0 });
-    await userEvent.click(botao);
+    await userEvent.click(botoes[0]!);
     expect(await screen.findByRole("textbox", { name: /nome/i })).toBeInTheDocument();
+  });
+
+  it("falha ao listar usuários mostra erro com Tentar de novo, sem Carregando preso", async () => {
+    __reiniciarParaTeste({ agora: AGORA, config: { taxaErro: 1 } });
+    renderizar();
+    expect(await screen.findByText("Não foi possível carregar os usuários")).toBeInTheDocument();
+    expect(screen.queryByText("Carregando…")).not.toBeInTheDocument();
   });
 
   it("salva o perfil (RF-50): toast e dado persistido", async () => {

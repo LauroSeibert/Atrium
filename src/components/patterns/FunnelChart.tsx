@@ -141,7 +141,6 @@ export function FunnelChartCard({ estado, onTentarNovamente, className }: Funnel
       onTentarNovamente={onTentarNovamente}
       estaVazio={funilVazio}
       tituloVazio="Nenhum lead no funil"
-      descricaoVazio="Quando chegarem leads, o funil aparece aqui."
       resumo={resumoFunil}
       tabela={tabelaFunil}
       grafico={(d) => <FunnelChart dados={d} />}

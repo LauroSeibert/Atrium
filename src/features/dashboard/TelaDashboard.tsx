@@ -9,19 +9,19 @@ import { AgendaList, type ItemAgenda } from "@/components/patterns/AgendaList";
 import { ActivityFeed } from "@/components/patterns/ActivityFeed";
 import { FunnelChartCard } from "@/components/patterns/FunnelChart";
 import { RevenueChartCard } from "@/components/patterns/RevenueChart";
+import { SectionCard } from "@/components/patterns/SectionCard";
 import { StatCard } from "@/components/patterns/StatCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { rotaDaEntidade } from "@/components/layout/navegacao";
 import { Select } from "@/components/ui/Select";
 import { PERIODOS, type Compromisso, type Periodo } from "@/domain";
 import { formatMoeda } from "@/lib/format";
+import { dadosDe, mapear } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { useConsulta } from "../dados/useConsulta";
 import { useParametrosUrl } from "../dados/useParametrosUrl";
 import { AcaoLink } from "../shell/AcaoLink";
-import { CartaoSecao } from "./CartaoSecao";
 import { MetaRealizado } from "./MetaRealizado";
-import { combinar, mapear } from "./recursos";
 
 const PERIODO_PADRAO: Periodo = "mesAtual";
 
@@ -35,20 +35,7 @@ const OPCOES_PERIODO = PERIODOS.map((p) => ({ value: p, label: PERIODO_UI[p].rot
 
 const ehPeriodo = (v: string | undefined): v is Periodo => PERIODOS.some((p) => p === v);
 
-/** Nomes para rotular o que o domínio devolve só com ids (autores, imóveis das visitas, leads). */
-async function carregarNomes() {
-  const [corretores, imoveis, leads] = await Promise.all([
-    fakeApi.listCorretores(),
-    fakeApi.listImoveis({}, { pagina: 1, porPagina: 100_000 }),
-    fakeApi.listLeads(),
-  ]);
-  return {
-    corretores: Object.fromEntries(corretores.map((c) => [c.id, c.nome])) as Record<string, string>,
-    imoveis: Object.fromEntries(imoveis.itens.map((i) => [i.id, i.titulo])) as Record<string, string>,
-    leads: Object.fromEntries(leads.map((l) => [l.id, l.nome])) as Record<string, string>,
-  };
-}
-type Nomes = Awaited<ReturnType<typeof carregarNomes>>;
+type Nomes = Awaited<ReturnType<typeof fakeApi.getDashboard>>["nomes"];
 
 function itemDeAgenda(c: Compromisso, n: Nomes): ItemAgenda {
   if (c.tipo === "visita")
@@ -76,24 +63,15 @@ export function TelaDashboard() {
   const periodo = ehPeriodo(valor) ? valor : PERIODO_PADRAO;
   const { comparacao } = PERIODO_UI[periodo];
 
-  const dashboard = useConsulta(useCallback(() => fakeApi.getDashboard(periodo), [periodo]));
-  const nomes = useConsulta(carregarNomes);
-  const recarregar = useCallback(() => {
-    dashboard.recarregar();
-    nomes.recarregar();
-  }, [dashboard, nomes]);
+  const { estado: d, recarregar } = useConsulta(useCallback(() => fakeApi.getDashboard(periodo), [periodo]));
 
-  const d = dashboard.estado;
-  const atividades = useMemo(() => combinar(d, nomes.estado, (dash) => dash.atividades), [d, nomes.estado]);
-  const agenda = useMemo(
-    () => combinar(d, nomes.estado, (dash, n) => dash.compromissos.map((c) => itemDeAgenda(c, n))),
-    [d, nomes.estado],
-  );
-  const nomeDe = useCallback(
-    (id: string) => (nomes.estado.fase === "success" ? nomes.estado.dados.corretores[id] : undefined) ?? "Corretor",
-    [nomes.estado],
-  );
-  const metas = useMemo(() => combinar(d, nomes.estado, (dash) => dash.meta), [d, nomes.estado]);
+  const dados = dadosDe(d);
+  const agora = useMemo(() => (dados ? new Date(dados.agora) : undefined), [dados]);
+  const atividades = useMemo(() => mapear(d, (x) => x.atividades), [d]);
+  const agenda = useMemo(() => mapear(d, (x) => x.compromissos.map((c) => itemDeAgenda(c, x.nomes))), [d]);
+  const metas = useMemo(() => mapear(d, (x) => x.meta), [d]);
+  const corretores = dados?.nomes.corretores;
+  const nomeDe = useCallback((id: string) => corretores?.[id] ?? "Corretor", [corretores]);
 
   return (
     <>
@@ -164,10 +142,11 @@ export function TelaDashboard() {
           onTentarNovamente={recarregar}
           className="md:col-span-2 xl:col-span-7"
         />
-        <CartaoSecao titulo="Atividades recentes" className="md:col-span-2 xl:col-span-5 xl:row-span-2">
+        <SectionCard titulo="Atividades recentes" className="md:col-span-2 xl:col-span-5 xl:row-span-2">
           <ActivityFeed
             estado={atividades}
-            autores={(id) => (nomes.estado.fase === "success" ? nomes.estado.dados.corretores[id] : undefined)}
+            autores={(id) => corretores?.[id]}
+            agora={agora}
             variante="feed"
             hrefDe={(a) => {
               const rota = rotaDaEntidade(a.alvo);
@@ -176,10 +155,10 @@ export function TelaDashboard() {
             onTentarNovamente={recarregar}
             aria-label="Atividades recentes"
           />
-        </CartaoSecao>
-        <CartaoSecao titulo="Próximos compromissos" className="md:col-span-2 xl:col-span-7">
-          <AgendaList estado={agenda} onTentarNovamente={recarregar} />
-        </CartaoSecao>
+        </SectionCard>
+        <SectionCard titulo="Próximos compromissos" className="md:col-span-2 xl:col-span-7">
+          <AgendaList estado={agenda} agora={agora} onTentarNovamente={recarregar} />
+        </SectionCard>
       </div>
     </>
   );

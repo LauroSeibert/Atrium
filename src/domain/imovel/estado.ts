@@ -46,6 +46,31 @@ export function transicoesPermitidasImovel(base: Pick<Base, "contratos">, imovel
     .map((para) => ({ para, exigeMotivo: para === "inativo" }));
 }
 
+export type TransicaoImovel = { para: StatusImovel; exigeMotivo: boolean };
+export type OpcaoLoteImovel = { para: StatusImovel; permissao: Permissao; exigeMotivo: boolean; aplicaveis: number };
+
+/** Destinos que o usuário pode escolher em algum caso (para montar o menu de lote, RF-49). */
+export const DESTINOS_USUARIO_IMOVEL: readonly StatusImovel[] = [...new Set(Object.values(TRANSICOES_USUARIO).flat())];
+
+/**
+ * Opções de status para um lote (RF-49) a partir das `transicoesPermitidasImovel` de cada imóvel:
+ * um destino é permitido se ao menos um aceita; os outros são recusados pelo lote ao gravar.
+ */
+export function opcoesLoteImovel(transicoesPorImovel: readonly (readonly TransicaoImovel[])[]): OpcaoLoteImovel[] {
+  return DESTINOS_USUARIO_IMOVEL.map((para) => {
+    const aceitam = transicoesPorImovel.map((ts) => ts.find((t) => t.para === para)).filter((t) => t !== undefined);
+    return {
+      para,
+      aplicaveis: aceitam.length,
+      exigeMotivo: aceitam.some((t) => t.exigeMotivo),
+      permissao:
+        aceitam.length > 0
+          ? PERMITIDO
+          : negar(transicoesPorImovel.length === 1 ? "Essa mudança não é permitida." : "Nenhum selecionado aceita."),
+    };
+  });
+}
+
 function aplicarStatus(t: Transacao, imovel: Imovel, para: StatusImovel, motivo: string | null, origem: string) {
   t.put("imoveis", { ...imovel, status: para, motivoInativo: para === "inativo" ? motivo : null });
   t.atividade({

@@ -42,13 +42,7 @@ export function ChangeLog({ estado, autores, agora, onTentarNovamente, className
         estado={estado}
         carregando={<ChangeLogSkeleton />}
         estaVazio={(d) => d.length === 0}
-        vazio={
-          <EmptyState
-            tamanho="compacto"
-            titulo="Nenhuma alteração registrada"
-            descricao="Mudanças de preço, status e valores aparecem aqui."
-          />
-        }
+        vazio={<EmptyState tamanho="compacto" titulo="Nenhuma alteração registrada" />}
         erro={{ titulo: "Não foi possível carregar o histórico" }}
         onTentarNovamente={onTentarNovamente}
       >

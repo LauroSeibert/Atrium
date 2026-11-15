@@ -132,7 +132,6 @@ export function RevenueChartCard({ estado, onTentarNovamente, className }: Reven
       onTentarNovamente={onTentarNovamente}
       estaVazio={receitaVazia}
       tituloVazio="Nenhuma receita no período"
-      descricaoVazio="Os pagamentos recebidos de vendas e locações aparecem aqui."
       resumo={resumoReceita}
       tabela={tabelaReceita}
       grafico={(d) => <RevenueChart dados={d} />}

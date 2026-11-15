@@ -11,7 +11,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ChangeLog } from "@/components/patterns/ChangeLog";
 import { ConfirmDestructive, type FaseConfirmacao } from "@/components/patterns/ConfirmDestructive";
 import { ErrorState } from "@/components/patterns/ErrorState";
-import { IndicadorCard, type DadosIndicador } from "@/components/patterns/IndicadorCard";
 import {
   PaymentSchedule,
   PaymentScheduleSkeleton,
@@ -19,20 +18,19 @@ import {
   type ItemParcela,
 } from "@/components/patterns/PaymentSchedule";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
+import { SectionCard } from "@/components/patterns/SectionCard";
+import { StatCard } from "@/components/patterns/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { Heading } from "@/components/ui/Typography";
-import { diasDeAtraso, podeRegistrarPagamento, repasse } from "@/domain";
+import { podeRegistrarPagamento, type TipoContrato } from "@/domain";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { executarEscrita, useEscrita } from "@/features/dados/escrita";
 import { DefinirTrilha } from "@/features/shell/trilha";
 import { formatData, formatDocumentoMascarado, formatMoeda, formatPercentual } from "@/lib/format";
 import { ErroApi } from "@/mocks/services/erros";
 import { fakeApi } from "@/mocks/services/fakeApi";
-import { indicadoresDasParcelas } from "./parcelas";
 import type { DetalheContrato } from "./tipos";
 
 const PAPEL: Record<string, string> = {
@@ -45,20 +43,11 @@ const PAPEL: Record<string, string> = {
 
 const moeda = (c: number) => formatMoeda(c);
 
-function indicador(valor: number, detalhe: string, alerta = false): { fase: "success"; dados: DadosIndicador } {
-  return { fase: "success", dados: { valor: moeda(valor), detalhe, tom: alerta ? "alerta" : "neutro" } };
-}
-
-function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <Card className="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
-      <Heading level={2} size="lg">
-        {titulo}
-      </Heading>
-      {children}
-    </Card>
-  );
-}
+/** Título do cronograma por tipo (apresentação). */
+const TITULO_CRONOGRAMA: Record<TipoContrato, string> = {
+  locacao: "Cronograma de aluguéis",
+  venda: "Cronograma de parcelas",
+};
 
 function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<string, string> }) {
   const { contrato } = d;
@@ -66,15 +55,13 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
   const [cancelando, setCancelando] = useState(false);
   const cancelamento = useEscrita();
 
-  // Fora de `useMemo` com relógio do mock: dias de atraso só enfeitam o texto; o status já veio derivado.
-  const agora = new Date().toISOString();
   const itens: ItemParcela[] = d.parcelas.map((p) => ({
     parcela: { numero: p.numero, vencimento: p.vencimento, valor: p.valor, pagoEm: p.pagoEm },
     status: p.status,
-    diasAtraso: diasDeAtraso(p, agora),
+    diasAtraso: p.diasAtraso,
     podeRegistrar: podeRegistrarPagamento(contrato, p.numero),
   }));
-  const ind = indicadoresDasParcelas(d.parcelas);
+  const { resumo, repasses } = d;
   const status = STATUS_CONTRATO_UI[d.statusExibicao];
 
   const registrar = async (numero: number) => {
@@ -107,7 +94,6 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
   };
 
   const imovel = d.imovel;
-  const pagos = contrato.parcelas.filter((p) => p.pagoEm !== null);
 
   return (
     <>
@@ -159,28 +145,28 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
 
       <div className="flex min-w-0 flex-col gap-6">
         <section aria-label="Indicadores do contrato" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <IndicadorCard rotulo="Pago" estado={indicador(ind.recebido, `${ind.pagas} de ${ind.total} parcelas`)} />
-          <IndicadorCard
-            rotulo="A receber"
-            estado={indicador(
-              ind.aReceber,
-              `${ind.qtdAReceber} ${ind.qtdAReceber === 1 ? "parcela a vencer" : "parcelas a vencer"}`,
-            )}
+          <StatCard
+            rotulo="Pago"
+            formato="moedaCompleta"
+            estado={{ fase: "success", dados: { valor: resumo.recebido } }}
           />
-          <IndicadorCard
+          <StatCard
+            rotulo="A receber"
+            formato="moedaCompleta"
+            estado={{ fase: "success", dados: { valor: resumo.aReceber } }}
+          />
+          <StatCard
             rotulo="Atrasado"
-            estado={indicador(
-              ind.emAtraso,
-              ind.atrasadas === 0
-                ? "Nenhuma parcela atrasada"
-                : `${ind.atrasadas} ${ind.atrasadas === 1 ? "parcela" : "parcelas"}`,
-              ind.atrasadas > 0,
-            )}
+            formato="moedaCompleta"
+            estado={{
+              fase: "success",
+              dados: { valor: resumo.emAtraso, tom: resumo.atrasadas > 0 ? "alerta" : "neutro" },
+            }}
           />
         </section>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Secao titulo="Dados do contrato">
+          <SectionCard titulo="Dados do contrato">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <div>
                 <dt className="text-text-muted">Tipo</dt>
@@ -221,9 +207,9 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
                 <span className="text-text-muted">Imóvel removido</span>
               )}
             </div>
-          </Secao>
+          </SectionCard>
 
-          <Secao titulo="Partes">
+          <SectionCard titulo="Partes">
             <ul className="flex flex-col divide-y divide-border">
               {contrato.partes.map((p) => (
                 <li
@@ -236,13 +222,11 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
                 </li>
               ))}
             </ul>
-          </Secao>
+          </SectionCard>
         </div>
 
-        <Secao titulo="Comissão">
-          {contrato.comissoes.length === 0 ? (
-            <p className="text-sm text-text-muted">As comissões são definidas quando o contrato é assinado.</p>
-          ) : (
+        {contrato.comissoes.length > 0 ? (
+          <SectionCard titulo="Comissão">
             <Table aria-label="Comissões do contrato" density="compact">
               <TableHeader>
                 <TableRow>
@@ -265,50 +249,43 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
                 ))}
               </TableBody>
             </Table>
-          )}
-        </Secao>
+          </SectionCard>
+        ) : null}
 
-        <Secao titulo={contrato.tipo === "locacao" ? "Cronograma de aluguéis" : "Cronograma de parcelas"}>
+        <SectionCard titulo={TITULO_CRONOGRAMA[contrato.tipo]}>
           <PaymentSchedule
             estado={{ fase: "success", dados: itens }}
-            resumo={ind}
+            resumo={resumo}
             onRegistrarPagamento={registrar}
             acao={acaoParcela}
           />
-        </Secao>
+        </SectionCard>
 
-        {contrato.tipo === "locacao" ? (
-          <Secao titulo="Repasses ao proprietário">
-            {pagos.length === 0 ? (
-              <p className="text-sm text-text-muted">Os repasses aparecem depois do primeiro aluguel pago.</p>
-            ) : (
-              <Table aria-label="Repasses ao proprietário" density="compact">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mês</TableHead>
-                    <TableHead align="right">Aluguel</TableHead>
-                    <TableHead align="right">Taxa de administração</TableHead>
-                    <TableHead align="right">Repasse</TableHead>
+        {repasses !== null && repasses.length > 0 ? (
+          <SectionCard titulo="Repasses ao proprietário">
+            <Table aria-label="Repasses ao proprietário" density="compact">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mês</TableHead>
+                  <TableHead align="right">Aluguel</TableHead>
+                  <TableHead align="right">Taxa de administração</TableHead>
+                  <TableHead align="right">Repasse</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {repasses.map((r) => (
+                  <TableRow key={r.numero}>
+                    <TableCell className="tnum">{formatData(r.vencimento, "mesAno")}</TableCell>
+                    <TableCell align="right">{moeda(r.aluguel)}</TableCell>
+                    <TableCell align="right">{moeda(r.aluguel - r.repasse)}</TableCell>
+                    <TableCell align="right" className="font-medium">
+                      {moeda(r.repasse)}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagos.map((p) => {
-                    const valorRepasse = repasse(contrato, p);
-                    return (
-                      <TableRow key={p.numero}>
-                        <TableCell className="tnum">{formatData(p.vencimento, "mesAno")}</TableCell>
-                        <TableCell align="right">{moeda(p.valor)}</TableCell>
-                        <TableCell align="right">{moeda(p.valor - valorRepasse)}</TableCell>
-                        <TableCell align="right" className="font-medium">
-                          {moeda(valorRepasse)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </Secao>
+                ))}
+              </TableBody>
+            </Table>
+          </SectionCard>
         ) : null}
 
         <Historico contratoId={contrato.id} corretores={corretores} />
@@ -340,9 +317,9 @@ function Historico({ contratoId, corretores }: { contratoId: string; corretores:
   const carregar = useCallback(() => fakeApi.listAlteracoes({ tipo: "contrato", id: contratoId }), [contratoId]);
   const { estado, recarregar } = useConsulta(carregar);
   return (
-    <Secao titulo="Histórico de alterações">
+    <SectionCard titulo="Histórico de alterações">
       <ChangeLog estado={estado} autores={corretores} onTentarNovamente={recarregar} />
-    </Secao>
+    </SectionCard>
   );
 }
 

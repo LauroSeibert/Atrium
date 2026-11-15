@@ -19,7 +19,15 @@ const item = (numero: number, status: StatusParcela, extra: Partial<ItemParcela>
 });
 
 const itens = [item(1, "pago"), item(2, "atrasado"), item(3, "aVencer"), item(4, "cancelada")];
-const resumo = { total: 4, pagas: 1, recebido: 100_000, atrasadas: 1, emAtraso: 100_000 };
+const resumo = {
+  total: 4,
+  pagas: 1,
+  recebido: 100_000,
+  atrasadas: 1,
+  emAtraso: 100_000,
+  qtdAReceber: 2,
+  aReceber: 200_000,
+};
 
 /** Tabela e lista coexistem no DOM (a visível depende do CSS); testamos a tabela. */
 const tabela = () => screen.getByRole("region", { name: "Cronograma de parcelas" });

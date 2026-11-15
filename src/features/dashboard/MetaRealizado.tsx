@@ -1,11 +1,11 @@
 import type { MetaCorretor } from "@/domain";
 import { EmptyState } from "@/components/patterns/EmptyState";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
+import { SectionCard } from "@/components/patterns/SectionCard";
 import { Progress } from "@/components/ui/Progress";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatMoeda, formatNumero, formatPercentual } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
-import { CartaoSecao } from "./CartaoSecao";
 
 /** Meta × realizado do mês, geral e por corretor (RF-16). */
 
@@ -53,7 +53,7 @@ export function MetaRealizado({
 }) {
   const ordenados = (d: DadosMeta) => [...d.porCorretor].sort((a, z) => fracao(z) - fracao(a));
   return (
-    <CartaoSecao titulo="Meta do mês" className={className}>
+    <SectionCard titulo="Meta do mês" className={className}>
       <EstadoRecurso
         estado={estado}
         carregando={<MetaSkeleton />}
@@ -71,6 +71,6 @@ export function MetaRealizado({
           </ul>
         )}
       </EstadoRecurso>
-    </CartaoSecao>
+    </SectionCard>
   );
 }

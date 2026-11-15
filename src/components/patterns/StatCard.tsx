@@ -1,7 +1,6 @@
 "use client";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 import { useId } from "react";
-import type { Kpi } from "@/domain";
 import { cn } from "@/lib/cn";
 import { formatMoeda, formatNumero, formatPercentual } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
@@ -19,11 +18,24 @@ import { EstadoRecurso } from "./EstadoRecurso";
  * por card, e quem chama não monta skeleton nem erro.
  */
 
-export type FormatoKpi = "moeda" | "numero" | "percentual";
+export type FormatoKpi = "moeda" | "moedaCompleta" | "numero" | "percentual";
+
+/**
+ * Dados do card. Sem `anterior` não há variação nem tendência (números sem série histórica:
+ * a receber, saldo do contrato). O `Kpi` do domínio é atribuível a este tipo.
+ */
+export type DadosStat = {
+  valor: number;
+  anterior?: number;
+  tendencia?: number[];
+  /** `alerta` pinta o valor com a cor de erro (o rótulo diz o que é; cor não é o único sinal). */
+  tom?: "neutro" | "alerta";
+};
 export type SentidoKpi = "maiorMelhor" | "menorMelhor";
 
 const formatadores: Record<FormatoKpi, (n: number) => string> = {
   moeda: (n) => formatMoeda(n, { compacto: true }),
+  moedaCompleta: (n) => formatMoeda(n),
   numero: (n) => formatNumero(n),
   percentual: (n) => formatPercentual(n),
 };
@@ -54,7 +66,8 @@ export function variacaoPontos(valor: number, anterior: number): VariacaoKpi {
 }
 
 /** Sem nenhum dado: valor, anterior e tendência todos zero. */
-export const kpiVazio = (k: Kpi) => k.valor === 0 && k.anterior === 0 && k.tendencia.every((t) => t === 0);
+export const kpiVazio = (k: DadosStat) =>
+  k.anterior !== undefined && k.valor === 0 && k.anterior === 0 && (k.tendencia ?? []).every((t) => t === 0);
 
 type Leitura = { tom: "bom" | "ruim" | "neutro"; icone: typeof ArrowUp; texto: string; leitor: string };
 
@@ -129,7 +142,7 @@ export function Sparkline({ valores, className }: { valores: number[]; className
 
 export type StatCardProps = {
   rotulo: string;
-  estado: Recurso<Kpi>;
+  estado: Recurso<DadosStat>;
   onTentarNovamente?: () => void;
   formato?: FormatoKpi;
   /** Inadimplência: `menorMelhor` (subir é ruim, fica em cor de erro). */
@@ -162,24 +175,35 @@ function Corpo({
   sentido,
   comparacao,
   tendencia,
-}: Required<Pick<StatCardProps, "rotulo" | "formato" | "sentido" | "comparacao" | "tendencia">> & { kpi: Kpi }) {
+}: Required<Pick<StatCardProps, "rotulo" | "formato" | "sentido" | "comparacao" | "tendencia">> & { kpi: DadosStat }) {
   const id = useId();
   const formatar = formatadores[formato];
   const vazio = kpiVazio(kpi);
   const pontos = formato === "percentual";
-  const leitura = lerVariacao(
-    pontos ? variacaoPontos(kpi.valor, kpi.anterior) : variacaoKpi(kpi.valor, kpi.anterior),
-    sentido,
-    comparacao,
-    pontos,
-  );
+  const leitura =
+    kpi.anterior === undefined
+      ? null
+      : lerVariacao(
+          pontos ? variacaoPontos(kpi.valor, kpi.anterior) : variacaoKpi(kpi.valor, kpi.anterior),
+          sentido,
+          comparacao,
+          pontos,
+        );
+  const serie = kpi.tendencia ?? [];
   return (
     <Card className="flex min-w-0 flex-col gap-2 p-4 sm:p-6" role="group" aria-labelledby={`${id}-r`}>
       <p id={`${id}-r`} className="text-sm font-medium text-text-muted">
         {rotulo}
       </p>
-      <p className="tnum text-2xl font-semibold [overflow-wrap:anywhere] text-text">{formatar(kpi.valor)}</p>
-      {vazio ? (
+      <p
+        className={cn(
+          "tnum text-2xl font-semibold [overflow-wrap:anywhere]",
+          kpi.tom === "alerta" ? "text-danger" : "text-text",
+        )}
+      >
+        {formatar(kpi.valor)}
+      </p>
+      {leitura === null ? null : vazio ? (
         <p className="text-sm text-text-muted">Sem dados no período</p>
       ) : (
         <>
@@ -192,10 +216,10 @@ function Corpo({
               </span>
             </span>
           </p>
-          {tendencia && kpi.tendencia.length > 1 ? (
+          {tendencia && serie.length > 1 ? (
             <div className="mt-1">
-              <Sparkline valores={kpi.tendencia} />
-              <span className="sr-only">{resumoTendencia(kpi.tendencia, formatar)}</span>
+              <Sparkline valores={serie} />
+              <span className="sr-only">{resumoTendencia(serie, formatar)}</span>
             </div>
           ) : null}
         </>
@@ -204,7 +228,7 @@ function Corpo({
   );
 }
 
-/** Card de KPI com variação e tendência (RF-10, RF-44). */
+/** Card de KPI (RF-10, RF-42, RF-44): valor; variação e tendência só quando há `anterior`. */
 export function StatCard({
   rotulo,
   estado,

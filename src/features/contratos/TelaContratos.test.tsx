@@ -13,14 +13,16 @@ vi.mock("next/navigation", () => ({
 
 import { TelaContratos } from "./TelaContratos";
 
+let telaLarga = true;
 const AGORA = "2026-11-14T12:00:00.000Z";
 const GRANDE = { pagina: 1, porPagina: 1000 };
 
 beforeEach(() => {
   replace.mockClear();
   busca = new URLSearchParams();
-  window.matchMedia ??= ((q: string) => ({
-    matches: false,
+  telaLarga = true;
+  window.matchMedia = ((q: string) => ({
+    matches: telaLarga,
     media: q,
     addEventListener() {},
     removeEventListener() {},
@@ -31,6 +33,19 @@ beforeEach(() => {
 const contagem = (n: number) => `${n.toLocaleString("pt-BR")} ${n === 1 ? "contrato" : "contratos"}`;
 
 describe("TelaContratos (RF-40, RF-41, RF-47)", () => {
+  it("em tela estreita renderiza só os cartões, sem tabela", async () => {
+    telaLarga = false;
+    window.matchMedia = ((q: string) => ({
+      matches: false,
+      media: q,
+      addEventListener() {},
+      removeEventListener() {},
+    })) as unknown as typeof window.matchMedia;
+    render(<TelaContratos />);
+    expect(await screen.findByRole("list", { name: "Contratos em cartões" })).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
   it("carrega a tabela com contratos e links para o detalhe", async () => {
     const { itens } = await fakeApi.listContratos({}, { pagina: 1, porPagina: 10 });
     render(<TelaContratos />);
