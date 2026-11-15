@@ -9,6 +9,7 @@ import {
   metricaDoMes,
   metricasMensais,
   proximosCompromissos,
+  statusImovelEm,
   type MetricaMensal,
 } from "./metricas";
 
@@ -101,7 +102,8 @@ describe("métricas derivadas", () => {
 
   it("funil: conversão acumulada, sem divisão por zero", () => {
     const f = funilDeLeads(base);
-    expect(f.find((x) => x.etapa === "novo")).toEqual({ etapa: "novo", quantidade: 1, conversao: 2 / 3 });
+    // lead_d perdido sem registro conta como perdido em "novo": 2 de 4 avançaram.
+    expect(f.find((x) => x.etapa === "novo")).toEqual({ etapa: "novo", quantidade: 1, perdidos: 1, conversao: 2 / 4 });
     expect(f.find((x) => x.etapa === "fechado")!.conversao).toBeNull();
     expect(funilDeLeads(baseMinima({ leads: [] })).every((x) => x.conversao === null)).toBe(true);
   });
@@ -132,5 +134,60 @@ describe("métricas derivadas", () => {
     expect(d.kpis.receita.tendencia).toHaveLength(12);
     expect(d.kpis.visitasProximas.valor).toBe(1);
     expect(d.kpis.leadsNovos).toMatchObject({ valor: 1, anterior: 1 });
+  });
+
+  it("funil: perdido conta na etapa em que estava (registro de alteração)", () => {
+    const b = baseMinima({
+      leads: [
+        lead({ id: "lead_a", etapa: "visita", ordem: 0 }),
+        lead({ id: "lead_b", etapa: "perdido", motivoPerda: "preco", ordem: 0 }),
+      ],
+      alteracoes: [
+        {
+          id: "alt_1",
+          em: "2026-03-01T12:00:00.000Z",
+          autorId: "cor_a",
+          entidade: { tipo: "lead", id: "lead_b" },
+          campo: "etapa",
+          de: "novo",
+          para: "visita",
+        },
+        {
+          id: "alt_2",
+          em: "2026-03-02T12:00:00.000Z",
+          autorId: "cor_a",
+          entidade: { tipo: "lead", id: "lead_b" },
+          campo: "etapa",
+          de: "visita",
+          para: "perdido",
+        },
+      ],
+    });
+    const f = funilDeLeads(b);
+    expect(f.find((x) => x.etapa === "visita")).toEqual({ etapa: "visita", quantidade: 1, perdidos: 1, conversao: 0 });
+    expect(f.find((x) => x.etapa === "contato")!.conversao).toBe(1);
+    expect(f.find((x) => x.etapa === "perdido")!.perdidos).toBe(1);
+  });
+
+  it("imóveis ativos usam o status da época (registro de alteração)", () => {
+    const b = baseMinima({
+      imoveis: [imovel({ status: "vendido", criadoEm: "2025-12-01T12:00:00.000Z" })],
+      alteracoes: [
+        {
+          id: "alt_1",
+          em: "2026-03-10T12:00:00.000Z",
+          autorId: "cor_a",
+          entidade: { tipo: "imovel", id: "imv_a" },
+          campo: "status",
+          de: "disponivel",
+          para: "vendido",
+        },
+      ],
+    });
+    const im = b.imoveis[0]!;
+    expect(statusImovelEm(b, im, "2026-03-01T03:00:00.000Z")).toBe("disponivel");
+    expect(statusImovelEm(b, im, "2026-04-01T03:00:00.000Z")).toBe("vendido");
+    const d = calcularDashboard(b, "mesAtual", HOJE);
+    expect(d.kpis.imoveisAtivos).toMatchObject({ valor: 0, anterior: 1 });
   });
 });

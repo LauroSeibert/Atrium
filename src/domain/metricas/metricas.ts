@@ -8,7 +8,8 @@ import type { Base } from "../comum/base";
 import { dataLocal } from "../comum/tipos";
 import { diasDeAtraso, repasse, statusParcela } from "../contrato/derivados";
 import type { Contrato, Parcela } from "../contrato/schema";
-import { ETAPAS, type Etapa } from "../lead/schema";
+import { ETAPAS, type Etapa, type Lead } from "../lead/schema";
+import type { Imovel, StatusImovel } from "../imovel/schema";
 import type { Visita } from "../visita/schema";
 
 export type MetricaMensal = {
@@ -132,19 +133,50 @@ export function proximosCompromissos(base: Base, hoje: string, dias = 7): Compro
   return [...visitas, ...vencimentos].sort((a, b) => a.quando.localeCompare(b.quando));
 }
 
-export type Funil = { etapa: Etapa; quantidade: number; conversao: number | null }[];
+export type Funil = { etapa: Etapa; quantidade: number; perdidos: number; conversao: number | null }[];
 
-/** RF-12: conversão = quem chegou à próxima etapa (ou além) ÷ quem chegou a esta (ou além). */
-export function funilDeLeads(base: Base, responsavelId?: string): Funil {
+/**
+ * Etapa em que o lead estava quando foi perdido: o `de` do último registro de alteração
+ * `etapa → perdido` (ESTADOS §4). Sem registro (dado legado), conta como `novo`.
+ */
+export function etapaDaPerda(base: Pick<Base, "alteracoes">, lead: Lead): Etapa | null {
+  if (lead.etapa !== "perdido") return null;
+  let quando = "";
+  let de: Etapa = "novo";
+  for (const r of base.alteracoes)
+    if (
+      r.entidade.tipo === "lead" &&
+      r.entidade.id === lead.id &&
+      r.campo === "etapa" &&
+      r.para === "perdido" &&
+      r.em >= quando &&
+      typeof r.de === "string" &&
+      r.de !== "perdido"
+    ) {
+      quando = r.em;
+      de = r.de as Etapa;
+    }
+  return de;
+}
+
+/**
+ * RF-12: conversão = quem chegou à próxima etapa (ou além) ÷ quem chegou a esta (ou além).
+ * Lead perdido conta como tendo chegado à etapa em que estava ao ser perdido (`etapaDaPerda`)
+ * e não além dela; assim a perda pesa na conversão daquela etapa (`perdidos`).
+ */
+export function funilDeLeads(base: Pick<Base, "leads" | "alteracoes">, responsavelId?: string): Funil {
   const leads = base.leads.filter((l) => !responsavelId || l.responsavelId === responsavelId);
   const fluxo: readonly Etapa[] = ETAPAS.filter((e) => e !== "perdido");
-  const alcancou = (i: number) => leads.filter((l) => l.etapa !== "perdido" && fluxo.indexOf(l.etapa) >= i).length;
+  const alcance = leads.map((l) => fluxo.indexOf(etapaDaPerda(base, l) ?? l.etapa));
+  const perdas = leads.map((l) => etapaDaPerda(base, l));
+  const alcancou = (i: number) => alcance.filter((x) => x >= i).length;
   return ETAPAS.map((etapa) => {
     const i = fluxo.indexOf(etapa);
     const quantidade = leads.filter((l) => l.etapa === etapa).length;
-    if (i === -1 || i === fluxo.length - 1) return { etapa, quantidade, conversao: null };
+    const perdidos = etapa === "perdido" ? quantidade : perdas.filter((p) => p === etapa).length;
+    if (i === -1 || i === fluxo.length - 1) return { etapa, quantidade, perdidos, conversao: null };
     const base_ = alcancou(i);
-    return { etapa, quantidade, conversao: base_ ? alcancou(i + 1) / base_ : null };
+    return { etapa, quantidade, perdidos, conversao: base_ ? alcancou(i + 1) / base_ : null };
   });
 }
 
@@ -181,6 +213,24 @@ export function atividadesRecentes(base: Base, limite = 10): Atividade[] {
   return [...base.atividades].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0, limite);
 }
 
+/**
+ * Status que o imóvel tinha no instante `iso`: parte do status atual e desfaz, do mais recente
+ * para o mais antigo, os registros de alteração de `status` feitos a partir de `iso` (ESTADOS §4).
+ * Usado pelo KPI de imóveis ativos (RF-10) para que o "anterior" e a tendência reflitam o passado.
+ */
+export function statusImovelEm(base: Pick<Base, "alteracoes">, imovel: Imovel, iso: string): StatusImovel {
+  const t = Date.parse(iso);
+  const depois = base.alteracoes
+    .filter(
+      (r) =>
+        r.entidade.tipo === "imovel" && r.entidade.id === imovel.id && r.campo === "status" && Date.parse(r.em) >= t,
+    )
+    .sort((a, b) => b.em.localeCompare(a.em));
+  let st: StatusImovel = imovel.status;
+  for (const r of depois) if (typeof r.de === "string") st = r.de as StatusImovel;
+  return st;
+}
+
 export type Dashboard = {
   periodo: Periodo;
   meses: string[];
@@ -201,7 +251,11 @@ export function calcularDashboard(base: Base, periodo: Periodo, hoje: string): D
   const t = Date.parse(hoje);
   const fimDoMes = (mes: string) => `${somarMesesRef(mes, 1)}-01T03:00:00.000Z`; // 00h em São Paulo
   const ativosAte = (iso: string) =>
-    base.imoveis.filter((i) => i.criadoEm < iso && (i.status === "disponivel" || i.status === "reservado")).length;
+    base.imoveis.filter((i) => {
+      if (i.criadoEm >= iso) return false;
+      const st = statusImovelEm(base, i, iso);
+      return st === "disponivel" || st === "reservado";
+    }).length;
   const ultimo = atual[atual.length - 1]!;
   return {
     periodo,

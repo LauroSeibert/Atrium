@@ -171,6 +171,8 @@ Gravado pelo domínio sempre que preço, status ou valor monetário muda ([`ESTA
 
 `{ mes: 'AAAA-MM', receitaVendas, receitaLocacoes, comissoes, leadsNovos, visitas, contratosFechados }` — **calculada na consulta** (`getDashboard`/`getFinanceiro`) a partir de contratos, parcelas, comissões, leads e visitas, para refletir imediatamente qualquer alteração salva (ex.: RF-43). Não é armazenada; uma cópia pré-calculada existe só como _fixture_ de teste para conferir o cálculo.
 
+Métricas que dependem do passado leem o **registro de alterações**: o KPI de imóveis ativos (RF-10) usa o status que cada imóvel tinha no fim de cada mês (`statusImovelEm`), e o funil (RF-12) conta o lead perdido na etapa em que estava ao ser perdido (`etapaDaPerda`, campo `perdidos`), sem inflar a conversão.
+
 ## 3. Regras e invariantes
 
 Garantidas pelo gerador do mock **e** pelas máquinas de estado do domínio, que são o único ponto de mudança de status (o `fakeApi` só as chama). Transições, guards e efeitos completos: [`ESTADOS-E-FLUXOS.md`](./ESTADOS-E-FLUXOS.md).
