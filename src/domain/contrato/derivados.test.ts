@@ -7,6 +7,7 @@ import {
   parcelasAtrasadas,
   proximoVencimento,
   repasse,
+  resumoCronograma,
   statusExibicao,
   statusParcela,
 } from "./derivados";
@@ -116,5 +117,22 @@ describe("repasse (RF-46)", () => {
   it("venda e taxa nula repassam 0", () => {
     expect(repasse(contrato(), parcela(1, "2026-01-01"))).toBe(0);
     expect(repasse(contratoLocacao({ taxaAdministracao: null }), parcela(1, "2026-01-01"))).toBe(0);
+  });
+});
+
+describe("resumoCronograma (RF-42)", () => {
+  it("conta pagas, recebido e em atraso", () => {
+    const c = comParcelas([
+      parcela(1, "2026-09-01", PAGO, 100_000),
+      parcela(2, "2026-10-01", null, 200_000),
+      parcela(3, "2026-12-01", null, 300_000),
+    ]);
+    expect(resumoCronograma(c, "2026-11-14")).toEqual({
+      total: 3,
+      pagas: 1,
+      recebido: 100_000,
+      atrasadas: 1,
+      emAtraso: 200_000,
+    });
   });
 });

@@ -154,8 +154,8 @@ function exigir<T>(v: T | undefined, oque: string): T {
 // Tipos de consulta
 // ---------------------------------------------------------------------------
 
-export type Paginacao = { pagina: number; porPagina: number };
-export type Pagina<T> = { itens: T[]; total: number; pagina: number; porPagina: number; totalPaginas: number };
+import type { Pagina, Paginacao } from "@/lib/paginacao";
+export type { Pagina, Paginacao };
 
 function paginar<T>(lista: T[], p: Paginacao = { pagina: 1, porPagina: 12 }): Pagina<T> {
   const porPagina = Math.max(1, p.porPagina);

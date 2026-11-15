@@ -41,3 +41,21 @@ export function repasse(contrato: Contrato, parcela: Parcela): number {
   if (contrato.tipo !== "locacao" || contrato.taxaAdministracao === null) return 0;
   return parcela.valor - Math.round((parcela.valor * contrato.taxaAdministracao) / 100);
 }
+
+export type ResumoCronograma = { total: number; pagas: number; recebido: number; atrasadas: number; emAtraso: number };
+
+/** Resumo do cronograma de parcelas (RF-42): pagas x de y, total recebido e em atraso. */
+export function resumoCronograma(contrato: Contrato, hoje: string): ResumoCronograma {
+  const r: ResumoCronograma = { total: contrato.parcelas.length, pagas: 0, recebido: 0, atrasadas: 0, emAtraso: 0 };
+  for (const p of contrato.parcelas) {
+    const st = statusParcela(contrato, p, hoje);
+    if (st === "pago") {
+      r.pagas++;
+      r.recebido += p.valor;
+    } else if (st === "atrasado") {
+      r.atrasadas++;
+      r.emAtraso += p.valor;
+    }
+  }
+  return r;
+}

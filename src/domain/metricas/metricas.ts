@@ -137,26 +137,28 @@ export type Funil = { etapa: Etapa; quantidade: number; perdidos: number; conver
 
 /**
  * Etapa em que o lead estava quando foi perdido: o `de` do último registro de alteração
- * `etapa → perdido` (ESTADOS §4). Sem registro (dado legado), conta como `novo`.
+ * `etapa → perdido` (ESTADOS §4). Empate de instante: vale o que vem depois no array.
+ * Sem registro (dado legado), conta como `novo`.
  */
 export function etapaDaPerda(base: Pick<Base, "alteracoes">, lead: Lead): Etapa | null {
   if (lead.etapa !== "perdido") return null;
-  let quando = "";
-  let de: Etapa = "novo";
+  return indicePerdas(base).get(lead.id) ?? "novo";
+}
+
+function indicePerdas(base: Pick<Base, "alteracoes">): Map<string, Etapa> {
+  const ultimo = new Map<string, { em: string; de: Etapa }>();
   for (const r of base.alteracoes)
     if (
       r.entidade.tipo === "lead" &&
-      r.entidade.id === lead.id &&
       r.campo === "etapa" &&
       r.para === "perdido" &&
-      r.em >= quando &&
       typeof r.de === "string" &&
       r.de !== "perdido"
     ) {
-      quando = r.em;
-      de = r.de as Etapa;
+      const atual = ultimo.get(r.entidade.id);
+      if (!atual || r.em >= atual.em) ultimo.set(r.entidade.id, { em: r.em, de: r.de as Etapa });
     }
-  return de;
+  return new Map([...ultimo].map(([id, v]) => [id, v.de]));
 }
 
 /**
@@ -167,8 +169,9 @@ export function etapaDaPerda(base: Pick<Base, "alteracoes">, lead: Lead): Etapa 
 export function funilDeLeads(base: Pick<Base, "leads" | "alteracoes">, responsavelId?: string): Funil {
   const leads = base.leads.filter((l) => !responsavelId || l.responsavelId === responsavelId);
   const fluxo: readonly Etapa[] = ETAPAS.filter((e) => e !== "perdido");
-  const alcance = leads.map((l) => fluxo.indexOf(etapaDaPerda(base, l) ?? l.etapa));
-  const perdas = leads.map((l) => etapaDaPerda(base, l));
+  const perdasIdx = indicePerdas(base);
+  const perdas = leads.map((l) => (l.etapa === "perdido" ? (perdasIdx.get(l.id) ?? "novo") : null));
+  const alcance = leads.map((l, i) => fluxo.indexOf(perdas[i] ?? l.etapa));
   const alcancou = (i: number) => alcance.filter((x) => x >= i).length;
   return ETAPAS.map((etapa) => {
     const i = fluxo.indexOf(etapa);
@@ -220,14 +223,13 @@ export function atividadesRecentes(base: Base, limite = 10): Atividade[] {
  */
 export function statusImovelEm(base: Pick<Base, "alteracoes">, imovel: Imovel, iso: string): StatusImovel {
   const t = Date.parse(iso);
-  const depois = base.alteracoes
-    .filter(
-      (r) =>
-        r.entidade.tipo === "imovel" && r.entidade.id === imovel.id && r.campo === "status" && Date.parse(r.em) >= t,
-    )
-    .sort((a, b) => b.em.localeCompare(a.em));
+  // Percorre do fim para o começo (ordem de gravação), o que também desempata instantes iguais.
   let st: StatusImovel = imovel.status;
-  for (const r of depois) if (typeof r.de === "string") st = r.de as StatusImovel;
+  for (let k = base.alteracoes.length - 1; k >= 0; k--) {
+    const r = base.alteracoes[k]!;
+    if (r.entidade.tipo === "imovel" && r.entidade.id === imovel.id && r.campo === "status" && Date.parse(r.em) >= t)
+      if (typeof r.de === "string") st = r.de as StatusImovel;
+  }
   return st;
 }
 
