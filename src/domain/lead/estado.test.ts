@@ -6,7 +6,9 @@ import {
   TRANSICOES_LEAD,
   adicionarNota,
   alterarOrcamento,
+  contratosVinculaveis,
   criarLead,
+  destinosLead,
   podeTransicionarLead,
   podeVincularContrato,
   temContratoVinculado,
@@ -97,6 +99,32 @@ describe("lead: transicoesPermitidasLead e exigeMotivo (RF-32)", () => {
     const l = lead({ etapa: "fechado" });
     const base = baseMinima({ leads: [l], contratos: [contrato({ leadId: "lead_a" })] });
     expect(transicoesPermitidasLead(base, l)).toEqual([]);
+  });
+});
+
+describe("lead: destinosLead e contratosVinculaveis (RF-31, RF-39)", () => {
+  it("todas as outras etapas, com permissão e motivo; negadas trazem o motivo", () => {
+    const l = lead({ etapa: "fechado" });
+    const livre = destinosLead(baseMinima({ leads: [l] }), l);
+    expect(livre.map((d) => d.etapa)).toEqual(ETAPAS.filter((e) => e !== "fechado"));
+    expect(livre.every((d) => d.permissao.ok)).toBe(true);
+    expect(livre.find((d) => d.etapa === "perdido")?.exigeMotivo).toBe(true);
+    const preso = destinosLead(baseMinima({ leads: [l], contratos: [contrato({ leadId: "lead_a" })] }), l);
+    expect(preso.every((d) => !d.permissao.ok)).toBe(true);
+  });
+
+  it("só contratos dos imóveis vistos, sem lead e não cancelados, para lead fechado", () => {
+    const l = lead({ etapa: "fechado", imoveisVistos: ["imv_a"] });
+    const base = baseMinima({
+      leads: [l],
+      contratos: [
+        contrato({ id: "c1", leadId: null, imovelId: "imv_a" }),
+        contrato({ id: "c2", leadId: null, imovelId: "imv_b" }),
+        contrato({ id: "c3", leadId: null, imovelId: "imv_a", status: "cancelado" }),
+      ],
+    });
+    expect(contratosVinculaveis(base, l).map((c) => c.id)).toEqual(["c1"]);
+    expect(contratosVinculaveis(base, { ...l, etapa: "proposta" })).toEqual([]);
   });
 });
 

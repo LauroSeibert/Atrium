@@ -103,7 +103,10 @@ export function Toaster() {
           </ToastPrimitive.Root>
         );
       })}
-      <ToastPrimitive.Viewport className="fixed right-0 bottom-0 z-(--z-toast) m-0 flex w-full flex-col gap-2 p-4 outline-none sm:max-w-sm" />
+      <ToastPrimitive.Viewport
+        data-toast-viewport=""
+        className="fixed right-0 bottom-0 z-(--z-toast) m-0 flex w-full flex-col gap-2 p-4 outline-none sm:max-w-sm"
+      />
     </ToastPrimitive.Provider>
   );
 }

@@ -36,13 +36,7 @@ export type DropdownMenuItemProps = ComponentProps<typeof MenuPrimitive.Item> & 
   tone?: "default" | "destructive";
 };
 
-export function DropdownMenuItem({
-  className,
-  icon,
-  tone = "default",
-  children,
-  ...props
-}: DropdownMenuItemProps) {
+export function DropdownMenuItem({ className, icon, tone = "default", children, ...props }: DropdownMenuItemProps) {
   return (
     <MenuPrimitive.Item
       className={cn(item, tone === "destructive" && "text-danger data-[highlighted]:bg-danger-bg", className)}

@@ -83,7 +83,7 @@ export const DadosExtremos: Story = {
             descricao:
               "AT-9999 · Jardim Paulista, São Paulo, SP, Brasil, na esquina da alameda com a avenida principal",
             icone: Building2,
-           
+
             onSelect,
           },
         ],

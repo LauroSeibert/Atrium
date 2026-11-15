@@ -108,7 +108,7 @@ export function DistributionChartCard({
   estado,
   onTentarNovamente,
   titulo = "Imóveis por tipo",
-  descricao = "Participação de cada tipo no portfólio.",
+  descricao,
   unidade = "imóveis",
   rotuloCategoria = "Tipo",
   className,

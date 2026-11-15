@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { dataLocal, type Atividade } from "@/domain";
 import { cn } from "@/lib/cn";
@@ -86,12 +87,12 @@ function Item({
   const { titulo, detalhe } = textoAtividade(atividade);
   const compacto = variante === "feed";
   const titulo_: ReactNode = href ? (
-    <a
+    <Link
       href={href}
       className="underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {titulo}
-    </a>
+    </Link>
   ) : (
     titulo
   );

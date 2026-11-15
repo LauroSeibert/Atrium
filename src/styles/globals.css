@@ -151,6 +151,10 @@
     html:has([data-barra-acao]) {
       scroll-padding-bottom: calc(var(--space-16) + var(--space-8));
     }
+    /* O toast sobe acima da barra de ação inferior em vez de cobri-la. */
+    html:has([data-barra-acao]) [data-toast-viewport] {
+      bottom: calc(var(--space-16) + var(--space-2) + env(safe-area-inset-bottom));
+    }
   }
   ::selection {
     background: var(--surface-warm);

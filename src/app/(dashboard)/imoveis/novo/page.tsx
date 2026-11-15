@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { TelaEmConstrucao } from "@/features/shell/TelaEmConstrucao";
+import { TelaFormImovel } from "@/features/imoveis/TelaFormImovel";
 
 export const metadata: Metadata = { title: "Novo imóvel" };
 
 export default function Pagina() {
-  return <TelaEmConstrucao titulo="Novo imóvel" requisitos="RF-27" />;
+  return <TelaFormImovel />;
 }

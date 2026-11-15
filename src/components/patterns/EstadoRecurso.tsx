@@ -2,7 +2,6 @@ import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Recurso } from "@/lib/recurso";
 import { Icon } from "../ui/Icon";
-import { Spinner } from "../ui/Spinner";
 import { ErrorState, type ErrorStateProps } from "./ErrorState";
 
 export type EstadoRecursoProps<T> = {
@@ -21,7 +20,7 @@ export type EstadoRecursoProps<T> = {
 /**
  * Renderiza os 5 estados de tela de um `Recurso<T>` (RNF-09, ESTADOS §3.6) a partir da união
  * discriminada — nunca de booleanos. `loading` com dados (refetch) e `error` com dados mantêm o
- * conteúdo visível (sem esmaecer: o texto precisa manter o contraste; o aviso "Atualizando…" indica a fase); `partial` mostra o aviso acima dos dados.
+ * conteúdo visível e montado (sem esmaecer nem remontar; "Atualizando…" é anunciado ao leitor de tela); `partial` mostra o aviso acima dos dados.
  */
 export function EstadoRecurso<T>({
   estado,
@@ -33,6 +32,15 @@ export function EstadoRecurso<T>({
   children,
 }: EstadoRecursoProps<T>) {
   const conteudo = (dados: T) => (estaVazio?.(dados) && vazio ? vazio : children(dados));
+  // Com dados, a árvore é sempre [aviso | null, conteúdo] na mesma posição: refetch e erro com dados
+  // não remontam o conteúdo (formulários e estado local sobrevivem). "Atualizando…" é só para leitor
+  // de tela, para não deslocar a página a cada escrita (CLS).
+  const comAviso = (aviso: ReactNode, dados: T) => (
+    <>
+      {aviso}
+      {conteudo(dados)}
+    </>
+  );
   switch (estado.fase) {
     case "idle":
       return <>{carregando}</>;
@@ -40,40 +48,42 @@ export function EstadoRecurso<T>({
       return estado.dados === undefined ? (
         <>{carregando}</>
       ) : (
-        <div aria-busy="true" className="flex flex-col gap-3">
-          <p role="status" className="flex items-center gap-2 text-sm text-text-muted">
-            <Spinner size={16} />
+        comAviso(
+          <p role="status" className="sr-only">
             Atualizando…
-          </p>
-          {conteudo(estado.dados)}
-        </div>
+          </p>,
+          estado.dados,
+        )
       );
     case "success":
-      return <>{conteudo(estado.dados)}</>;
+      return comAviso(null, estado.dados);
     case "partial":
-      return (
-        <div className="flex flex-col gap-3">
-          <p role="status" className="flex items-start gap-2 rounded-md bg-warning-bg px-3 py-2 text-sm text-warning">
-            <Icon icon={Info} size={16} className="mt-0.5 shrink-0" />
-            {estado.aviso}
-          </p>
-          {conteudo(estado.dados)}
-        </div>
+      return comAviso(
+        <p
+          role="status"
+          className="mb-3 flex items-start gap-2 rounded-md bg-warning-bg px-3 py-2 text-sm text-warning"
+        >
+          <Icon icon={Info} size={16} className="mt-0.5 shrink-0" />
+          {estado.aviso}
+        </p>,
+        estado.dados,
       );
     case "error":
       return estado.dados === undefined ? (
         <ErrorState tamanho="compacto" {...erro} onTentarNovamente={onTentarNovamente} />
       ) : (
-        <div className="flex flex-col gap-3">
-          <ErrorState
-            tamanho="compacto"
-            titulo="Não foi possível atualizar"
-            descricao="Mostrando os últimos dados carregados."
-            {...erro}
-            onTentarNovamente={onTentarNovamente}
-          />
-          {conteudo(estado.dados)}
-        </div>
+        comAviso(
+          <div className="mb-3">
+            <ErrorState
+              tamanho="compacto"
+              titulo="Não foi possível atualizar"
+              descricao="Mostrando os últimos dados carregados."
+              {...erro}
+              onTentarNovamente={onTentarNovamente}
+            />
+          </div>,
+          estado.dados,
+        )
       );
   }
 }

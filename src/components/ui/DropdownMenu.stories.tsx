@@ -32,9 +32,7 @@ export const AcoesDoImovel: Story = {
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Apto 52, Ed. Solar das Palmeiras</DropdownMenuLabel>
           <DropdownMenuItem icon={ExternalLink}>Abrir detalhes</DropdownMenuItem>
-          <DropdownMenuItem icon={Pencil}>
-            Editar
-          </DropdownMenuItem>
+          <DropdownMenuItem icon={Pencil}>Editar</DropdownMenuItem>
           <DropdownMenuItem icon={Copy} disabled>
             Duplicar (indisponível)
           </DropdownMenuItem>

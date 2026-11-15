@@ -74,6 +74,21 @@ export const Mobile: Story = {
   parameters: { viewport: { options: VIEWPORTS_SHELL } },
   globals: { viewport: VIEWPORT_360 },
 };
+/** `.storybook` só traz o viewport de 360 px; estes dois valem só para esta história. */
+const VIEWPORTS_TOPBAR = {
+  m768: { name: "Tablet 768", styles: { width: "768px", height: "1024px" }, type: "tablet" },
+  d1024: { name: "Desktop 1024", styles: { width: "1024px", height: "768px" }, type: "desktop" },
+} as const;
+export const Tablet: Story = {
+  name: "Tablet (768 px)",
+  parameters: { viewport: { options: VIEWPORTS_TOPBAR } },
+  globals: { viewport: { value: "m768", isRotated: false } },
+};
+export const Desktop1024: Story = {
+  name: "Desktop (1024 px)",
+  parameters: { viewport: { options: VIEWPORTS_TOPBAR } },
+  globals: { viewport: { value: "d1024", isRotated: false } },
+};
 export const MenuAberto: Story = { name: "Botão de menu pressionado", args: { menuAberto: true } };
 export const SemSlots: Story = {
   name: "Sem slots",

@@ -137,7 +137,6 @@ export function FunnelChartCard({ estado, onTentarNovamente, className }: Funnel
   return (
     <ChartCard
       titulo="Funil de leads"
-      descricao="Leads por etapa e conversão para a etapa seguinte."
       estado={estado}
       onTentarNovamente={onTentarNovamente}
       estaVazio={funilVazio}

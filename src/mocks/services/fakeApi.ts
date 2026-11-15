@@ -18,6 +18,8 @@ import {
   contadoresNavegacao,
   listarNotificacoes,
   criarLead,
+  contratosVinculaveis,
+  destinosLead,
   ETAPAS,
   estaInadimplente,
   proximoVencimento,
@@ -249,7 +251,9 @@ export const fakeApi = {
         precoDesc: (a, z) => z.preco - a.preco,
         area: (a, z) => z.areaTotal - a.areaTotal,
       };
-      return paginar([...lista].sort(ord[ordem]), paginacao);
+      const pagina = paginar([...lista].sort(ord[ordem]), paginacao);
+      // O que a UI pode oferecer em cada item (lote, menu do cartão): a regra está no domínio.
+      return { ...pagina, itens: pagina.itens.map((i) => ({ ...i, transicoes: transicoesPermitidasImovel(b, i) })) };
     }),
   /** Bairros existentes (opções do filtro RF-21). */
   listBairros: () =>
@@ -317,8 +321,20 @@ export const fakeApi = {
             (!filtros.de || l.criadoEm >= filtros.de) &&
             (!filtros.ate || l.criadoEm <= filtros.ate),
         )
-        .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem),
+        .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem)
+        // Destinos de cada lead (RF-31/32), decididos pelo domínio.
+        .map((l) => ({ ...l, destinos: destinosLead(b, l) })),
     ),
+  /** RF-39: contratos existentes que o domínio aceita vincular ao lead. */
+  listContratosVinculaveis: (leadId: string) =>
+    ler((b) => {
+      const lead = exigir(buscar(b, "leads", leadId), "Lead");
+      return contratosVinculaveis(b, lead).map((c) => ({
+        id: c.id,
+        numero: c.numero,
+        imovel: buscar(b, "imoveis", c.imovelId) ?? null,
+      }));
+    }),
   getLead: (id: string) =>
     ler((b) => {
       const lead = exigir(buscar(b, "leads", id), "Lead");
@@ -397,6 +413,8 @@ export const fakeApi = {
         statusExibicao: statusExibicao(contrato, hoje),
         inadimplente: estaInadimplente(contrato, hoje),
         parcelas: contrato.parcelas.map((p) => ({ ...p, status: statusParcela(contrato, p, hoje) })),
+        /** "Hoje" do relógio do mock (dias de atraso na UI usam o mesmo relógio do domínio). */
+        hoje,
         transicoes: transicoesPermitidasContrato(b, contrato, hoje),
       };
     }),

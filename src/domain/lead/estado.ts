@@ -41,6 +41,18 @@ export function transicoesPermitidasLead(base: Pick<Base, "contratos">, lead: Le
   }));
 }
 
+/**
+ * Todos os destinos de "Mover para…"/arrastar (RF-31), com a permissão de cada um (negado = motivo visível)
+ * e se pede motivo (RF-32). A própria etapa fica de fora: soltar na mesma coluna é só reordenar.
+ */
+export function destinosLead(base: Pick<Base, "contratos">, lead: Lead) {
+  return ETAPAS.filter((para) => para !== lead.etapa).map((para) => ({
+    etapa: para,
+    permissao: podeTransicionarLead(base, lead, para),
+    exigeMotivo: para === "perdido",
+  }));
+}
+
 /** Renumera uma coluna 0…n colocando `lead` na posição `ordem` (limitada ao tamanho). */
 function reposicionar(t: Transacao, lead: Lead, etapa: Etapa, ordem: number | undefined) {
   const coluna = t
@@ -143,6 +155,13 @@ export function podeVincularContrato(base: Pick<Base, "contratos">, lead: Lead, 
   if (c.leadId !== null) return negar("Esse contrato já tem um lead de origem.");
   if (c.status === "cancelado") return negar("Contrato cancelado não pode ser vinculado.");
   return PERMITIDO;
+}
+
+/** RF-39: contratos que podem ser vinculados ao lead (dos imóveis que ele viu). */
+export function contratosVinculaveis(base: Pick<Base, "contratos">, lead: Lead) {
+  return base.contratos.filter(
+    (c) => lead.imoveisVistos.includes(c.imovelId) && podeVincularContrato(base, lead, c.id).ok,
+  );
 }
 
 /** RF-39: vincula contrato existente a um lead fechado (invariante 3). */

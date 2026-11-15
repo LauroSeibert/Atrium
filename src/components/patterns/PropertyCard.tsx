@@ -5,6 +5,7 @@
  * Só props: o composto emite intenção (`onAlternarFavorito`, `acao.onSelect`) e não decide
  * transições; cada ação chega com a `Permissao` já calculada pelo domínio (ESTADOS §2 regra 3).
  */
+import Link from "next/link";
 import { BedDouble, Car, Heart, Maximize2, MoreHorizontal, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Corretor } from "@/domain/corretor/schema";
@@ -181,13 +182,13 @@ export function MenuAcoesImovel({
 export function TituloImovel({ imovel, href, className }: { imovel: Imovel; href: string; className?: string }) {
   return (
     <h3 className={cn("text-base font-medium text-text", className)}>
-      <a
+      <Link
         href={href}
         title={imovel.titulo}
         className="line-clamp-2 rounded-sm after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         {imovel.titulo}
-      </a>
+      </Link>
     </h3>
   );
 }

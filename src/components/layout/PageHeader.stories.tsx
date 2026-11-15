@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Download, Plus } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
+import { VIEWPORT_360, VIEWPORTS_SHELL } from "./historias-shell";
 import { PageHeader } from "./PageHeader";
 
 const meta = {
@@ -62,4 +63,19 @@ export const ComConteudoAbaixo: Story = {
       </Tabs>
     ),
   },
+};
+
+/** Abaixo de 768 px a ação primária sai do cabeçalho e vai para a barra inferior (RF-63). */
+export const Mobile: Story = {
+  name: "Mobile (360 px)",
+  args: {
+    acoes: (
+      <Button variant="secondary" leadingIcon={Download}>
+        Exportar
+      </Button>
+    ),
+    acaoPrimaria: <Button leadingIcon={Plus}>Novo imóvel</Button>,
+  },
+  parameters: { viewport: { options: VIEWPORTS_SHELL } },
+  globals: { viewport: VIEWPORT_360 },
 };

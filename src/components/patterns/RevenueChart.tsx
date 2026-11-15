@@ -128,7 +128,6 @@ export function RevenueChartCard({ estado, onTentarNovamente, className }: Reven
   return (
     <ChartCard
       titulo="Receita dos últimos 12 meses"
-      descricao="Vendas e locações recebidas por mês."
       estado={estado}
       onTentarNovamente={onTentarNovamente}
       estaVazio={receitaVazia}

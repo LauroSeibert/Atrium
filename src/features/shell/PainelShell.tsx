@@ -2,7 +2,8 @@
 /**
  * Contêiner do shell (Fase 7): liga os componentes de `src/components/layout` (que só recebem props)
  * ao roteador, ao tema (next-themes), às preferências persistidas e ao fakeApi.
- * Nenhuma regra de negócio aqui: contadores e notificações vêm prontos do domínio via fakeApi.
+ * Nenhuma regra de negócio aqui: contadores e notificações vêm prontos do domínio via fakeApi
+ * e são relidos após cada escrita (`invalidarDados`), não a cada navegação.
  */
 import { FilePlus, FileSignature, House, Moon, PanelLeft, Sun, UserPlus, Users } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -34,6 +35,8 @@ import { TooltipProvider } from "@/components/ui/Tooltip";
 import { usePreferencia } from "@/lib/preferencias";
 import { useRecurso, type Recurso } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
+import { invalidarDados } from "@/features/dados/revisao";
+import { useConsulta } from "@/features/dados/useConsulta";
 import { useRotuloDaTrilha } from "./trilha";
 
 const assinarNada = () => () => {};
@@ -100,31 +103,18 @@ export function PainelShell({
   const tema = montado ? (theme as Tema | undefined) : undefined;
 
   // Dados do shell
-  const perfil = useRecurso(useCallback(() => fakeApi.getPerfil(), []));
-  const corretores = useRecurso(useCallback(() => fakeApi.listCorretores(), []));
-  const notificacoes = useRecurso(useCallback(() => fakeApi.listNotificacoes(), []));
-  const contadores = useRecurso(useCallback(() => fakeApi.getContadoresNavegacao(), []));
+  // Dados do shell: buscados uma vez ao montar e relidos após cada escrita das telas (invalidarDados).
+  const perfil = useConsulta(useCallback(() => fakeApi.getPerfil(), []));
+  const corretores = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
+  const notificacoes = useConsulta(useCallback(() => fakeApi.listNotificacoes(), []));
+  const contadores = useConsulta(useCallback(() => fakeApi.getContadoresNavegacao(), []));
   const resultados = useBuscaGlobal(busca);
-
-  // Contadores acompanham as mudanças feitas nas telas: relê a cada navegação.
-  const recarregarContadores = contadores.recarregar;
-  useEffect(() => {
-    recarregarContadores();
-  }, [pathname, recarregarContadores]);
 
   const dadosContadores = "dados" in contadores.estado ? contadores.estado.dados : undefined;
   const autores = useMemo(() => {
     const lista = "dados" in corretores.estado ? (corretores.estado.dados ?? []) : [];
     return Object.fromEntries(lista.map((c) => [c.id, c.nome]));
   }, [corretores.estado]);
-
-  const { recarregar: recarregarPerfil } = perfil;
-  const { recarregar: recarregarNotificacoes } = notificacoes;
-  const recarregarTudo = useCallback(() => {
-    recarregarPerfil();
-    recarregarNotificacoes();
-    recarregarContadores();
-  }, [recarregarPerfil, recarregarNotificacoes, recarregarContadores]);
 
   const ir = useCallback((href: string) => router.push(href), [router]);
   useAtalhoPaleta(() => setPaletaAberta(true));
@@ -227,8 +217,8 @@ export function PainelShell({
                 estado={notificacoes.estado}
                 onTentarNovamente={notificacoes.recarregar}
                 onAbertoChange={(aberto) => aberto && notificacoes.recarregar()}
-                onMarcarLida={(id) => void fakeApi.marcarLida(id).then(notificacoes.recarregar)}
-                onMarcarTodas={() => void fakeApi.marcarLida("todas").then(notificacoes.recarregar)}
+                onMarcarLida={(id) => void fakeApi.marcarLida(id).then(invalidarDados)}
+                onMarcarTodas={() => void fakeApi.marcarLida("todas").then(invalidarDados)}
                 hrefDe={rotaDaNotificacao}
                 autores={autores}
               />
@@ -244,7 +234,7 @@ export function PainelShell({
               <UserMenu
                 usuario={perfil.estado}
                 personas={"dados" in corretores.estado ? corretores.estado.dados : undefined}
-                onTrocarPersona={(id) => void fakeApi.setUsuarioAtual(id).then(recarregarTudo)}
+                onTrocarPersona={(id) => void fakeApi.setUsuarioAtual(id).then(invalidarDados)}
               />
             }
           />

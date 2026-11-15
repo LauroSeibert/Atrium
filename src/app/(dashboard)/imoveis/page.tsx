@@ -1,20 +1,14 @@
 import type { Metadata } from "next";
-import { Plus } from "lucide-react";
-import { AcaoLink } from "@/features/shell/AcaoLink";
-import { TelaEmConstrucao } from "@/features/shell/TelaEmConstrucao";
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/PageSkeleton";
+import { TelaImoveis } from "@/features/imoveis/TelaImoveis";
 
 export const metadata: Metadata = { title: "Imóveis" };
 
 export default function Pagina() {
   return (
-    <TelaEmConstrucao
-      titulo="Imóveis"
-      requisitos="RF-20…23, RF-28, RF-49"
-      acaoPrimaria={
-        <AcaoLink href="/imoveis/novo" icone={Plus}>
-          Novo imóvel
-        </AcaoLink>
-      }
-    />
+    <Suspense fallback={<PageSkeleton variante="lista" />}>
+      <TelaImoveis />
+    </Suspense>
   );
 }

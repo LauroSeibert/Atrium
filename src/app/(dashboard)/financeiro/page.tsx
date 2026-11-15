@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { TelaEmConstrucao } from "@/features/shell/TelaEmConstrucao";
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/PageSkeleton";
+import { TelaFinanceiro } from "@/features/financeiro/TelaFinanceiro";
 
 export const metadata: Metadata = { title: "Financeiro" };
 
 export default function Pagina() {
-  return <TelaEmConstrucao titulo="Financeiro" requisitos="RF-44, RF-45" />;
+  return (
+    <Suspense fallback={<PageSkeleton variante="painel" />}>
+      <TelaFinanceiro />
+    </Suspense>
+  );
 }

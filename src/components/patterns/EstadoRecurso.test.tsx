@@ -39,9 +39,12 @@ describe("EstadoRecurso (RNF-09, ESTADOS §3.6)", () => {
     expect(screen.getByText("Lista vazia")).toBeInTheDocument();
   });
 
-  it("loading com dados mantém o conteúdo e marca aria-busy", () => {
-    render(<Tela estado={{ fase: "loading", dados: ["a"] }} />);
-    expect(screen.getByText("a").closest("[aria-busy='true']")).not.toBeNull();
+  it("loading com dados mantém o conteúdo montado e anuncia a atualização", () => {
+    const { rerender } = render(<Tela estado={{ fase: "success", dados: ["a"] }} />);
+    const antes = screen.getByText("a");
+    rerender(<Tela estado={{ fase: "loading", dados: ["a"] }} />);
+    expect(screen.getByText("a")).toBe(antes); // mesmo nó: não remontou
+    expect(screen.getByRole("status")).toHaveTextContent("Atualizando…");
     expect(screen.queryByText("Skeleton")).not.toBeInTheDocument();
   });
 
