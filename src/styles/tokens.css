@@ -80,6 +80,14 @@
   --on-danger: #FFFFFF;
   --info: #0A5C52;
   --info-bg: #DDEEEB;
+  --illus-sky: #E7DBC5;
+  --illus-ground: #BEAF94;
+  --illus-wall: #023933;
+  --illus-wall-alt: #447E75;
+  --illus-roof: #134D45;
+  --illus-detail: #FDFEFD;
+  --illus-ink: #00201C;
+  --illus-accent: #B87D30;
 
   /* tipografia */
   --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -169,6 +177,14 @@
   --on-danger: #FFFFFF;
   --info: #0A5C52;
   --info-bg: #DDEEEB;
+  --illus-sky: #E7DBC5;
+  --illus-ground: #BEAF94;
+  --illus-wall: #023933;
+  --illus-wall-alt: #447E75;
+  --illus-roof: #134D45;
+  --illus-detail: #FDFEFD;
+  --illus-ink: #00201C;
+  --illus-accent: #B87D30;
   --elevation-1: 0px 1px 2px 0px rgb(2 57 51 / 0.06);
   --elevation-2: 0px 4px 12px 0px rgb(2 57 51 / 0.10);
   --elevation-3: 0px 12px 32px 0px rgb(2 57 51 / 0.16);
@@ -200,6 +216,14 @@
   --on-danger: #2A0F0D;
   --info: #8FD0C6;
   --info-bg: #123E3A;
+  --illus-sky: #1F4742;
+  --illus-ground: #675534;
+  --illus-wall: #E7DBC5;
+  --illus-wall-alt: #BEAF94;
+  --illus-roof: #DAD0BD;
+  --illus-detail: #023933;
+  --illus-ink: #F5F1EA;
+  --illus-accent: #B87D30;
 
   /* no escuro, elevação = cor + borda; sombra quase imperceptível */
   --elevation-1: 0 0 0 1px var(--border);

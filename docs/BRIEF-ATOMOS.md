@@ -1,6 +1,6 @@
 # Brief para criação de átomos (Fase 4)
 
-Leia antes: `CLAUDE.md`, `design-system/DESIGN_SYSTEM.md` (§4 tokens e §9 princípios) e o padrão de referência em `src/components/ui/Button.tsx`, `Button.stories.tsx` e `Button.test.tsx`.
+Leia antes: `CLAUDE.md`, `design-system/DESIGN_SYSTEM.md` (§4 tokens e §10 princípios) e o padrão de referência em `src/components/ui/Button.tsx`, `Button.stories.tsx` e `Button.test.tsx`.
 
 ## Regras
 

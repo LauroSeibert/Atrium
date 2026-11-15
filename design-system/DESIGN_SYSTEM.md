@@ -94,18 +94,27 @@ O átrio da _domus_ romana visto de cima: o ladrilho é a casa, o quadrado com d
 - Arquivos avulsos: [`brand/atrium-mark.svg`](./brand/atrium-mark.svg) (adapta via `prefers-color-scheme`), [`brand/atrium-logo-light.svg`](./brand/atrium-logo-light.svg), [`brand/atrium-logo-dark.svg`](./brand/atrium-logo-dark.svg).
 - Área de respiro mínima: ¼ da altura do símbolo. Tamanho mínimo do símbolo: 16 px.
 
-## 8. Fluxo para mudar uma cor
+## 8. Ilustrações
+
+Biblioteca SVG flat/geométrica em `src/assets/svg/` (componentes React), vitrine em **`/design-system/illustrations`**: 8 fachadas (`SvgFachada variant="sobrado"`), 8 cômodos (`SvgComodo`), 4 estados vazios (`SvgVazio`), 6 avatares ilustrados + iniciais (`AvatarIlustrado`, `AvatarIniciais`). `PropertyImage` (`src/components/patterns/`) escolhe a fachada pelo imóvel e tem fallback "Sem ilustração".
+
+- **Paleta própria, semântica e com tema:** `--illus-sky` (céu/fundo), `--illus-ground` (chão), `--illus-wall` (volume principal), `--illus-wall-alt`, `--illus-roof`, `--illus-detail` (janelas/portas), `--illus-ink` (traços), `--illus-accent` (ocre, só decorativo). No claro: céu Soft Beige, volumes Hunter Green, detalhes Polar Snow; no escuro inverte (céu verde, volumes beige). Escalas fixas (`--green-*`) não mudam com o tema e não entram nas ilustrações.
+- **Contraste:** silhueta (`wall`, `wall-alt`, `roof`) ≥ 3:1 sobre `sky` e detalhes ≥ 3:1 sobre `wall`, nos dois temas (`contrast.json`). O acento é decorativo.
+- **Técnica:** raiz comum `Ilustracao` (`role="img"` + `<title>` via `aria-labelledby`, ou `decorativa` → `aria-hidden`); `viewBox` 400×300 (4:3) para cenas, 240×180 para vazios, 64×64 para avatares; sem gradiente, filtro ou texto (exceto as iniciais, que usam `--surface-warm`/`--text` e `--primary`/`--on-primary`). Testes conferem que todo `fill`/`stroke` é `var(--illus-*)` (`paleta.testutil.ts`). Regras para novas peças: `docs/BRIEF-ILUSTRACOES.md`.
+- **Otimização:** as peças são JSX escrito à mão com poucas formas e coordenadas inteiras (o equivalente ao resultado do SVGO); não há arquivos `.svg` soltos para otimizar.
+
+## 9. Fluxo para mudar uma cor
 
 1. Edite `design-system/tokens.json`.
 2. `npm run tokens` (regenera escalas e `tokens.css`).
 3. `npm run check` (tokens em dia, contraste, zero hex, typecheck).
 4. Confira `/design-system/colors` nos dois temas.
 
-## 9. Princípios de UI/UX
+## 10. Princípios de UI/UX
 
 Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista de imóveis com filtros, kanban de leads, tabela de contratos/pagamentos). Em conflito, vale o token; o princípio explica o porquê.
 
-### 9.1 Heurísticas de Nielsen
+### 10.1 Heurísticas de Nielsen
 
 [10 Heurísticas de Usabilidade, Nielsen Norman Group](https://www.nngroup.com/articles/ten-usability-heuristics/): dez regras gerais que todo fluxo de interface deve respeitar.
 
@@ -114,7 +123,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Reconhecer em vez de lembrar:** filtros ativos da lista de imóveis aparecem como chips removíveis acima da tabela, com contagem de resultados.
 - **Consistência:** o mesmo componente para o mesmo papel (status de lead e de pagamento usam o mesmo `Badge`); nada de hex solto, só tokens semânticos (seção 4).
 
-### 9.2 WCAG 2.2
+### 10.2 WCAG 2.2
 
 [WCAG 2.2, W3C](https://www.w3.org/TR/WCAG22/): critérios de acessibilidade, nível AA como mínimo do projeto.
 
@@ -126,7 +135,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Reflow e zoom (1.4.10, 1.4.4):** nada de rolagem horizontal da página em 320 px CSS ou com zoom de 200 %; tabelas largas rolam dentro do próprio contêiner.
 - **Arrastar (2.5.7):** todo card do kanban de leads tem alternativa sem arrastar: menu "Mover para…" (teclado e toque). O drag é só atalho.
 
-### 9.3 Laws of UX
+### 10.3 Laws of UX
 
 [Laws of UX](https://lawsofux.com/): coletânea de princípios de psicologia aplicados a interface.
 
@@ -135,7 +144,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Von Restorff:** um destaque por vista, ou seja, um único botão primário (`--primary`, a cor dos 10% do 60-30-10). Demais ações são secundárias ou fantasma; o KPI crítico (ex.: pagamentos em atraso) é o único com cor de alerta no valor. A seta de variação (▲▼) de cada KPI usa cor de sucesso/erro, sempre com ícone e texto, e não conta como destaque.
 - **Proximidade e Região comum:** campos relacionados ficam agrupados no mesmo card (`rounded-lg`) com espaço interno maior que o espaço entre grupos; KPIs de um mesmo tema compartilham um bloco.
 
-### 9.4 Movimento
+### 10.4 Movimento
 
 [Material Design 3: Motion](https://m3.material.io/styles/motion/overview) e [Apple HIG: Motion](https://developer.apple.com/design/human-interface-guidelines/motion): movimento com propósito, curto e interrompível.
 
@@ -144,7 +153,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Interrompível:** animar `opacity`/`transform`, nunca bloquear a interação enquanto anima.
 - **Reduzir movimento:** respeite `prefers-reduced-motion`; os tokens de duração já viram 1 ms, então use sempre os tokens, nunca `ms` literal.
 
-### 9.5 Refactoring UI
+### 10.5 Refactoring UI
 
 [Refactoring UI, Wathan & Schoger](https://www.refactoringui.com/): táticas práticas de hierarquia visual.
 
@@ -153,7 +162,7 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Espaço generoso:** prefira `p-6` em cards e `gap-4` entre campos; densidade extra só em tabelas, por opção do usuário.
 - **Rebaixar o secundário:** metadados (data de criação, corretor, ID) em `--text-muted`; o que decide a ação (status, valor, vencimento) em texto normal.
 
-### 9.6 Gestalt e grade 4/8 px
+### 10.6 Gestalt e grade 4/8 px
 
 [Gestalt: Proximidade, Nielsen Norman Group](https://www.nngroup.com/articles/gestalt-proximity/): itens próximos são percebidos como relacionados.
 

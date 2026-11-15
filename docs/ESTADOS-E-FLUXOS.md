@@ -1,7 +1,8 @@
 # Atrium — Máquinas de estado e fluxos críticos
 
 > Regra do projeto: **nenhuma máquina de estado escondida** e **nenhuma regra de fluxo crítico espalhada pelo código**.
-> Este documento é a especificação; a implementação vive em `src/domain/` (Fase 3/5) e é a **única** fonte dessas regras.
+> Este documento é a especificação; a implementação vive em `src/domain/` e é a **única** fonte dessas regras.
+> Implementação (Fase 5): `src/domain/<entidade>/estado.ts` (tabelas `TRANSICOES_*`, `pode…`, `transicoesPermitidas…`, `transicionar…`), `src/domain/comum/transacao.ts` (atomicidade, registro de alterações e desfazer), `src/domain/contrato/derivados.ts` e `src/domain/metricas/metricas.ts` (estados derivados), `src/domain/invariantes.ts` (`validarBase`). Testes ao lado de cada arquivo.
 
 ## 1. O problema que estamos evitando
 
@@ -75,21 +76,27 @@ stateDiagram-v2
   ativo --> cancelado: cancelar (motivo)
 ```
 
-| Transição                    | Guard                                                | Efeitos                                                            |
-| ---------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
-| `rascunho → ativo`           | imóvel `disponivel`/`reservado`; `tipo` = finalidade | imóvel → `vendido`/`alugado`; gera parcelas e comissões; Atividade |
-| `ativo → encerrado`          | venda: escritura; locação: `fim` atingido            | locação: imóvel → `disponivel`; Atividade                          |
-| `ativo/rascunho → cancelado` | `motivoCancelamento` (RF-48)                         | imóvel → `disponivel`; parcelas futuras deixam de valer; Atividade |
+| Transição                    | Guard                                                               | Efeitos                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `rascunho → ativo`           | imóvel `disponivel`/`reservado`; `tipo` = finalidade                | imóvel → `vendido`/`alugado`; gera parcelas e comissões (se o rascunho não tiver: comissão do corretor do imóvel, 6 % venda / 10 % locação); Atividade |
+| `ativo → encerrado`          | venda: escritura (todas as parcelas pagas); locação: `fim` atingido | locação: imóvel → `disponivel` (venda: segue `vendido`); Atividade                                                                                     |
+| `ativo/rascunho → cancelado` | `motivoCancelamento` (RF-48)                                        | se estava `ativo`: imóvel → `disponivel` (rascunho não mexe no imóvel); parcelas não pagas passam a `cancelada` (derivado); Atividade                  |
 
 `inadimplente` **não é estado**: é derivado (`ativo` + parcela atrasada).
 
 ### 3.4 Parcela (derivada + uma ação)
 
-Status derivado: `pago` (tem `pagoEm`) · `atrasado` (hoje > vencimento) · `aVencer`. A única ação é `registrarPagamento` (e seu `desfazer`), permitida só em contrato `ativo` e parcela não paga.
+Status derivado: `pago` (tem `pagoEm`) · `cancelada` (contrato cancelado, não paga) · `atrasado` (hoje > vencimento) · `aVencer`. A única ação é `registrarPagamento` (e seu `desfazer`), permitida só em contrato `ativo` e parcela não paga.
 
-### 3.5 Estado de tela (UI)
+### 3.5 Visita (`status`)
 
-`idle → loading → success | partial | error`; `error → loading` (tentar de novo); `success → loading` (refetch mantém dados visíveis). Implementado como união discriminada num único hook por recurso, nunca como booleanos soltos.
+`agendada → realizada | cancelada | naoCompareceu` (os três são finais). Agendar exige data futura e lead que não esteja `perdido`; marcar `realizada` acrescenta o imóvel em `imoveisVistos` do lead. Efeitos: Atividade `visitaAgendada`/`visitaRealizada`/`visitaCancelada` no lead, com o imóvel em `relacionados`.
+
+Vincular contrato a lead (RF-39): só lead `fechado`, contrato sem lead e não cancelado; Atividade `contratoVinculado`.
+
+### 3.6 Estado de tela (UI)
+
+`idle → loading → success | partial | error`; `error → loading` (tentar de novo); `success → loading` (refetch mantém dados visíveis). Implementado como união discriminada num único hook por recurso, nunca como booleanos soltos: `Recurso<T>` e `useRecurso` em `src/lib/recurso.ts`.
 
 ## 4. Registro de alterações
 
@@ -102,4 +109,4 @@ Objetivo: deixar claro **quem alterou preço, status ou valores monetários, qua
 
 **Cada registro guarda:** quem (usuário atual), quando, o campo, o valor anterior e o novo.
 
-**Como:** a própria função do domínio que altera esses campos grava o registro (regra 4), então não há como mudar sem registrar. "Desfazer" é só mais uma alteração e também aparece. Na UI, o detalhe de imóvel, lead e contrato mostra a seção "Histórico de alterações" (RF-65).
+**Como:** toda escrita do domínio roda em `transacao()`, que compara antes/depois os campos monitorados (`camposMonitorados`: imóvel `preco/condominio/iptu/status`; lead `etapa/orcamento`; contrato `status/valor/taxaAdministracao/parcela.N.valor/parcela.N.pagoEm/comissao.N.valor/comissao.N.pagaEm`) e grava um registro por campo alterado (regra 4), então não há como mudar sem registrar. Criação de entidade ou de parcela não é alteração. "Desfazer" é só mais uma alteração e também aparece. Na UI, o detalhe de imóvel, lead e contrato mostra a seção "Histórico de alterações" (RF-65).

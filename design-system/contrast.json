@@ -306,11 +306,54 @@
       "bg": "danger-hover",
       "min": 4.5,
       "use": "Botão destrutivo (hover)"
+    },
+    {
+      "fg": "illus-wall",
+      "bg": "illus-sky",
+      "min": 3,
+      "use": "Ilustração: volume principal sobre o céu"
+    },
+    {
+      "fg": "illus-wall-alt",
+      "bg": "illus-sky",
+      "min": 3,
+      "use": "Ilustração: volume secundário sobre o céu"
+    },
+    {
+      "fg": "illus-roof",
+      "bg": "illus-sky",
+      "min": 3,
+      "use": "Ilustração: telhado sobre o céu"
+    },
+    {
+      "fg": "illus-detail",
+      "bg": "illus-wall",
+      "min": 3,
+      "use": "Ilustração: janela/porta sobre o volume"
+    },
+    {
+      "fg": "illus-wall",
+      "bg": "illus-ground",
+      "min": 3,
+      "use": "Ilustração: volume sobre o chão"
+    },
+    {
+      "fg": "illus-ink",
+      "bg": "illus-sky",
+      "min": 3,
+      "use": "Ilustração: traço sobre o céu"
+    },
+    {
+      "fg": "illus-ink",
+      "bg": "illus-detail",
+      "min": 3,
+      "use": "Ilustração: puxador/contorno sobre janela ou porta"
     }
   ],
   "decorative": {
     "border": "Divisórias decorativas: isentas do 3:1 (WCAG 1.4.11 só exige 3:1 para limites que identificam um controle). Para inputs e controles use border-strong.",
     "surface-warm": "Proibido como fundo de controles (border-strong fica < 3:1) e de texto de status (success/warning ficam < 4,5:1). Chips de status usam o próprio *-bg.",
-    "ring-offset": "O anel de foco sempre usa outline-offset: 2px (assenta sobre o fundo, não sobre o primário). ring × primary < 3:1, então offset 0 é proibido."
+    "ring-offset": "O anel de foco sempre usa outline-offset: 2px (assenta sobre o fundo, não sobre o primário). ring × primary < 3:1, então offset 0 é proibido.",
+    "illus-accent": "Acento ocre das ilustrações é só decorativo (sol, luminária, planta): nunca carrega informação. A silhueta legível vem de illus-wall/roof/wall-alt sobre illus-sky (≥ 3:1)."
   }
 }

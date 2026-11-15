@@ -1,6 +1,6 @@
 # Atrium — Modelo de dados mock (desenho)
 
-> Desenho da Fase 2. A implementação (tipos TypeScript + schemas Zod + gerador + `fakeApi`) é a Fase 5.
+> Desenho da Fase 2, implementado na Fase 5: schemas Zod e tipos em `src/domain/<entidade>/schema.ts`, gerador determinístico em `src/mocks/data/gerador.ts` (`gerarBase({ semente, hoje })`, casos de borda em `CASOS_DE_BORDA`), `fakeApi` em `src/mocks/services/fakeApi.ts`.
 > Convenções: IDs são strings com prefixo (`imv_…`, `lead_…`); datas em ISO 8601; **valores monetários em centavos (inteiros)**; áreas em m² (número); enums em minúsculas sem acento no código e rotulados em pt-BR na UI.
 
 ## 1. Diagrama de entidades
@@ -42,24 +42,25 @@ erDiagram
 
 ### Imovel
 
-| Campo                             | Tipo                                                       | Notas                                       |
-| --------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| id, codigo                        | `imv_…`, `AT-0001`                                         | código visível e buscável (RF-22)           |
-| titulo, descricao                 | string                                                     | 1 título muito longo                        |
-| tipo                              | `casa \| apartamento \| cobertura \| terreno \| comercial` | define a ilustração da fachada              |
-| finalidade                        | `venda \| locacao`                                         |                                             |
-| status                            | `disponivel \| reservado \| vendido \| alugado \| inativo` | ver regras §3                               |
-| preco                             | centavos                                                   | venda: valor total; locação: aluguel mensal |
-| condominio, iptu                  | centavos \| null                                           | IPTU anual; terreno sem condomínio          |
-| areaUtil, areaTotal               | número (m²)                                                | `areaUtil ≤ areaTotal`                      |
-| quartos, suites, banheiros, vagas | inteiro                                                    | `suites ≤ quartos`; terreno = 0             |
-| endereco                          | `{ logradouro, numero, bairro, cidade, uf, cep }`          | bairros plausíveis e genéricos              |
-| comodos                           | `Comodo[]`                                                 | ≥ 1 exceto terreno                          |
-| diferenciais                      | string[]                                                   | ex.: piscina, academia, portaria 24 h       |
-| corretorId                        | → Corretor                                                 |                                             |
-| favorito                          | boolean                                                    | RF-28                                       |
-| motivoInativo                     | string \| null                                             | quando `inativo`                            |
-| criadoEm, atualizadoEm            | ISO                                                        |                                             |
+| Campo                             | Tipo                                                                                           | Notas                                                             |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| id, codigo                        | `imv_…`, `AT-0001`                                                                             | código visível e buscável (RF-22)                                 |
+| titulo, descricao                 | string                                                                                         | 1 título muito longo                                              |
+| tipo                              | `casa \| apartamento \| cobertura \| terreno \| comercial`                                     | define a ilustração da fachada                                    |
+| finalidade                        | `venda \| locacao`                                                                             |                                                                   |
+| status                            | `disponivel \| reservado \| vendido \| alugado \| inativo`                                     | ver regras §3                                                     |
+| preco                             | centavos                                                                                       | venda: valor total; locação: aluguel mensal                       |
+| condominio, iptu                  | centavos \| null                                                                               | IPTU anual; terreno sem condomínio                                |
+| areaUtil, areaTotal               | número (m²)                                                                                    | `areaUtil ≤ areaTotal`                                            |
+| quartos, suites, banheiros, vagas | inteiro                                                                                        | `suites ≤ quartos`; terreno = 0                                   |
+| endereco                          | `{ logradouro, numero, bairro, cidade, uf, cep }`                                              | bairros plausíveis e genéricos                                    |
+| comodos                           | `Comodo[]`                                                                                     | ≥ 1 exceto terreno                                                |
+| diferenciais                      | string[]                                                                                       | ex.: piscina, academia, portaria 24 h                             |
+| corretorId                        | → Corretor                                                                                     |                                                                   |
+| favorito                          | boolean                                                                                        | RF-28                                                             |
+| fachada                           | `terrea \| sobrado \| moderna \| predio \| cobertura \| campo \| comercial \| terreno` \| null | ilustração; `null` = sem ilustração (fallback do `PropertyImage`) |
+| motivoInativo                     | string \| null                                                                                 | quando `inativo`                                                  |
+| criadoEm, atualizadoEm            | ISO                                                                                            |                                                                   |
 
 ### Comodo (valor embutido em Imovel)
 
@@ -122,13 +123,13 @@ erDiagram
 
 ### Parcela (valor embutido em Contrato)
 
-| Campo      | Tipo                                                                               | Notas            |
-| ---------- | ---------------------------------------------------------------------------------- | ---------------- |
-| numero     | inteiro                                                                            | 1…n              |
-| vencimento | ISO (data)                                                                         |                  |
-| valor      | centavos                                                                           |                  |
-| pagoEm     | ISO \| null                                                                        |                  |
-| status     | **derivado**: `pago` se `pagoEm`; `atrasado` se hoje > vencimento; senão `aVencer` | não é armazenado |
+| Campo      | Tipo                                                                                                                        | Notas            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| numero     | inteiro                                                                                                                     | 1…n              |
+| vencimento | ISO (data)                                                                                                                  |                  |
+| valor      | centavos                                                                                                                    |                  |
+| pagoEm     | ISO \| null                                                                                                                 |                  |
+| status     | **derivado**: `pago` se `pagoEm`; `cancelada` se o contrato foi cancelado; `atrasado` se hoje > vencimento; senão `aVencer` | não é armazenado |
 
 ### Comissao (valor embutido em Contrato)
 
@@ -143,15 +144,15 @@ erDiagram
 
 ### Atividade
 
-| Campo        | Tipo                                                                                                                                                                        | Notas                                                                                                                                                                              |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| id           | `atv_…`                                                                                                                                                                     |                                                                                                                                                                                    |
-| tipo         | `etapaAlterada \| nota \| visitaAgendada \| visitaRealizada \| propostaEnviada \| imovelCriado \| precoAlterado \| statusAlterado \| pagamentoRegistrado \| contratoCriado` |                                                                                                                                                                                    |
-| alvo         | `{ tipo: 'imovel' \| 'lead' \| 'contrato', id }`                                                                                                                            | relação polimórfica principal                                                                                                                                                      |
-| relacionados | `{ tipo, id }[]`                                                                                                                                                            | outras entidades afetadas (ex.: visita aparece na linha do tempo do lead **e** do imóvel)                                                                                          |
-| autorId      | → Corretor                                                                                                                                                                  |                                                                                                                                                                                    |
-| dados        | objeto por tipo                                                                                                                                                             | ex.: `{ de: 'visita', para: 'proposta' }`                                                                                                                                          |
-| criadoEm     | ISO                                                                                                                                                                         | feed do dashboard (RF-13) e linhas do tempo (RF-26, RF-34). O histórico do imóvel é derivado daqui (atividades com o imóvel em `alvo` ou `relacionados`), não é armazenado à parte |
+| Campo        | Tipo                                                                                                                                                                                                                | Notas                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id           | `atv_…`                                                                                                                                                                                                             |                                                                                                                                                                                    |
+| tipo         | `etapaAlterada \| nota \| visitaAgendada \| visitaRealizada \| visitaCancelada \| propostaEnviada \| imovelCriado \| precoAlterado \| statusAlterado \| pagamentoRegistrado \| contratoCriado \| contratoVinculado` |                                                                                                                                                                                    |
+| alvo         | `{ tipo: 'imovel' \| 'lead' \| 'contrato', id }`                                                                                                                                                                    | relação polimórfica principal                                                                                                                                                      |
+| relacionados | `{ tipo, id }[]`                                                                                                                                                                                                    | outras entidades afetadas (ex.: visita aparece na linha do tempo do lead **e** do imóvel)                                                                                          |
+| autorId      | → Corretor                                                                                                                                                                                                          |                                                                                                                                                                                    |
+| dados        | objeto por tipo                                                                                                                                                                                                     | ex.: `{ de: 'visita', para: 'proposta' }`                                                                                                                                          |
+| criadoEm     | ISO                                                                                                                                                                                                                 | feed do dashboard (RF-13) e linhas do tempo (RF-26, RF-34). O histórico do imóvel é derivado daqui (atividades com o imóvel em `alvo` ou `relacionados`), não é armazenado à parte |
 
 ### RegistroAlteracao
 
@@ -212,4 +213,4 @@ Casos embutidos: nome e título muito longos; imóvel sem cômodos (terreno) e s
 
 **Desfazer (RF-04):** toda operação de escrita retorna `{ resultado, desfazer }`, onde `desfazer()` restaura o estado anterior (snapshot da entidade + remoção da atividade gerada; como é uma alteração, também gera registro de alteração). Assim "Desfazer" funciona igual para mover lead, mudar status, registrar pagamento e favoritar.
 
-Todas retornam `Promise` com latência de 300–800 ms e taxa de erro configurável.
+Todas retornam `Promise` com latência de 300–800 ms e taxa de erro configurável. Erros chegam como `ErroApi` com `tipo`: `rede` (simulado, recuperável), `naoEncontrado`, `regra` (transição recusada pelo domínio) ou `validacao`. Leituras devolvem cópias e já trazem o que é derivado (status da parcela, `statusExibicao`, `transicoes` permitidas). Extras além do contrato: `listBairros`, `setUsuarioAtual` (RF-08), `setOrcamento`, `assinarContrato`, `encerrarContrato`. Persistência em `localStorage` (`atrium:mock:v1`), validada com `validarBase` ao carregar.

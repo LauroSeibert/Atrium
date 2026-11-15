@@ -36,3 +36,22 @@ test("sem rolagem horizontal em 320 px (RNF-01)", async ({ page }) => {
   const larguraExtra = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(larguraExtra).toBeLessThanOrEqual(0);
 });
+
+for (const esquema of ["light", "dark"] as const) {
+  test(`página de ilustrações carrega sem violações de acessibilidade (${esquema})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: esquema });
+    await page.goto("/design-system/illustrations");
+    await expect(page.getByRole("heading", { level: 1, name: "Ilustrações" })).toBeVisible();
+    await expect(page.locator("html")).toHaveClass(new RegExp(esquema));
+    expect(await page.locator("svg[role=img]").count()).toBeGreaterThanOrEqual(26);
+    const { violations } = await new AxeBuilder({ page }).withTags(RESTRICOES_WCAG).analyze();
+    expect(violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
+  });
+}
+
+test("ilustrações sem rolagem horizontal em 320 px (RNF-01)", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/design-system/illustrations");
+  const larguraExtra = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(larguraExtra).toBeLessThanOrEqual(0);
+});

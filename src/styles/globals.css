@@ -34,6 +34,14 @@
   --color-on-danger: var(--on-danger);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
+  --color-illus-sky: var(--illus-sky);
+  --color-illus-ground: var(--illus-ground);
+  --color-illus-wall: var(--illus-wall);
+  --color-illus-wall-alt: var(--illus-wall-alt);
+  --color-illus-roof: var(--illus-roof);
+  --color-illus-detail: var(--illus-detail);
+  --color-illus-ink: var(--illus-ink);
+  --color-illus-accent: var(--illus-accent);
   --color-transparent: transparent;
   --color-current: currentColor;
 
