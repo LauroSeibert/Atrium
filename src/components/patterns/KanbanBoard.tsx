@@ -1,0 +1,386 @@
+"use client";
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+  type DragStartEvent,
+  type ScreenReaderInstructions,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ETAPAS, type Etapa, type Lead, type Permissao } from "@/domain";
+import { cn } from "@/lib/cn";
+import { formatMoeda } from "@/lib/format";
+import type { Recurso } from "@/lib/recurso";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Skeleton } from "../ui/Skeleton";
+import { EmptyState } from "./EmptyState";
+import { EstadoRecurso } from "./EstadoRecurso";
+import { LeadCard, LeadCardSkeleton, type DestinoLead } from "./LeadCard";
+import { ETAPA_UI } from "./rotulos";
+
+/**
+ * Kanban de leads por etapa (RF-30, RF-31, RF-32, WCAG 2.5.7).
+ * O quadro NÃO muda a lista nem decide transições: pergunta `podeSoltar`, `destinosDe` e emite
+ * `onMover`. Mover para "perdido" exige motivo (RF-32): quem chama abre o diálogo e só então aplica
+ * `transicionarLead`. Alternativas ao arrastar: teclado (dnd-kit) e o menu "Mover para…" do card.
+ */
+export type MoverLeadEvento = { leadId: string; para: Etapa; ordem: number };
+
+export type KanbanBoardProps = {
+  estado: Recurso<readonly Lead[]>;
+  /** `id do corretor → nome`. */
+  responsaveis: Record<string, string>;
+  /** Destinos do "Mover para…" de cada lead, já resolvidos pelo domínio. */
+  destinosDe: (lead: Lead) => readonly DestinoLead[];
+  /** O domínio responde se `leadId` pode ser solto em `para` (`podeTransicionarLead`). */
+  podeSoltar: (leadId: string, para: Etapa) => Permissao;
+  onMover: (evento: MoverLeadEvento) => void;
+  onAbrir: (leadId: string) => void;
+  onTentarNovamente?: () => void;
+  /** Colunas exibidas, em ordem (padrão: todas as etapas). */
+  etapas?: readonly Etapa[];
+  agora?: Date;
+  className?: string;
+};
+
+const PREFIXO_COLUNA = "coluna:";
+const idColuna = (e: Etapa) => `${PREFIXO_COLUNA}${e}`;
+
+export const INSTRUCOES_KANBAN: ScreenReaderInstructions = {
+  draggable:
+    "Para pegar o lead, pressione Espaço ou Enter. Use as setas para escolher a etapa e a posição, Espaço ou Enter para soltar, Esc para cancelar. Também é possível usar o menu Mover para…",
+};
+
+export type ContextoAnuncios = {
+  nomeDoLead: (leadId: string) => string;
+  /** Etapa a que um alvo (`over.id`) pertence: coluna ou card. */
+  etapaDoAlvo: (overId: string) => Etapa | null;
+  etapaAtual: (leadId: string) => Etapa;
+  permissao: (leadId: string, para: Etapa) => Permissao;
+};
+
+/** Anúncios do dnd-kit em pt-BR (leitores de tela). */
+export function criarAnuncios(c: ContextoAnuncios): Announcements {
+  const sobre = (activeId: string, overId: string | undefined) => {
+    const nome = c.nomeDoLead(activeId);
+    const etapa = overId ? c.etapaDoAlvo(overId) : null;
+    if (!etapa) return `${nome} fora de qualquer etapa.`;
+    const p = c.permissao(activeId, etapa);
+    return p.ok
+      ? `${nome} sobre a etapa ${ETAPA_UI[etapa].rotulo}.`
+      : `${nome} não pode ir para a etapa ${ETAPA_UI[etapa].rotulo}: ${p.motivo}`;
+  };
+  return {
+    onDragStart: ({ active }) =>
+      `${c.nomeDoLead(String(active.id))} pego, na etapa ${ETAPA_UI[c.etapaAtual(String(active.id))].rotulo}. Use as setas para mover.`,
+    onDragOver: ({ active, over }) => sobre(String(active.id), over ? String(over.id) : undefined),
+    onDragEnd: ({ active, over }) => {
+      const id = String(active.id);
+      const nome = c.nomeDoLead(id);
+      const etapa = over ? c.etapaDoAlvo(String(over.id)) : null;
+      if (!etapa) return `${nome} solto fora de uma etapa. Nada foi alterado.`;
+      const p = c.permissao(id, etapa);
+      if (!p.ok) return `${nome} não foi movido para ${ETAPA_UI[etapa].rotulo}: ${p.motivo}`;
+      return etapa === c.etapaAtual(id)
+        ? `${nome} solto na etapa ${ETAPA_UI[etapa].rotulo}.`
+        : `${nome} movido para a etapa ${ETAPA_UI[etapa].rotulo}.`;
+    },
+    onDragCancel: ({ active }) => `Movimento cancelado. ${c.nomeDoLead(String(active.id))} voltou ao lugar.`,
+  };
+}
+
+function CartaoArrastavel({
+  lead,
+  responsavel,
+  destinos,
+  negado,
+  onAbrir,
+  onMover,
+  agora,
+}: {
+  lead: Lead;
+  responsavel: string;
+  destinos: readonly DestinoLead[];
+  negado: boolean;
+  onAbrir: (id: string) => void;
+  onMover: (id: string, para: Etapa) => void;
+  agora?: Date;
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, isDragging } = useSortable({
+    id: lead.id,
+    data: { etapa: lead.etapa },
+    disabled: { droppable: negado },
+    transition: null,
+    attributes: { roleDescription: "lead arrastável" },
+  });
+  return (
+    <li
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform) }}
+      className={cn(isDragging && "opacity-40")}
+    >
+      <LeadCard
+        lead={lead}
+        responsavel={responsavel}
+        destinos={destinos}
+        onAbrir={onAbrir}
+        onMover={onMover}
+        agora={agora}
+        alca={
+          <Button
+            ref={setActivatorNodeRef}
+            variant="ghost"
+            size="sm"
+            icon={GripVertical}
+            aria-label={`Arrastar ${lead.nome}`}
+            className="relative z-10 size-10 shrink-0 cursor-grab touch-none max-sm:size-11"
+            {...attributes}
+            {...listeners}
+          />
+        }
+      />
+    </li>
+  );
+}
+
+function Coluna({
+  etapa,
+  leads,
+  permissaoDoArraste,
+  renderCartao,
+}: {
+  etapa: Etapa;
+  leads: readonly Lead[];
+  /** `null` fora de um arraste. */
+  permissaoDoArraste: Permissao | null;
+  renderCartao: (lead: Lead, negado: boolean) => React.ReactNode;
+}) {
+  const negado = permissaoDoArraste !== null && !permissaoDoArraste.ok;
+  const { setNodeRef, isOver } = useDroppable({ id: idColuna(etapa), data: { etapa }, disabled: negado });
+  const titulo = useId();
+  const soma = leads.reduce((s, l) => s + (l.orcamento ?? 0), 0); // agregação de exibição (RF-30)
+  const info = ETAPA_UI[etapa];
+  return (
+    <section
+      aria-labelledby={titulo}
+      className={cn(
+        "flex w-72 shrink-0 flex-col gap-3 rounded-lg border bg-bg-subtle p-3 sm:w-80",
+        negado ? "border-danger bg-danger-bg" : isOver ? "border-primary" : "border-border",
+      )}
+    >
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id={titulo} className="flex items-center gap-2 text-base font-semibold text-text">
+            <Badge tone={info.tom}>{info.rotulo}</Badge>
+            <span className="font-normal text-sm text-text-muted">
+              {leads.length} {leads.length === 1 ? "lead" : "leads"}
+            </span>
+          </h2>
+        </div>
+        <p className="tnum text-sm text-text-muted">
+          <span className="sr-only">Orçamento somado: </span>
+          {soma > 0 ? formatMoeda(soma, { compacto: true }) : "Sem orçamento"}
+        </p>
+        {negado ? <p className="text-sm font-medium text-danger">Não permitido: {permissaoDoArraste.motivo}</p> : null}
+      </header>
+      <SortableContext items={leads.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+        <ul ref={setNodeRef} aria-labelledby={titulo} className="flex min-h-24 flex-1 flex-col gap-2">
+          {leads.map((l) => renderCartao(l, negado))}
+        </ul>
+      </SortableContext>
+      {leads.length === 0 ? (
+        <EmptyState tamanho="compacto" ilustracao="semResultados" titulo="Nenhum lead nesta etapa" />
+      ) : null}
+    </section>
+  );
+}
+
+function Quadro({
+  leads,
+  responsaveis,
+  destinosDe,
+  podeSoltar,
+  onMover,
+  onAbrir,
+  etapas,
+  agora,
+}: Omit<KanbanBoardProps, "estado" | "onTentarNovamente" | "className"> & {
+  leads: readonly Lead[];
+  etapas: readonly Etapa[];
+}) {
+  const idContexto = useId();
+  const [ativoId, setAtivoId] = useState<string | null>(null);
+  const [aviso, setAviso] = useState("");
+  const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (temporizador.current && clearTimeout(temporizador.current)), []);
+  const sensores = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const porId = useMemo(() => new Map(leads.map((l) => [l.id, l])), [leads]);
+  const colunas = useMemo(() => {
+    const m = new Map<Etapa, Lead[]>(etapas.map((e) => [e, []]));
+    for (const l of [...leads].sort((a, b) => a.ordem - b.ordem)) m.get(l.etapa)?.push(l);
+    return m;
+  }, [leads, etapas]);
+
+  const nome = (id: string) => porId.get(id)?.nome ?? "Lead";
+  const ativo = ativoId ? (porId.get(ativoId) ?? null) : null;
+  /** Sempre pergunta ao domínio, inclusive para a própria coluna (reordenar). */
+  const permissaoPara = (leadId: string, etapa: Etapa): Permissao => podeSoltar(leadId, etapa);
+  const etapaDoAlvo = (overId: string): Etapa | null =>
+    overId.startsWith(PREFIXO_COLUNA)
+      ? (overId.slice(PREFIXO_COLUNA.length) as Etapa)
+      : (porId.get(overId)?.etapa ?? null);
+
+  const anuncios = criarAnuncios({
+    nomeDoLead: nome,
+    etapaDoAlvo,
+    etapaAtual: (id) => porId.get(id)!.etapa,
+    permissao: permissaoPara,
+  });
+
+  function aoSoltar({ active, over }: DragEndEvent) {
+    setAtivoId(null);
+    if (!over) return;
+    const leadId = String(active.id);
+    const origem = porId.get(leadId);
+    const overId = String(over.id);
+    const para = etapaDoAlvo(overId);
+    if (!origem || !para || !permissaoPara(leadId, para).ok) return;
+    const coluna = colunas.get(para) ?? [];
+    const ordem = overId.startsWith(PREFIXO_COLUNA)
+      ? coluna.filter((l) => l.id !== leadId).length
+      : coluna.findIndex((l) => l.id === overId);
+    if (para === origem.etapa && ordem === coluna.findIndex((l) => l.id === leadId)) return; // não mudou
+    onMover({ leadId, para, ordem });
+  }
+
+  function moverPorMenu(leadId: string, para: Etapa) {
+    setAviso(`Movendo ${nome(leadId)} para a etapa ${ETAPA_UI[para].rotulo}.`);
+    // Limpa depois de anunciar, para que a mesma frase repetida seja anunciada de novo.
+    if (temporizador.current) clearTimeout(temporizador.current);
+    temporizador.current = setTimeout(() => setAviso(""), 1500);
+    onMover({ leadId, para, ordem: colunas.get(para)?.length ?? 0 });
+  }
+
+  return (
+    <DndContext
+      id={idContexto}
+      sensors={sensores}
+      collisionDetection={closestCorners}
+      accessibility={{ announcements: anuncios, screenReaderInstructions: INSTRUCOES_KANBAN }}
+      onDragStart={({ active }: DragStartEvent) => setAtivoId(String(active.id))}
+      onDragEnd={aoSoltar}
+      onDragCancel={() => setAtivoId(null)}
+    >
+      <div
+        role="region"
+        aria-label="Quadro de leads por etapa"
+        tabIndex={0}
+        className="relative flex w-full max-w-full min-w-0 items-start gap-4 overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {etapas.map((etapa) => (
+          <Coluna
+            key={etapa}
+            etapa={etapa}
+            leads={colunas.get(etapa) ?? []}
+            permissaoDoArraste={ativo ? permissaoPara(ativo.id, etapa) : null}
+            renderCartao={(lead, negado) => (
+              <CartaoArrastavel
+                key={lead.id}
+                lead={lead}
+                responsavel={responsaveis[lead.responsavelId] ?? "Sem responsável"}
+                destinos={destinosDe(lead)}
+                negado={negado}
+                onAbrir={onAbrir}
+                onMover={moverPorMenu}
+                agora={agora}
+              />
+            )}
+          />
+        ))}
+      </div>
+      <DragOverlay dropAnimation={null}>
+        {ativo ? (
+          <div aria-hidden="true" inert>
+            <LeadCard
+              lead={ativo}
+              responsavel={responsaveis[ativo.responsavelId] ?? "Sem responsável"}
+              onAbrir={onAbrir}
+              agora={agora}
+              arrastando
+              className="w-72 sm:w-80"
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+      <p role="status" className="sr-only">
+        {aviso}
+      </p>
+    </DndContext>
+  );
+}
+
+export function KanbanBoardSkeleton({ etapas = ETAPAS }: { etapas?: readonly Etapa[] }) {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando quadro de leads"
+      className="relative flex w-full max-w-full min-w-0 items-start gap-4 overflow-x-auto pb-2"
+    >
+      {etapas.map((e, i) => (
+        <div
+          key={e}
+          className="flex w-72 shrink-0 flex-col gap-3 rounded-lg border border-border bg-bg-subtle p-3 sm:w-80"
+        >
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-1/3" />
+          {Array.from({ length: 2 + (i % 2) }, (_, k) => (
+            <LeadCardSkeleton key={k} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function KanbanBoard({ estado, etapas = ETAPAS, onTentarNovamente, className, ...resto }: KanbanBoardProps) {
+  return (
+    <div className={cn("w-full max-w-full min-w-0", className)}>
+      <EstadoRecurso
+        estado={estado}
+        carregando={<KanbanBoardSkeleton etapas={etapas} />}
+        estaVazio={(d) => d.length === 0}
+        vazio={
+          <EmptyState
+            titulo="Nenhum lead ainda"
+            descricao="Quando você cadastrar um lead, ele aparece na coluna Novo."
+          />
+        }
+        erro={{ titulo: "Não foi possível carregar os leads" }}
+        onTentarNovamente={onTentarNovamente}
+      >
+        {(dados) => <Quadro leads={dados} etapas={etapas} {...resto} />}
+      </EstadoRecurso>
+    </div>
+  );
+}

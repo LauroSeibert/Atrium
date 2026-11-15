@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Recurso } from "@/lib/recurso";
 import { Icon } from "../ui/Icon";
+import { Spinner } from "../ui/Spinner";
 import { ErrorState, type ErrorStateProps } from "./ErrorState";
 
 export type EstadoRecursoProps<T> = {
@@ -20,7 +21,7 @@ export type EstadoRecursoProps<T> = {
 /**
  * Renderiza os 5 estados de tela de um `Recurso<T>` (RNF-09, ESTADOS §3.6) a partir da união
  * discriminada — nunca de booleanos. `loading` com dados (refetch) e `error` com dados mantêm o
- * conteúdo visível; `partial` mostra o aviso acima dos dados.
+ * conteúdo visível (sem esmaecer: o texto precisa manter o contraste; o aviso "Atualizando…" indica a fase); `partial` mostra o aviso acima dos dados.
  */
 export function EstadoRecurso<T>({
   estado,
@@ -39,7 +40,11 @@ export function EstadoRecurso<T>({
       return estado.dados === undefined ? (
         <>{carregando}</>
       ) : (
-        <div aria-busy="true" className="opacity-60 transition-opacity duration-(--dur-base) ease-standard">
+        <div aria-busy="true" className="flex flex-col gap-3">
+          <p role="status" className="flex items-center gap-2 text-sm text-text-muted">
+            <Spinner size={16} />
+            Atualizando…
+          </p>
           {conteudo(estado.dados)}
         </div>
       );
