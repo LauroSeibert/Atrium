@@ -30,6 +30,7 @@ describe("Card", () => {
   it("interativo com asChild é um link", () => {
     render(
       <Card variant="interactive" asChild>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- teste do Slot com <a> puro */}
         <a href="/imoveis/123">Apartamento Pinheiros</a>
       </Card>,
     );

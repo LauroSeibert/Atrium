@@ -207,7 +207,7 @@ Casos embutidos: nome e título muito longos; imóvel sem cômodos (terreno) e s
 | `listContratos(filtros, paginacao, ordem)` · `getContrato(id)`                                                                  | RF-40…42                          |
 | `registrarPagamento(contratoId, numero)` · `cancelarContrato(id, motivo)`                                                       | RF-43, RF-48                      |
 | `getFinanceiro(periodo)`                                                                                                        | RF-44…46                          |
-| `listNotificacoes()` · `marcarLida(id)`                                                                                         | RF-64                             |
+| `listNotificacoes()` · `marcarLida(id)` · `getContadoresNavegacao()`                                                            | RF-62, RF-64                      |
 | `search(termo)`                                                                                                                 | RF-02                             |
 | `getPerfil()` · `savePerfil(dados)`                                                                                             | RF-50                             |
 | `listAlteracoes(entidade)`                                                                                                      | RF-65                             |

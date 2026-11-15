@@ -57,6 +57,7 @@ describe("Button", () => {
   it("asChild renderiza o filho com estilo de botão", () => {
     render(
       <Button asChild>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- teste do Slot com <a> puro */}
         <a href="/imoveis">Ver imóveis</a>
       </Button>,
     );

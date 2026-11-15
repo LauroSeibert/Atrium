@@ -98,6 +98,10 @@ Vincular contrato a lead (RF-39): só lead `fechado`, contrato sem lead e não c
 
 `idle → loading → success | partial | error`; `error → loading` (tentar de novo); `success → loading` (refetch mantém dados visíveis). Implementado como união discriminada num único hook por recurso, nunca como booleanos soltos: `Recurso<T>` e `useRecurso` em `src/lib/recurso.ts`.
 
+### 3.7 Notificações e badges do shell (derivados)
+
+Não são máquinas de estado: são leituras derivadas, calculadas em `src/domain/notificacoes/notificacoes.ts` (antes ficavam no `fakeApi`). `listarNotificacoes` usa a mesma regra de `statusParcela` (vence em até 3 dias → `vencimento`; vencida → `atraso`; só contratos `ativo`) e as atividades de outras pessoas dos últimos 14 dias; `lida` vem da lista de ids lidos do usuário (único estado guardado, sem transição de negócio). `contadoresNavegacao` conta leads em `novo` e parcelas atrasadas de contratos ativos (mesma regra do "inadimplente"). O shell só exibe.
+
 ## 4. Registro de alterações
 
 Objetivo: deixar claro **quem alterou preço, status ou valores monetários, quando, e de quanto para quanto**. A edição continua livre; só fica registrada.

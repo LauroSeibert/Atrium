@@ -30,3 +30,4 @@ export * from "./contrato/derivados";
 export * from "./invariantes";
 export * from "./corretor/operacoes";
 export * from "./metricas/metricas";
+export * from "./notificacoes/notificacoes";

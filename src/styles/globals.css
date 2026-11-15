@@ -113,6 +113,10 @@
   --animate-slide-in-right: slide-in-right var(--dur-slow) var(--easing-enter);
   --animate-slide-out-right: slide-out-right var(--dur-base) var(--easing-exit);
   --animate-slide-in-up: slide-in-up var(--dur-base) var(--easing-enter);
+  --animate-slide-in-left: slide-in-left var(--dur-slow) var(--easing-enter);
+  --animate-slide-out-left: slide-out-left var(--dur-base) var(--easing-exit);
+  /* transição de rota (Fase 7): fade + deslocamento curto, só opacity/transform */
+  --animate-page-in: slide-in-up var(--dur-slow) var(--easing-enter);
 
   /* grade de 4px: p-1 = 4px, p-2 = 8px, p-4 = 16px… */
   --spacing: var(--space-1);
@@ -138,6 +142,15 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  /* WCAG 2.4.11: o foco nunca fica sob a topbar fixa (64 px) nem sob a barra de ação inferior. */
+  html {
+    scroll-padding-top: calc(var(--space-16) + var(--space-2));
+  }
+  @media (width < 48rem) {
+    html:has([data-barra-acao]) {
+      scroll-padding-bottom: calc(var(--space-16) + var(--space-8));
+    }
   }
   ::selection {
     background: var(--surface-warm);
@@ -181,9 +194,24 @@
     transform: translateX(100%);
   }
 }
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
 @keyframes slide-in-up {
   from {
     opacity: 0;
     transform: translateY(8px);
   }
+}
+
+/* Barra de ação inferior (RF-63): respeita a área segura do iPhone sem valor literal. */
+@utility pb-safe {
+  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
 }

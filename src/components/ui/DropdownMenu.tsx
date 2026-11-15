@@ -59,9 +59,16 @@ export function DropdownMenuItem({
       className={cn(item, tone === "destructive" && "text-danger data-[highlighted]:bg-danger-bg", className)}
       {...props}
     >
-      {icon ? <Icon icon={icon} size={16} /> : null}
-      {children}
-      {shortcut ? <Shortcut>{shortcut}</Shortcut> : null}
+      {/* Com `asChild` o Slot exige um único filho: ícone e atalho vão dentro do próprio filho. */}
+      {props.asChild ? (
+        children
+      ) : (
+        <>
+          {icon ? <Icon icon={icon} size={16} /> : null}
+          {children}
+          {shortcut ? <Shortcut>{shortcut}</Shortcut> : null}
+        </>
+      )}
     </MenuPrimitive.Item>
   );
 }

@@ -1,5 +1,6 @@
 import type { Decorator, Preview } from "@storybook/nextjs-vite";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "../src/components/ui/Tooltip";
 import { inter } from "../src/styles/fonts";
 import "../src/styles/globals.css";
 
@@ -10,7 +11,9 @@ document.documentElement.classList.add(inter.variable);
 const withTheme: Decorator = (Story, context) => (
   <ThemeProvider attribute="class" forcedTheme={context.globals.theme as string} enableSystem={false}>
     <div className="min-h-dvh bg-bg font-sans text-text">
-      <Story />
+      <TooltipProvider>
+        <Story />
+      </TooltipProvider>
     </div>
   </ThemeProvider>
 );

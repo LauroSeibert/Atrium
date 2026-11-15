@@ -15,8 +15,9 @@ import {
   buscar,
   calcularDashboard,
   calcularFinanceiro,
+  contadoresNavegacao,
+  listarNotificacoes,
   criarLead,
-  dataLocal,
   ETAPAS,
   estaInadimplente,
   proximoVencimento,
@@ -34,7 +35,6 @@ import {
   transicoesPermitidasImovel,
   transicoesPermitidasLead,
   vincularContrato as vincularContratoDominio,
-  type Atividade,
   type Base,
   type Contexto,
   type Contrato,
@@ -408,34 +408,9 @@ export const fakeApi = {
   encerrarContrato: (id: string) => escrever((b, c) => transicionarContrato(b, id, { para: "encerrado" }, c)),
 
   // --- Notificações (RF-64) --------------------------------------------------
-  listNotificacoes: () =>
-    ler((b, e) => {
-      const hoje = agoraIso();
-      const limite = new Date(Date.parse(hoje) - 14 * 86_400_000).toISOString();
-      const deAtividades = b.atividades
-        .filter((a) => a.autorId !== e.usuarioAtualId && a.criadoEm >= limite)
-        .map((a: Atividade) => ({ id: `ntf_${a.id}`, tipo: "atividade" as const, em: a.criadoEm, atividade: a }));
-      const em3dias = dataLocal(new Date(Date.parse(hoje) + 3 * 86_400_000).toISOString());
-      const vencimentos = b.contratos
-        .filter((c) => c.status === "ativo")
-        .flatMap((c) =>
-          c.parcelas
-            .filter((p) => !p.pagoEm && p.vencimento <= em3dias)
-            .map((p) => ({
-              id: `ntf_venc_${c.id}_${p.numero}`,
-              tipo: statusParcela(c, p, hoje) === "atrasado" ? ("atraso" as const) : ("vencimento" as const),
-              em: `${p.vencimento}T12:00:00.000Z`,
-              contratoId: c.id,
-              numero: c.numero,
-              parcela: p.numero,
-              valor: p.valor,
-            })),
-        );
-      return [...deAtividades, ...vencimentos]
-        .sort((a, z) => z.em.localeCompare(a.em))
-        .slice(0, 50)
-        .map((n) => ({ ...n, lida: e.lidas.includes(n.id) }));
-    }),
+  listNotificacoes: () => ler((b, e) => listarNotificacoes(b, agoraIso(), e.usuarioAtualId, e.lidas)),
+  /** Badges da navegação (RF-62). */
+  getContadoresNavegacao: () => ler((b) => contadoresNavegacao(b, agoraIso())),
   async marcarLida(id: string | "todas") {
     await esperar();
     const e = obterEstado();

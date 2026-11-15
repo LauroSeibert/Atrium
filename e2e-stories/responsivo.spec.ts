@@ -2,13 +2,16 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
 /**
- * Gate 6: compostos responsivos em 360 / 768 / 1280 / 1920 px (RNF de reflow, WCAG 1.4.10).
+ * Gates 6 e 7: compostos e shell responsivos em 360 / 768 / 1280 / 1920 px (RNF de reflow, WCAG 1.4.10).
  * A página da história não pode rolar na horizontal; tabelas e kanban rolam dentro do próprio contêiner.
  */
 type Entry = { id: string; title: string; name: string; type: "story" | "docs"; tags?: string[] };
 const index = JSON.parse(readFileSync("storybook-static/index.json", "utf8")) as { entries: Record<string, Entry> };
 const stories = Object.values(index.entries).filter(
-  (e) => e.type === "story" && e.title.startsWith("Padrões/") && !e.tags?.includes("skip-responsivo"),
+  (e) =>
+    e.type === "story" &&
+    (e.title.startsWith("Padrões/") || e.title.startsWith("Shell/")) &&
+    !e.tags?.includes("skip-responsivo"),
 );
 
 const LARGURAS = [360, 768, 1280, 1920] as const;

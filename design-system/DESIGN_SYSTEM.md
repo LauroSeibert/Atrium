@@ -172,8 +172,18 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - **Raio coerente:** card `rounded-lg`, controles `rounded-md`, chips `rounded-full`; aninhado usa raio menor que o pai.
 - **Cor 60-30-10:** fundo neutro dominante, superfícies secundárias, `--primary` só no destaque.
 
+### 10.7 Menos é mais
+
+Cada texto na tela compete pela atenção. Antes de acrescentar um rótulo, subtítulo, _eyebrow_ ou linha de apoio, pergunte se ele muda o que a pessoa decide ou faz; se não muda, corte.
+
+- **Título que diz o que é (ou o que fazer)**, sem subtítulo explicando o óbvio. Uma linha de instrução só quando a ação não é evidente.
+- **Itens de lista com nome + no máximo uma linha curta de contexto.** Metadados que não decidem nada saem (ou vão para leitor de tela/tooltip).
+- **Nada de repetir:** a trilha não repete o `h1`; o botão não repete o título do card; o avatar basta na topbar (nome e papel ficam no menu).
+- **Acessibilidade não é desculpa para poluir:** contexto extra vai em `sr-only`, nunca em texto visível redundante.
+
 ### Checklist de revisão de tela
 
+- [ ] Nenhum rótulo, subtítulo ou texto de apoio que não mude a decisão (§10.7).
 - [ ] Tem estados de carregando, vazio, erro, sucesso e parcial (dados incompletos ou falha em parte da tela).
 - [ ] Completa só com teclado: ordem de tab lógica, foco visível com `--ring`, Esc fecha overlays.
 - [ ] Uma única ação primária na vista; as demais são secundárias ou fantasma.
@@ -185,3 +195,26 @@ Referências que guiam as decisões de tela no painel (dashboard de KPIs, lista 
 - [ ] Espaçamentos só da grade de 4 px; sem hex, sem `ms` e sem sombra literais.
 - [ ] Metadados em `--text-muted`; movimento só com tokens `--dur-*` e easings, e a tela funciona com `prefers-reduced-motion`.
 - [ ] Ações destrutivas pedem confirmação e oferecem desfazer.
+
+## 11. Shell do painel (Fase 7)
+
+Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), todos só com props; o contêiner `src/features/shell/PainelShell.tsx` liga roteador, tema, preferências e `fakeApi`.
+
+| Peça                             | Comportamento                                                                                                                                                                                                  | Requisitos          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `AppShell`                       | Skip link → sidebar (≥ 1024 px) → topbar fixa → `<main id="conteudo">` com **largura máx. 1440 px** (`max-w-360`) e padding 16/24/32 px.                                                                       | RNF-01, RNF-03      |
+| `Sidebar` + `NavegacaoPrincipal` | Logo, 5 módulos + Configurações no rodapé. Item ativo com `aria-current="page"` e indicador que desliza (`motion` `layoutId`, `--dur-slow`). Recolhível (64 px, só ícones + tooltip, nome acessível completo). | RF-01, RF-60        |
+| Badges                           | Leads novos (`info`) e parcelas atrasadas (`danger`), calculados no domínio (`contadoresNavegacao`). Acima de 99 vira "99+"; o número exato fica no nome acessível.                                            | RF-62               |
+| `MobileNav`                      | Abaixo de 1024 px a sidebar vira drawer à esquerda (alvos de 44 px); escolher um item fecha.                                                                                                                   | RF-01, RF-63        |
+| `Topbar`                         | Menu (mobile), breadcrumb a partir do 2º nível (no mobile só a página atual), busca ⌘K, notificações, tema e avatar.                                                                                           | RF-02, RF-03, RF-61 |
+| `NotificationCenter`             | Sino com contagem de não lidas, lista em popover, "Marcar todas como lidas"; abrir marca como lida. Regra de vencimento/atraso no domínio (`listarNotificacoes`).                                              | RF-64               |
+| `UserMenu`                       | Nome e papel, troca de persona de demonstração, Configurações.                                                                                                                                                 | RF-08, RF-50        |
+| `PageHeader` + `MobileActionBar` | `h1`, descrição, ações. A ação primária fica no cabeçalho no desktop e numa barra inferior fixa abaixo de 768 px (portal no `body`, área segura do iPhone via `pb-safe`).                                      | RF-61, RF-63        |
+| `PageSkeleton`                   | `loading.tsx` de cada rota: forma final de cabeçalho + conteúdo (lista, painel ou detalhe), sem salto de layout.                                                                                               | RNF-07, RNF-09      |
+| `TransicaoDeRota`                | `template.tsx` do grupo `(dashboard)`: fade + 8 px ao trocar de módulo (`--dur-slow`, `ease-enter`); com movimento reduzido, 1 ms.                                                                             | Guia §7             |
+
+**Decisão: sidebar Beige claro (`tom="clara"`, padrão).** O guia deixava aberto entre Hunter Green e Beige claro. Ficou o beige (`--bg-subtle`) porque (1) mantém o verde nos 10 % do 60-30-10, como destaque do item ativo e do botão primário, em vez de uma faixa verde ocupando a lateral inteira; (2) o item ativo verde sobre beige é o único destaque da navegação (Von Restorff); (3) no tema escuro a lateral já é verde profundo. A variante `tom="marca"` existe e está no catálogo (_Shell/Sidebar › Comparação de tom_) para comparar ou trocar depois: ela aplica os tokens do tema escuro só dentro da sidebar, então herda todos os pares de contraste já aprovados.
+
+**Persistência (RNF-16):** tema pelo `next-themes`; sidebar recolhida em `localStorage` (`atrium:sidebar-recolhida`) via `usePreferencia` (`src/lib/preferencias.ts`), tolerante a storage bloqueado. **Movimento em JS:** `src/lib/motion.ts` lê `--dur-*`/`--easing-*` do CSS; nenhuma duração literal no `motion`.
+
+**Trilha:** derivada da rota (`trilhaDaRota`); a tela que conhece o nome real do registro usa `<DefinirTrilha rotulo="AT-0012" />` (`src/features/shell/trilha.ts`).

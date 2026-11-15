@@ -14,15 +14,16 @@ for (const esquema of ["light", "dark"] as const) {
   });
 }
 
-test("raiz redireciona para a página de cores", async ({ page }) => {
+test("raiz mostra o Dashboard dentro do shell (RF-01)", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/design-system\/colors$/);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 });
 
 test("alternador de tema aplica e persiste a escolha (RF-03)", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/design-system/colors");
-  const escuro = page.getByRole("button", { name: "Escuro" });
+  const escuro = page.getByRole("button", { name: "Escuro", exact: true });
   await escuro.click();
   await expect(escuro).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("html")).toHaveClass(/dark/);

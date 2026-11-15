@@ -11,28 +11,38 @@ export const DrawerTrigger = DialogPrimitive.Trigger;
 export const DrawerClose = DialogPrimitive.Close;
 
 export const drawerContentVariants = cva(
-  [
-    "fixed inset-y-0 right-0 z-(--z-modal) flex w-full flex-col border-l border-border bg-surface-raised text-text shadow-3",
-    "data-[state=closed]:animate-slide-out-right data-[state=open]:animate-slide-in-right",
-  ],
+  ["fixed inset-y-0 z-(--z-modal) flex w-full flex-col border-border bg-surface-raised text-text shadow-3"],
   {
-    variants: { size: { md: "sm:max-w-md", lg: "sm:max-w-2xl" } },
-    defaultVariants: { size: "md" },
+    variants: {
+      size: { sm: "max-w-80", md: "sm:max-w-md", lg: "sm:max-w-2xl" },
+      /** `left` para a navegação no mobile (Fase 7); `right` para detalhes e formulários. */
+      side: {
+        right: "right-0 border-l data-[state=closed]:animate-slide-out-right data-[state=open]:animate-slide-in-right",
+        left: "left-0 border-r data-[state=closed]:animate-slide-out-left data-[state=open]:animate-slide-in-left",
+      },
+    },
+    defaultVariants: { size: "md", side: "right" },
   },
 );
 
 export type DrawerContentProps = ComponentProps<typeof DialogPrimitive.Content> &
   VariantProps<typeof drawerContentVariants>;
 
-/** Painel lateral (direita no desktop, tela cheia no mobile). */
-export function DrawerContent({ className, size, children, ...props }: DrawerContentProps) {
+/** Painel lateral (direita no desktop, tela cheia no mobile; `size="sm"` limita a 320 px também no mobile). */
+export function DrawerContent({ className, size, side, children, ...props }: DrawerContentProps) {
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
-      <DialogPrimitive.Content className={cn(drawerContentVariants({ size }), className)} {...props}>
+      <DialogPrimitive.Content className={cn(drawerContentVariants({ size, side }), className)} {...props}>
         {children}
         <DialogPrimitive.Close asChild>
-          <Button variant="ghost" size="sm" icon={X} aria-label="Fechar" className="absolute top-4 right-4" />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={X}
+            aria-label="Fechar"
+            className="absolute top-4 right-4 max-lg:size-11"
+          />
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
