@@ -73,7 +73,11 @@ export function AgendaListSkeleton() {
 function Item({ item }: { item: ItemAgenda }) {
   const ui = TIPO_UI[item.tipo];
   const titulo = item.href ? (
-    <Button asChild variant="link" className="justify-start text-left whitespace-normal">
+    <Button
+      asChild
+      variant="link"
+      className="h-auto max-w-full justify-start text-left wrap-anywhere whitespace-normal"
+    >
       <Link href={item.href}>{item.titulo}</Link>
     </Button>
   ) : (
@@ -88,8 +92,8 @@ function Item({ item }: { item: ItemAgenda }) {
         <Icon icon={ui.icone} size={16} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-sm font-medium break-words text-text">{titulo}</p>
-        {item.detalhe ? <p className="text-sm break-words text-text-muted">{item.detalhe}</p> : null}
+        <p className="text-sm font-medium wrap-anywhere text-text">{titulo}</p>
+        {item.detalhe ? <p className="text-sm wrap-anywhere text-text-muted">{item.detalhe}</p> : null}
         <p className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
           <Badge size="sm" tone={item.tipo === "visita" ? "info" : "neutral"}>
             {ui.rotulo}
