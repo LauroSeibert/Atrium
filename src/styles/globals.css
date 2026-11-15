@@ -42,6 +42,11 @@
   --color-illus-detail: var(--illus-detail);
   --color-illus-ink: var(--illus-ink);
   --color-illus-accent: var(--illus-accent);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --color-transparent: transparent;
   --color-current: currentColor;
 

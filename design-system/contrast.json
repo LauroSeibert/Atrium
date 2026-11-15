@@ -348,6 +348,66 @@
       "bg": "illus-detail",
       "min": 3,
       "use": "Ilustração: puxador/contorno sobre janela ou porta"
+    },
+    {
+      "fg": "chart-1",
+      "bg": "surface",
+      "min": 3,
+      "use": "Gráfico: série 1 (barra, linha, fatia) sobre card"
+    },
+    {
+      "fg": "chart-1",
+      "bg": "surface-raised",
+      "min": 3,
+      "use": "Gráfico: série 1 (barra, linha, fatia) sobre tooltip"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "surface",
+      "min": 3,
+      "use": "Gráfico: série 2 (barra, linha, fatia) sobre card"
+    },
+    {
+      "fg": "chart-2",
+      "bg": "surface-raised",
+      "min": 3,
+      "use": "Gráfico: série 2 (barra, linha, fatia) sobre tooltip"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "surface",
+      "min": 3,
+      "use": "Gráfico: série 3 (barra, linha, fatia) sobre card"
+    },
+    {
+      "fg": "chart-3",
+      "bg": "surface-raised",
+      "min": 3,
+      "use": "Gráfico: série 3 (barra, linha, fatia) sobre tooltip"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "surface",
+      "min": 3,
+      "use": "Gráfico: série 4 (barra, linha, fatia) sobre card"
+    },
+    {
+      "fg": "chart-4",
+      "bg": "surface-raised",
+      "min": 3,
+      "use": "Gráfico: série 4 (barra, linha, fatia) sobre tooltip"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "surface",
+      "min": 3,
+      "use": "Gráfico: série 5 (barra, linha, fatia) sobre card"
+    },
+    {
+      "fg": "chart-5",
+      "bg": "surface-raised",
+      "min": 3,
+      "use": "Gráfico: série 5 (barra, linha, fatia) sobre tooltip"
     }
   ],
   "decorative": {
