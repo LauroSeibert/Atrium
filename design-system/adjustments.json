@@ -11,19 +11,13 @@
       "token": "--text-muted (claro)",
       "from": "#5E6E6A",
       "to": "{semantic.light.text-muted}",
-      "why": "3,92:1 sobre surface-warm (chips). Agora ≥ 4,5:1 em todas as superfícies."
+      "why": "3,92:1 sobre surface-muted (chips). Agora ≥ 4,5:1 em todas as superfícies."
     },
     {
       "token": "--ring (claro)",
       "from": "#2F8F83",
       "to": "{semantic.light.ring}",
-      "why": "2,95:1 sobre surface-warm. O foco precisa de 3:1 em qualquer superfície."
-    },
-    {
-      "token": "Ocre (marca)",
-      "from": "#C58A3E",
-      "to": "{color.brand.ochre}",
-      "why": "2,61:1 sobre bg-subtle. Séries de gráfico são objetos gráficos e precisam de 3:1 (WCAG 1.4.11)."
+      "why": "2,95:1 sobre surface-muted. O foco precisa de 3:1 em qualquer superfície."
     },
     {
       "token": "--border-strong (escuro)",
@@ -42,6 +36,12 @@
       "from": "—",
       "to": "novo",
       "why": "No escuro a elevação é cor + borda, porque sombra some em fundo escuro."
+    },
+    {
+      "token": "Paleta (refinamento)",
+      "from": "Bege, ocre, neutros esverdeados",
+      "to": "Neutros puros + verde perene",
+      "why": "Brief de refinamento: um único acento; estrutura por cinzas, borda e tipografia."
     }
   ]
 }

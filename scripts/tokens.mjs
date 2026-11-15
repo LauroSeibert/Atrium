@@ -4,7 +4,7 @@
  *
  * 1. Gera as escalas 50→950 (OKLCH, matiz preservado) a partir das cores da marca
  *    e grava em design-system/tokens.json (color.scale), mantendo as âncoras exatas:
- *      green-900 = brand.green · beige-200 = brand.beige · neutral-50 = brand.snow
+ *      green-900 = brand.green · neutral: cinza neutro puro (50 = branco quase puro)
  * 2. Emite src/styles/tokens.css (CSS variables, tema claro em :root e escuro em .dark).
  *
  * Uso: node scripts/tokens.mjs            (gera)
@@ -66,8 +66,6 @@ function buildScale(anchorHex, anchorStep, { chromaOverride } = {}) {
 const tokens = loadTokens(TOKENS_JSON);
 const brand = tokens.color.brand;
 const green = brand.green.$value;
-const beige = brand.beige.$value;
-const snow = brand.snow.$value;
 
 const scaleTokens = (scale, desc) => {
   const node = { $type: "color", $description: desc };
@@ -75,19 +73,15 @@ const scaleTokens = (scale, desc) => {
   return node;
 };
 
-const greenHue = oklch(green).h;
-const neutral = buildScale(snow, 50, { chromaOverride: 0.014 });
-// Neutro com leve matiz verde (evita cinza "morto"): recalcula com o matiz do verde.
+// Neutro puro (sem matiz): a identidade vem do verde, não de cinzas tingidos.
+const neutral = {};
 for (const step of STEPS) {
-  if (step === 50) continue;
-  const n = oklch(neutral[step]);
-  neutral[step] = formatHex(clampChroma({ ...n, h: greenHue }, "oklch")).toUpperCase();
+  neutral[step] = formatHex({ mode: "oklch", l: Math.min(TARGET_L[step] + 0.01, 0.99), c: 0, h: 0 }).toUpperCase();
 }
 
 tokens.color.scale = {
-  green: scaleTokens(buildScale(green, 900), "Escala do Hunter Green (âncora 900)"),
-  beige: scaleTokens(buildScale(beige, 200, { chromaOverride: 0.055 }), "Escala do Soft Beige (âncora 200)"),
-  neutral: scaleTokens(neutral, "Neutros com leve matiz verde (âncora 50 = Polar Snow)"),
+  green: scaleTokens(buildScale(green, 900), "Escala do verde perene (âncora 900)"),
+  neutral: scaleTokens(neutral, "Cinzas neutros (sem matiz)"),
 };
 
 const jsonOut = JSON.stringify(tokens, null, 2) + "\n";
@@ -123,6 +117,7 @@ for (const [k, n] of entries(tokens.semantic.light)) push(`  --${k}: ${v(n)};`);
 push();
 push("  /* tipografia */");
 push(`  --font-family-sans: ${tokens.font.family.sans.$value.join(", ")};`);
+push(`  --font-family-mono: ${tokens.font.family.mono.$value.join(", ")};`);
 for (const [k, n] of entries(tokens.font.size)) push(`  --font-size-${k}: ${n.$value};`);
 for (const [k, n] of entries(tokens.font["line-height"])) push(`  --line-height-${k}: ${n.$value};`);
 for (const [k, n] of entries(tokens.font.weight)) push(`  --weight-${k}: ${n.$value};`);
@@ -134,7 +129,7 @@ push();
 push("  /* raio */");
 for (const [k, n] of entries(tokens.radius)) push(`  --corner-${k}: ${n.$value};`);
 push();
-push("  /* sombra (matiz verde) */");
+push("  /* sombra (neutra) */");
 for (const [k, n] of entries(tokens.shadow)) {
   const s = n.$value;
   push(`  --elevation-${k}: ${s.offsetX} ${s.offsetY} ${s.blur} ${s.spread} ${s.color};`);

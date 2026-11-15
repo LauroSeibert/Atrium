@@ -8,10 +8,10 @@ import { Icon } from "./Icon";
 const itemVariants = cva(
   [
     "inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm font-medium whitespace-nowrap text-text-muted",
-    "transition-colors duration-(--dur-fast) ease-standard hover:bg-bg-subtle hover:text-text",
+    "transition-colors duration-(--dur-fast) ease-standard hover:text-text",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
     "disabled:cursor-not-allowed disabled:opacity-50",
-    "data-[state=on]:bg-primary data-[state=on]:text-on-primary data-[state=on]:hover:bg-primary-hover",
+    "data-[state=on]:bg-surface data-[state=on]:text-text data-[state=on]:shadow-1 data-[state=on]:ring-1 data-[state=on]:ring-border-strong",
   ],
   {
     variants: { size: { sm: "h-6 px-2 text-sm", md: "h-8 px-3 text-sm" } },
@@ -59,7 +59,7 @@ export function SegmentedControl<T extends string>({
       }}
       aria-label={props["aria-label"]}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border border-border-strong bg-surface px-1",
+        "inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-0.5",
         size === "sm" ? "h-8" : "h-10",
         className,
       )}

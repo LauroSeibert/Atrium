@@ -11,11 +11,10 @@ type Theme = "light" | "dark";
 type TokenNode = { $value: unknown; $description?: string };
 
 const isToken = ([key]: [string, unknown]) => !key.startsWith("$");
-const scaleNames = ["green", "beige", "neutral"] as const;
+const scaleNames = ["green", "neutral"] as const;
 const scaleLabel: Record<(typeof scaleNames)[number], string> = {
-  green: "Hunter Green",
-  beige: "Soft Beige",
-  neutral: "Neutro (matiz verde)",
+  green: "Verde perene",
+  neutral: "Neutro",
 };
 
 const semanticEntries = Object.entries(tokens.semantic.light).filter(isToken) as [string, TokenNode][];
@@ -27,25 +26,25 @@ const swatch = (cssVar: string): CSSProperties => ({ backgroundColor: `var(--${c
 
 const brandColors = [
   {
-    token: "brand-snow",
-    name: "Polar Snow",
-    value: tokens.color.brand.snow.$value,
-    share: 60,
-    role: "Fundo principal, texto sobre verde",
+    token: "brand-white",
+    name: "Branco",
+    value: tokens.color.brand.white.$value,
+    share: 85,
+    role: "Fundo e superfícies",
   },
   {
-    token: "brand-beige",
-    name: "Soft Beige",
-    value: tokens.color.brand.beige.$value,
-    share: 30,
-    role: "Superfícies secundárias, destaques quentes",
+    token: "brand-graphite",
+    name: "Grafite",
+    value: tokens.color.brand.graphite.$value,
+    share: 10,
+    role: "Texto principal",
   },
   {
     token: "brand-green",
-    name: "Hunter Green",
+    name: "Verde perene",
     value: tokens.color.brand.green.$value,
-    share: 10,
-    role: "Primária: ações, navegação, texto forte",
+    share: 5,
+    role: "Único acento: ação primária, seleção, indicadores",
   },
 ];
 
@@ -201,13 +200,8 @@ export function ColorsReference() {
           ))}
         </div>
         <p className="text-sm text-text-muted">
-          Ocre <code>{tokens.color.brand.ochre.$value}</code>{" "}
-          <span
-            className="inline-block size-3 rounded-full align-middle"
-            style={swatch("brand-ochre")}
-            aria-hidden="true"
-          />{" "}
-          é exclusivo de gráficos e preenchimentos (≥ 3:1 como objeto gráfico, sempre com rótulo). Nunca texto.
+          Cinzas neutros fazem a estrutura; o verde aparece só onde há ação, seleção ou indicador. Cores de estado
+          (sucesso, alerta, erro) só para estados reais.
         </p>
       </Section>
 
@@ -233,7 +227,7 @@ export function ColorsReference() {
       <Section
         id="escalas"
         title="Escalas"
-        description="Interpoladas em OKLCH preservando o matiz. Âncoras: green-900, beige-200 e neutral-50 são as cores exatas da marca."
+        description="Interpoladas em OKLCH preservando o matiz. Âncora: green-900 é o verde exato da marca; os neutros não têm matiz."
       >
         <div className="flex flex-col gap-6">
           {scaleNames.map((name) => {
@@ -243,10 +237,7 @@ export function ColorsReference() {
                 <h3 className="text-sm font-semibold">{scaleLabel[name]}</h3>
                 <ol className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
                   {scale.map(([step, node]) => {
-                    const anchor =
-                      (name === "green" && step === "900") ||
-                      (name === "beige" && step === "200") ||
-                      (name === "neutral" && step === "50");
+                    const anchor = name === "green" && step === "900";
                     return (
                       <li key={step} className="flex flex-col gap-1">
                         <div

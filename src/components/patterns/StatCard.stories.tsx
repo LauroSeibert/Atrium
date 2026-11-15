@@ -3,7 +3,7 @@ import { fn } from "storybook/test";
 import { calcularDashboard, type Kpi } from "@/domain";
 import { AGORA_HISTORIAS, BASE_HISTORIAS } from "@/mocks/data/historias";
 import type { Recurso } from "@/lib/recurso";
-import { StatCard, type DadosStat } from "./StatCard";
+import { StatCard, StatGroup, type DadosStat } from "./StatCard";
 
 const dash = calcularDashboard(BASE_HISTORIAS, "mesAtual", AGORA_HISTORIAS);
 const ok = (k: DadosStat): Recurso<DadosStat> => ({ fase: "success", dados: k });
@@ -126,4 +126,45 @@ export const GradeDeKpis: Story = {
     </div>
   ),
   decorators: [],
+};
+
+/** Faixa de KPIs do dashboard: um painel, divisórias de 1 px, 2 colunas até 1024 px (RF-10). */
+export const Faixa: Story = {
+  decorators: [
+    (Story) => (
+      <div className="w-full p-6">
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => (
+    <StatGroup aria-label="Indicadores">
+      <StatCard variante="celula" rotulo="Imóveis ativos" estado={ok(dash.kpis.imoveisAtivos)} />
+      <StatCard variante="celula" rotulo="Leads novos" estado={ok(dash.kpis.leadsNovos)} />
+      <StatCard
+        variante="celula"
+        rotulo="Visitas em 7 dias"
+        comparacao="vs. 7 dias anteriores"
+        estado={ok(dash.kpis.visitasProximas)}
+      />
+      <StatCard variante="celula" rotulo="Receita" formato="moeda" estado={ok(dash.kpis.receita)} />
+    </StatGroup>
+  ),
+};
+
+/** Faixa com número ímpar de KPIs (contrato): a última célula ocupa a linha no celular. */
+export const FaixaImpar: Story = {
+  decorators: Faixa.decorators,
+  render: () => (
+    <StatGroup aria-label="Indicadores do contrato" colunas={3}>
+      <StatCard variante="celula" rotulo="Pago" formato="moedaCompleta" estado={ok({ valor: 123456700 })} />
+      <StatCard variante="celula" rotulo="A receber" formato="moedaCompleta" estado={ok({ valor: 98765400 })} />
+      <StatCard
+        variante="celula"
+        rotulo="Atrasado"
+        formato="moedaCompleta"
+        estado={ok({ valor: 1200000, tom: "alerta" })}
+      />
+    </StatGroup>
+  ),
 };

@@ -64,7 +64,7 @@ function SkeletonListagem() {
   return (
     <div role="status" aria-busy="true" aria-label="Carregando imóveis" className="flex flex-col gap-4">
       <Skeleton className="h-10 w-full rounded-md" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 6 }, (_, i) => (
           <PropertyCardSkeleton key={i} />
         ))}
@@ -397,7 +397,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                 role="status"
                 aria-busy="true"
                 aria-label="Carregando imóveis"
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
               >
                 {Array.from({ length: 6 }, (_, i) =>
                   view === "lista" ? (
@@ -420,7 +420,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                   className={
                     view === "lista"
                       ? "flex flex-col gap-3"
-                      : "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                      : "grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
                   }
                 >
                   {d.itens.map((i) => {

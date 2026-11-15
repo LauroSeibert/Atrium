@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { Card } from "../ui/Card";
 import { Heading } from "../ui/Typography";
 
@@ -8,25 +9,52 @@ export type SectionCardProps = {
   headingLevel?: 2 | 3;
   /** Ações à direita do título (botão `ghost`/`secondary`, link "Ver todos"). */
   acoes?: ReactNode;
+  /**
+   * `painel` (padrão): agrupa um objeto (gráfico, formulário, resumo) num painel com borda.
+   * `aberta`: lista ou texto corrido; só título e divisória, sem caixa (nem tudo é card).
+   */
+  variante?: "painel" | "aberta";
   children: ReactNode;
   className?: string;
 };
 
 /**
- * Seção de tela em card (Fase 8): título + conteúdo, com o mesmo respiro dos cards de gráfico.
- * Único card de seção das telas (Gate 8: nada de cópias com espaçamentos diferentes).
+ * Seção de tela: título + conteúdo. Único componente de seção das telas (nada de cópias com
+ * espaçamentos diferentes); `variante` escolhe entre painel com borda e seção aberta.
  */
-export function SectionCard({ titulo, headingLevel = 2, acoes, children, className }: SectionCardProps) {
+export function SectionCard({
+  titulo,
+  headingLevel = 2,
+  acoes,
+  variante = "painel",
+  children,
+  className,
+}: SectionCardProps) {
   const id = useId();
+  const cabecalho = (
+    <div
+      className={cn(
+        "flex min-h-8 min-w-0 items-center justify-between gap-3",
+        variante === "aberta" && "border-b border-border pb-3",
+      )}
+    >
+      <Heading id={id} level={headingLevel} size="base" className="min-w-0 break-words">
+        {titulo}
+      </Heading>
+      {acoes ? <div className="flex shrink-0 items-center gap-2">{acoes}</div> : null}
+    </div>
+  );
+  if (variante === "aberta")
+    return (
+      <section aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-4", className)}>
+        {cabecalho}
+        {children}
+      </section>
+    );
   return (
     <Card asChild className={className}>
-      <section aria-labelledby={id} className="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
-        <div className="flex min-w-0 items-start justify-between gap-3">
-          <Heading id={id} level={headingLevel} size="lg" className="min-w-0 break-words">
-            {titulo}
-          </Heading>
-          {acoes ? <div className="flex shrink-0 items-center gap-2">{acoes}</div> : null}
-        </div>
+      <section aria-labelledby={id} className="flex min-w-0 flex-col gap-4 p-4 sm:p-5">
+        {cabecalho}
         {children}
       </section>
     </Card>

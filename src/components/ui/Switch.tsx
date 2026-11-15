@@ -22,7 +22,7 @@ export function Switch({ label, invalid, className, ...props }: SwitchProps) {
       aria-describedby={control["aria-describedby"]}
       aria-invalid={control["aria-invalid"]}
       className={cn(
-        "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-border-strong bg-surface-warm px-1",
+        "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-border-strong bg-surface-muted px-1",
         "transition duration-(--dur-fast) ease-standard",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         "disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary",

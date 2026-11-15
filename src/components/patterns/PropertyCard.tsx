@@ -16,7 +16,6 @@ import { formatArea, formatMoeda } from "@/lib/format";
 import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/DropdownMenu";
 import { Icon } from "../ui/Icon";
 import { Skeleton } from "../ui/Skeleton";
@@ -126,7 +125,7 @@ export function BotaoFavorito({
       onClick={() => onAlternarFavorito?.(imovel.id)}
       className={cn(
         alvo,
-        "relative z-10 bg-surface/90 transition-colors duration-(--dur-fast) ease-standard",
+        "relative z-10 rounded-full border-transparent bg-surface/90 shadow-1 transition-colors duration-(--dur-fast) ease-standard",
         imovel.favorito && "text-danger [&_svg]:fill-current",
         className,
       )}
@@ -151,7 +150,7 @@ export function MenuAcoesImovel({
           variant="secondary"
           icon={MoreHorizontal}
           aria-label={`Mais ações do imóvel ${imovel.codigo}`}
-          className={cn(alvo, "relative z-10 bg-surface/90", className)}
+          className={cn(alvo, "relative z-10 rounded-full border-transparent bg-surface/90 shadow-1", className)}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -185,7 +184,7 @@ export function TituloImovel({ imovel, href, className }: { imovel: Imovel; href
       <Link
         href={href}
         title={imovel.titulo}
-        className="line-clamp-2 rounded-sm after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="line-clamp-1 rounded-sm underline-offset-4 group-hover:underline after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         {imovel.titulo}
       </Link>
@@ -205,44 +204,59 @@ export function ResponsavelImovel({ corretor }: { corretor?: Pick<Corretor, "nom
 
 /** Cartão de imóvel para a grade (RF-20, RF-28). */
 export function PropertyCard({ imovel, corretor, href, acoes = [], onAlternarFavorito, className }: PropertyItemProps) {
+  const status = STATUS_IMOVEL_UI[imovel.status];
   return (
-    <Card
-      variant="interactive"
-      asChild
-      className={cn("flex h-full min-w-0 flex-col overflow-hidden hover:border-border-strong", className)}
+    // Sem caixa: a foto é a protagonista e o texto respira abaixo dela (nem tudo é card).
+    <article
+      aria-label={`${imovel.codigo}: ${imovel.titulo}`}
+      className={cn("group relative flex h-full min-w-0 flex-col gap-3", className)}
     >
-      <article aria-label={`${imovel.codigo}: ${imovel.titulo}`}>
-        <div className="relative">
-          <PropertyImage tipo={imovel.tipo} fachada={imovel.fachada} decorativa className="rounded-none rounded-t-lg" />
-          <div className="absolute top-2 right-2 flex gap-2">
-            <BotaoFavorito imovel={imovel} onAlternarFavorito={onAlternarFavorito} />
-            <MenuAcoesImovel imovel={imovel} acoes={acoes} />
-          </div>
+      <div className="relative overflow-hidden rounded-lg">
+        <PropertyImage
+          tipo={imovel.tipo}
+          fachada={imovel.fachada}
+          decorativa
+          className="transition-transform duration-(--dur-slow) ease-standard group-hover:scale-102 motion-reduce:group-hover:scale-100"
+        />
+        <span aria-hidden="true" className="absolute inset-0 rounded-lg ring-1 ring-text/5 ring-inset" />
+        <div className="absolute top-2 left-2">
+          <Badge tone={status.tom} size="sm" dot className="shadow-1">
+            {status.rotulo}
+          </Badge>
         </div>
-        <div className="flex flex-1 flex-col gap-2 p-4">
-          <SelosImovel imovel={imovel} />
-          <PrecoImovel imovel={imovel} />
-          <TituloImovel imovel={imovel} href={href} />
-          <LocalImovel imovel={imovel} />
-          <SpecsImovel imovel={imovel} className="mt-auto pt-1 text-text" />
-          <ResponsavelImovel corretor={corretor} />
+        <div className="absolute top-2 right-2 flex gap-1.5">
+          <BotaoFavorito imovel={imovel} onAlternarFavorito={onAlternarFavorito} />
+          <MenuAcoesImovel imovel={imovel} acoes={acoes} />
         </div>
-      </article>
-    </Card>
+      </div>
+      <div className="flex flex-1 flex-col gap-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <PrecoImovel imovel={imovel} className="text-lg" />
+          <span className="shrink-0 font-mono text-xs text-text-muted">{imovel.codigo}</span>
+        </div>
+        <TituloImovel imovel={imovel} href={href} className="text-sm" />
+        <LocalImovel imovel={imovel} />
+        <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+          <SpecsImovel imovel={imovel} className="text-xs text-text" />
+          <span className="shrink-0 text-xs text-text-muted">{FINALIDADE_ROTULO[imovel.finalidade]}</span>
+        </div>
+        {corretor ? (
+          <p className="truncate text-xs text-text-muted">
+            <span className="sr-only">Responsável: </span>
+            {corretor.nome}
+          </p>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
 /** Esqueleto com a forma final do PropertyCard. */
 export function PropertyCardSkeleton({ className }: { className?: string }) {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Carregando imóvel"
-      className={cn("overflow-hidden rounded-lg border border-border bg-surface shadow-1", className)}
-    >
-      <Skeleton shape="rect" className="aspect-4/3 h-auto rounded-none" />
-      <div className="flex flex-col gap-3 p-4">
+    <div role="status" aria-busy="true" aria-label="Carregando imóvel" className={cn("flex flex-col gap-3", className)}>
+      <Skeleton shape="rect" className="aspect-4/3 h-auto rounded-lg" />
+      <div className="flex flex-col gap-2">
         <Skeleton className="h-5 w-1/2" />
         <Skeleton className="h-6 w-2/3" />
         <Skeleton className="w-full" />

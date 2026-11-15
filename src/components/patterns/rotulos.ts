@@ -15,8 +15,8 @@ export type Rotulado = { rotulo: string; tom: Tom };
 export const STATUS_IMOVEL_UI: Record<StatusImovel, Rotulado> = {
   disponivel: { rotulo: "Disponível", tom: "success" },
   reservado: { rotulo: "Reservado", tom: "warning" },
-  vendido: { rotulo: "Vendido", tom: "info" },
-  alugado: { rotulo: "Alugado", tom: "info" },
+  vendido: { rotulo: "Vendido", tom: "neutral" },
+  alugado: { rotulo: "Alugado", tom: "neutral" },
   inativo: { rotulo: "Inativo", tom: "neutral" },
 };
 

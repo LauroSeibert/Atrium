@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Atrium">
   <style>
-    .tile{fill:#023933}.line{stroke:#FDFEFD}.pool{fill:#FDFEFD}.sky{stroke:#023933}
-    @media (prefers-color-scheme: dark){.tile{fill:#E7DBC5}.line{stroke:#023933}.pool{fill:#023933}.sky{stroke:#E7DBC5}}
+    .tile{fill:#023933}.line{stroke:#FFFFFF}.pool{fill:#FFFFFF}.sky{stroke:#023933}
+    @media (prefers-color-scheme: dark){.tile{fill:#5CC2AD}.line{stroke:#05201B}.pool{fill:#05201B}.sky{stroke:#5CC2AD}}
   </style>
   <rect class="tile" width="32" height="32" rx="8"/>
   <g class="line" fill="none" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">

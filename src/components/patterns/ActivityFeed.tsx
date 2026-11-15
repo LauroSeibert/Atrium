@@ -97,22 +97,28 @@ function Item({
     titulo
   );
   return (
-    <li className={cn("relative flex gap-3", !compacto && !ultimo && "pb-6")}>
-      {!compacto && !ultimo ? (
-        <span aria-hidden="true" className="absolute top-10 bottom-0 left-5 w-px -translate-x-1/2 bg-border" />
+    <li className={cn("relative flex gap-3", !ultimo && (compacto ? "pb-4" : "pb-6"))}>
+      {!ultimo ? (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute bottom-0 w-px -translate-x-1/2 bg-border",
+            compacto ? "top-8 left-3.5" : "top-9 left-4",
+          )}
+        />
       ) : null}
       <span
         aria-hidden="true"
         className={cn(
-          "z-10 inline-flex shrink-0 items-center justify-center rounded-full bg-surface-warm text-text",
-          compacto ? "size-8" : "size-10",
+          "z-10 inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-muted",
+          compacto ? "size-7" : "size-8",
         )}
       >
-        <Icon icon={ICONE_ATIVIDADE[atividade.tipo]} size={compacto ? 16 : 20} />
+        <Icon icon={ICONE_ATIVIDADE[atividade.tipo]} size={16} />
       </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className={cn("font-medium break-words text-text", compacto ? "text-sm" : "text-base")}>{titulo_}</p>
-        {detalhe ? <p className="text-sm break-words text-text-muted">{detalhe}</p> : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-1">
+        <p className="text-sm font-medium break-words text-text">{titulo_}</p>
+        {detalhe ? <p className="tnum text-xs break-words text-text-muted">{detalhe}</p> : null}
         <p className="text-xs text-text-muted">
           {nomeDoAutor(autores, atividade.autorId)} ·{" "}
           <Instante iso={atividade.criadoEm} agora={agora} absoluta={!compacto} />
@@ -158,7 +164,7 @@ export function ActivityFeed({
           const itens = (lista: readonly Atividade[]) => (
             <ol
               aria-label={agruparPorDia ? undefined : ariaLabel}
-              className={cn("flex flex-col", variante === "feed" && "gap-4", !agruparPorDia && "animate-fade-in")}
+              className={cn("flex flex-col", !agruparPorDia && "animate-fade-in")}
             >
               {lista.map((a, i) => (
                 <Item

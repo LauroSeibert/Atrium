@@ -8,16 +8,16 @@ import { Icon } from "./Icon";
 export const badgeVariants = cva("inline-flex shrink-0 items-center gap-1 rounded-full font-medium whitespace-nowrap", {
   variants: {
     tone: {
-      neutral: "bg-surface-warm text-text",
-      primary: "bg-primary text-on-primary",
+      neutral: "bg-surface-muted text-text",
+      primary: "bg-primary-subtle text-primary",
       success: "bg-success-bg text-success",
       warning: "bg-warning-bg text-warning",
       danger: "bg-danger-bg text-danger",
       info: "bg-info-bg text-info",
     },
     size: {
-      sm: "h-5 px-2 text-xs",
-      md: "h-6 px-3 text-sm",
+      sm: "h-5 px-1.5 text-xs",
+      md: "h-6 px-2.5 text-xs",
     },
   },
   defaultVariants: { tone: "neutral", size: "md" },

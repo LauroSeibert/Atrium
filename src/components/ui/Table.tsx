@@ -34,7 +34,7 @@ export function Table({
         aria-label={ariaLabel}
         tabIndex={0}
         className={cn(
-          "w-full overflow-x-auto rounded-md border border-border bg-surface",
+          "w-full overflow-x-auto rounded-lg border border-border bg-surface",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           containerClassName,
         )}
@@ -62,7 +62,7 @@ export function TableRow({ className, ...props }: ComponentProps<"tr">) {
     <tr
       className={cn(
         "border-b border-border transition-colors duration-(--dur-fast) ease-standard hover:bg-bg-subtle",
-        "data-[state=selected]:bg-surface-warm",
+        "data-[state=selected]:bg-surface-muted",
         className,
       )}
       {...props}
@@ -99,7 +99,7 @@ export function TableHead({
       scope={scope}
       aria-sort={sortable ? sortDirection : undefined}
       className={cn(
-        "border-b border-border px-4 text-sm font-medium whitespace-nowrap text-text-muted",
+        "border-b border-border px-4 text-xs font-medium whitespace-nowrap text-text-muted",
         rowHeight[density],
         align === "right" ? "text-right" : "text-left",
         className,

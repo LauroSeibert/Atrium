@@ -86,7 +86,7 @@ export function Select({
           "transition duration-(--dur-fast) ease-standard",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           "disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-text-muted",
-          control.invalid ? "border-danger" : "border-border-strong hover:bg-bg-subtle",
+          control.invalid ? "border-danger" : "border-border-strong hover:border-text-muted",
           className,
         )}
       >

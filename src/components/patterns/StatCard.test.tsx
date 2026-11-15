@@ -44,9 +44,19 @@ describe("StatCard (RF-10, RF-44)", () => {
   it("sentido menorMelhor pinta a alta de erro; maiorMelhor de sucesso", () => {
     const k = { valor: 10, anterior: 5, tendencia: [5, 10] };
     const { rerender } = render(<StatCard rotulo="Inadimplência" sentido="menorMelhor" estado={ok(k)} />);
-    expect(screen.getByText(/Alta de 100,0%/).closest("p")).toHaveClass("text-danger");
+    expect(
+      screen
+        .getByText(/Alta de 100,0%/)
+        .closest("p")
+        ?.querySelector(".text-danger"),
+    ).not.toBeNull();
     rerender(<StatCard rotulo="Inadimplência" estado={ok(k)} />);
-    expect(screen.getByText(/Alta de 100,0%/).closest("p")).toHaveClass("text-success");
+    expect(
+      screen
+        .getByText(/Alta de 100,0%/)
+        .closest("p")
+        ?.querySelector(".text-success"),
+    ).not.toBeNull();
   });
 
   it("zero vira 'sem variação' e anterior 0 não mostra percentual", () => {
@@ -124,6 +134,11 @@ describe("StatCard (RF-10, RF-44)", () => {
       />,
     );
     expect(screen.getByText(/Alta de 1,0 p\.p\. vs\. mês anterior/)).toBeInTheDocument();
-    expect(screen.getByText(/Alta de 1,0 p\.p\./).closest("p")).toHaveClass("text-danger");
+    expect(
+      screen
+        .getByText(/Alta de 1,0 p\.p\./)
+        .closest("p")
+        ?.querySelector(".text-danger"),
+    ).not.toBeNull();
   });
 });

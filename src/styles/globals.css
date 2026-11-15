@@ -14,7 +14,7 @@
   --color-bg-subtle: var(--bg-subtle);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
-  --color-surface-warm: var(--surface-warm);
+  --color-surface-muted: var(--surface-muted);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
@@ -23,7 +23,7 @@
   --color-primary-hover: var(--primary-hover);
   --color-on-primary: var(--on-primary);
   --color-ring: var(--ring);
-  --color-accent-ochre: var(--accent-ochre);
+  --color-primary-subtle: var(--primary-subtle);
   --color-success: var(--success);
   --color-success-bg: var(--success-bg);
   --color-warning: var(--warning);
@@ -52,6 +52,7 @@
 
   --font-*: initial;
   --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
 
   --font-weight-*: initial;
   --font-weight-regular: var(--weight-regular);
@@ -160,7 +161,7 @@
     }
   }
   ::selection {
-    background: var(--surface-warm);
+    background: var(--surface-muted);
     color: var(--text);
   }
   .tnum {

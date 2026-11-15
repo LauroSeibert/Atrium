@@ -10,7 +10,7 @@ import { ChartCard } from "@/components/patterns/ChartCard";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
 import { RevenueChartCard } from "@/components/patterns/RevenueChart";
 import { SectionCard } from "@/components/patterns/SectionCard";
-import { StatCard } from "@/components/patterns/StatCard";
+import { StatCard, StatGroup } from "@/components/patterns/StatCard";
 import { Button } from "@/components/ui/Button";
 import { Progress } from "@/components/ui/Progress";
 import { Select } from "@/components/ui/Select";
@@ -82,32 +82,36 @@ export function TelaFinanceiro() {
       />
       <div className="flex min-w-0 flex-col gap-6">
         <h2 className="sr-only">Indicadores</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatGroup aria-label="Indicadores">
           <StatCard
+            variante="celula"
             rotulo="Receita recebida"
             formato="moedaCompleta"
             estado={valor((d) => d.fin.recebido)}
             onTentarNovamente={recarregar}
           />
           <StatCard
+            variante="celula"
             rotulo="A receber"
             formato="moedaCompleta"
             estado={valor((d) => d.fin.aReceber)}
             onTentarNovamente={recarregar}
           />
           <StatCard
+            variante="celula"
             rotulo="Inadimplência"
             formato="moedaCompleta"
             estado={valor((d) => d.fin.inadimplencia.valor, true)}
             onTentarNovamente={recarregar}
           />
           <StatCard
+            variante="celula"
             rotulo="Comissões"
             formato="moedaCompleta"
             estado={valor((d) => d.fin.comissoes)}
             onTentarNovamente={recarregar}
           />
-        </div>
+        </StatGroup>
 
         <h2 className="sr-only">Receita e comissões</h2>
         <RevenueChartCard estado={mapear(estado, (d) => d.fin.receitaPorMes)} onTentarNovamente={recarregar} />

@@ -19,7 +19,7 @@ import type { ItemTrilha } from "./navegacao";
 export type TopbarProps = {
   /** Breadcrumb (RF-61). No mobile mostra só a página atual. */
   trilha: readonly ItemTrilha[];
-  /** Abre o drawer de navegação (< 1024 px). */
+  /** Abre o drawer de navegação (< 768 px; no tablet há o trilho de ícones). */
   onAbrirMenu: () => void;
   menuAberto?: boolean;
   /** Slots: busca ⌘K, notificações, tema e usuário (compostos independentes). */
@@ -44,7 +44,7 @@ export function Topbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-(--z-sticky) flex h-16 shrink-0 items-center gap-2 border-b border-border bg-bg px-4 md:px-6 lg:px-8",
+        "sticky top-0 z-(--z-sticky) flex h-14 shrink-0 items-center gap-2 border-b border-border bg-bg px-4 md:px-8 xl:px-10",
         className,
       )}
     >
@@ -55,12 +55,12 @@ export function Topbar({
         aria-haspopup="dialog"
         aria-expanded={menuAberto}
         onClick={onAbrirMenu}
-        className="-ml-2 size-11 lg:hidden"
+        className="-ml-2 size-11 md:hidden"
       />
       <Link
         href="/"
         aria-label="Atrium, ir para o Dashboard"
-        className="hidden rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:block lg:hidden"
+        className="hidden rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:block md:hidden"
       >
         <AtriumMark className="size-8" aria-hidden="true" title="" />
       </Link>

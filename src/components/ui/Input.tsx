@@ -24,7 +24,7 @@ export function inputShellClasses(invalid: boolean) {
     "transition duration-(--dur-fast) ease-standard",
     "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
     "has-disabled:cursor-not-allowed has-disabled:opacity-50",
-    invalid ? "border-danger" : "border-border-strong hover:bg-bg-subtle",
+    invalid ? "border-danger" : "border-border-strong hover:border-text-muted",
   );
 }
 

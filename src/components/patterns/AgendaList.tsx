@@ -4,8 +4,6 @@ import { dataLocal } from "@/domain";
 import { cn } from "@/lib/cn";
 import { formatData, formatRelativo } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
-import { Badge } from "../ui/Badge";
-import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "./EmptyState";
@@ -72,33 +70,39 @@ export function AgendaListSkeleton() {
 
 function Item({ item }: { item: ItemAgenda }) {
   const ui = TIPO_UI[item.tipo];
-  const titulo = item.href ? (
-    <Button
-      asChild
-      variant="link"
-      className="h-auto max-w-full justify-start text-left wrap-anywhere whitespace-normal"
-    >
-      <Link href={item.href}>{item.titulo}</Link>
-    </Button>
-  ) : (
-    item.titulo
-  );
+  const classeTitulo = "block truncate text-sm font-medium text-text";
   return (
-    <li className="flex gap-3">
-      <span
-        aria-hidden="true"
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-warm text-text"
-      >
-        <Icon icon={ui.icone} size={16} />
+    <li className="group relative flex items-start gap-3 py-2.5">
+      <span className="tnum w-11 shrink-0 pt-px text-sm text-text-muted">
+        {temHora(item.quando) ? (
+          <time dateTime={item.quando}>{hora.format(new Date(item.quando))}</time>
+        ) : (
+          <span aria-hidden="true">—</span>
+        )}
       </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-sm font-medium wrap-anywhere text-text">{titulo}</p>
-        {item.detalhe ? <p className="text-sm wrap-anywhere text-text-muted">{item.detalhe}</p> : null}
-        <p className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
-          <Badge size="sm" tone={item.tipo === "visita" ? "info" : "neutral"}>
-            {ui.rotulo}
-          </Badge>
-          {temHora(item.quando) ? <time dateTime={item.quando}>{hora.format(new Date(item.quando))}</time> : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        {item.href ? (
+          <Link
+            href={item.href}
+            className={cn(
+              classeTitulo,
+              "rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            )}
+          >
+            {item.titulo}
+          </Link>
+        ) : (
+          <p className={classeTitulo}>{item.titulo}</p>
+        )}
+        <p className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted">
+          <Icon icon={ui.icone} size={16} className={cn("shrink-0", item.tipo === "visita" && "text-primary")} />
+          <span className="shrink-0">{ui.rotulo}</span>
+          {item.detalhe ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="tnum truncate">{item.detalhe}</span>
+            </>
+          ) : null}
         </p>
       </div>
     </li>
@@ -132,11 +136,11 @@ export function AgendaList({
             grupos.set(dia, [...(grupos.get(dia) ?? []), i]);
           }
           return (
-            <div role="group" aria-label={ariaLabel} className="flex animate-fade-in flex-col gap-6">
+            <div role="group" aria-label={ariaLabel} className="flex animate-fade-in flex-col gap-5">
               {[...grupos].map(([dia, lista]) => (
-                <section key={dia} aria-label={tituloDoDia(dia, agora)} className="flex flex-col gap-3">
-                  <h3 className="text-sm font-medium text-text-muted">{tituloDoDia(dia, agora)}</h3>
-                  <ol className="flex flex-col gap-4">
+                <section key={dia} aria-label={tituloDoDia(dia, agora)} className="flex flex-col gap-1">
+                  <h3 className="text-xs font-medium text-text-muted">{tituloDoDia(dia, agora)}</h3>
+                  <ol className="flex flex-col divide-y divide-border">
                     {lista.map((i) => (
                       <Item key={i.id} item={i} />
                     ))}

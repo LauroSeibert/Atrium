@@ -18,8 +18,8 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-on-primary hover:bg-primary-hover",
-        secondary: "border border-border-strong bg-surface text-text hover:bg-bg-subtle",
-        ghost: "text-text hover:bg-bg-subtle",
+        secondary: "border border-border bg-surface text-text shadow-1 hover:border-border-strong hover:bg-bg-subtle",
+        ghost: "text-text hover:bg-surface-muted",
         destructive: "bg-danger text-on-danger hover:bg-danger-hover",
         link: "h-auto px-0 text-primary underline-offset-4 hover:underline active:scale-100",
       },

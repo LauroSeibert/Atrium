@@ -21,10 +21,10 @@ export type PageHeaderProps = {
 /** Cabeçalho de página (RF-61): título (h1), descrição e ações. */
 export function PageHeader({ titulo, descricao, acoes, acaoPrimaria, children, className }: PageHeaderProps) {
   return (
-    <header className={cn("flex flex-col gap-4 pb-6", className)}>
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <header className={cn("flex flex-col gap-4 pb-6 md:pb-8", className)}>
+      <div className="flex flex-col gap-3 md:min-h-10 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance text-text">{titulo}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-balance text-text md:text-2xl">{titulo}</h1>
           {descricao ? <p className="max-w-prose text-sm text-text-muted">{descricao}</p> : null}
         </div>
         {acoes || acaoPrimaria ? (

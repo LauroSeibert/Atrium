@@ -24,7 +24,7 @@ export function TabsTrigger({ className, children, count, ...props }: TabsTrigge
     <TabsPrimitive.Trigger
       className={cn(
         "relative inline-flex h-10 shrink-0 cursor-pointer items-center px-3 text-sm font-medium whitespace-nowrap text-text-muted",
-        "transition-colors duration-(--dur-fast) ease-standard hover:bg-bg-subtle hover:text-text",
+        "transition-colors duration-(--dur-fast) ease-standard hover:text-text",
         "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-transparent",

@@ -40,3 +40,6 @@ export const DadosExtremos: Story = {
     children: <p className="text-sm break-words text-text">{"Texto longo ".repeat(40)}</p>,
   },
 };
+
+/** Seção aberta (sem caixa): título + divisória, para listas como agenda e atividades. */
+export const Aberta: Story = { args: { variante: "aberta" } };

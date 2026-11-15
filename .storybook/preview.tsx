@@ -1,11 +1,11 @@
 import type { Decorator, Preview } from "@storybook/nextjs-vite";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "../src/components/ui/Tooltip";
-import { inter } from "../src/styles/fonts";
+import { fontesVariaveis } from "../src/styles/fonts";
 import "../src/styles/globals.css";
 
-// Os tokens resolvem --font-inter no :root; a classe precisa estar no <html>, como no app.
-document.documentElement.classList.add(inter.variable);
+// Os tokens resolvem --font-geist no :root; a classe precisa estar no <html>, como no app.
+document.documentElement.classList.add(...fontesVariaveis.split(" "));
 
 /** Um único dono do tema: next-themes, forçado pelo seletor da barra do Storybook. */
 const withTheme: Decorator = (Story, context) => (

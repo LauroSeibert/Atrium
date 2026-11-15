@@ -142,8 +142,8 @@ export function FilterBar({
           </Popover>
         ) : null}
         {ordenacao || visualizacao ? (
-          <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2 sm:ml-auto">
-            {ordenacao}
+          <div className="flex max-w-full min-w-0 items-center gap-2 sm:ml-auto">
+            {ordenacao ? <div className="min-w-0 flex-1 sm:w-44 sm:flex-none">{ordenacao}</div> : null}
             {visualizacao}
           </div>
         ) : null}

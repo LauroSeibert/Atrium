@@ -53,9 +53,9 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
   const reduzido = useMovimentoReduzido();
   return (
     <div className="flex flex-col gap-3">
-      <div className="h-64 w-full min-w-0 sm:h-72">
+      <div className="h-56 w-full min-w-0 sm:h-64 xl:h-80">
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height: 288 }}>
-          <BarChart data={dados} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+          <BarChart data={dados} margin={{ top: 8, right: 0, bottom: 0, left: 0 }} barCategoryGap="24%">
             <CartesianGrid vertical={false} {...GRADE} />
             <XAxis
               dataKey="mes"
@@ -71,7 +71,8 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
               tick={TICK}
               tickLine={false}
               axisLine={false}
-              width={84}
+              tickCount={4}
+              width={64}
             />
             <Tooltip
               cursor={CURSOR}
@@ -101,7 +102,7 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
               name="Locações"
               stackId="receita"
               fill={LOCACOES}
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
               isAnimationActive={!reduzido}
             />
           </BarChart>

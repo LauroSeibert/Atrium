@@ -1,4 +1,8 @@
+"use client";
+
+import { useId, useState } from "react";
 import type { MetaCorretor } from "@/domain";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/patterns/EmptyState";
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
 import { SectionCard } from "@/components/patterns/SectionCard";
@@ -13,15 +17,36 @@ export type DadosMeta = { total: MetaCorretor; porCorretor: MetaCorretor[] };
 
 const fracao = (m: MetaCorretor) => (m.meta > 0 ? m.receita / m.meta : 0);
 const contratos = (n: number) => `${formatNumero(n)} ${n === 1 ? "contrato fechado" : "contratos fechados"}`;
+const compacto = (n: number) => formatMoeda(n, { compacto: true });
+/** Quantos corretores aparecem antes de "Mostrar todos" (lista curta é mais fácil de varrer). */
+const VISIVEIS = 5;
+
+/** Resumo da imobiliária: realizado em destaque, meta e contratos em texto discreto. */
+function Resumo({ m }: { m: MetaCorretor }) {
+  const f = fracao(m);
+  return (
+    <div className="flex flex-col gap-2 border-b border-border pb-4">
+      <p className="flex flex-wrap items-baseline gap-x-2">
+        <span className="tnum text-xl leading-heading font-semibold tracking-tight text-text">
+          {compacto(m.receita)}
+        </span>
+        <span className="tnum text-sm text-text-muted">de {compacto(m.meta)}</span>
+        <span className="tnum ml-auto text-sm font-medium text-text">{formatPercentual(f, 0)}</span>
+      </p>
+      <Progress value={f * 100} label="Geral" hideValue tone={f >= 1 ? "success" : "primary"} ocultarRotulo />
+      <p className="text-xs text-text-muted">{contratos(m.contratos)}</p>
+    </div>
+  );
+}
 
 function Linha({ rotulo, m }: { rotulo: string; m: MetaCorretor }) {
   const f = fracao(m);
   return (
     <li className="flex flex-col gap-1">
-      <Progress value={f * 100} label={rotulo} hideValue tone={f >= 1 ? "success" : "primary"} />
-      <p className="tnum text-sm text-text-muted">
-        {formatMoeda(m.receita, { compacto: true })} de {formatMoeda(m.meta, { compacto: true })} (
-        {formatPercentual(f, 0)}) · {contratos(m.contratos)}
+      <Progress value={f * 100} label={rotulo} tone={f >= 1 ? "success" : "primary"} className="gap-1.5" />
+      <p className="tnum text-xs text-text-muted">
+        {compacto(m.receita)} de {compacto(m.meta)}
+        <span className="sr-only">, {contratos(m.contratos)}</span>
       </p>
     </li>
   );
@@ -51,6 +76,8 @@ export function MetaRealizado({
   onTentarNovamente?: () => void;
   className?: string;
 }) {
+  const [todos, setTodos] = useState(false);
+  const idLista = useId();
   const ordenados = (d: DadosMeta) => [...d.porCorretor].sort((a, z) => fracao(z) - fracao(a));
   return (
     <SectionCard titulo="Meta do mês" className={className}>
@@ -62,14 +89,32 @@ export function MetaRealizado({
         erro={{ titulo: "Não foi possível carregar as metas" }}
         onTentarNovamente={onTentarNovamente}
       >
-        {(d) => (
-          <ul className="flex animate-fade-in flex-col gap-5">
-            <Linha rotulo="Geral" m={d.total} />
-            {ordenados(d).map((m) => (
-              <Linha key={m.corretorId} rotulo={nomeDe(m.corretorId)} m={m} />
-            ))}
-          </ul>
-        )}
+        {(d) => {
+          const lista = ordenados(d);
+          const mostrar = todos ? lista : lista.slice(0, VISIVEIS);
+          return (
+            <div className="flex animate-fade-in flex-col gap-4">
+              <Resumo m={d.total} />
+              <ul id={idLista} aria-label="Por corretor" className="flex flex-col gap-4">
+                {mostrar.map((m) => (
+                  <Linha key={m.corretorId} rotulo={nomeDe(m.corretorId)} m={m} />
+                ))}
+              </ul>
+              {lista.length > VISIVEIS ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-expanded={todos}
+                  aria-controls={idLista}
+                  onClick={() => setTodos(!todos)}
+                  className="-ml-3 self-start text-text-muted"
+                >
+                  {todos ? "Mostrar menos" : `Mostrar todos (${lista.length})`}
+                </Button>
+              ) : null}
+            </div>
+          );
+        }}
       </EstadoRecurso>
     </SectionCard>
   );

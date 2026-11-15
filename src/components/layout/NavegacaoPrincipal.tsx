@@ -10,12 +10,13 @@ import { Icon } from "../ui/Icon";
 import { Tooltip } from "../ui/Tooltip";
 import { rotaAtiva, type ItemNavegacao } from "./navegacao";
 
+// Contadores discretos: só número; cor de estado apenas quando pede atenção (atraso/risco).
 const TOM_CONTADOR = {
-  primary: "bg-primary text-on-primary",
-  info: "bg-info-bg text-info",
+  primary: "text-primary",
+  info: "text-text-muted",
   danger: "bg-danger-bg text-danger",
   warning: "bg-warning-bg text-warning",
-  neutral: "bg-surface-warm text-text",
+  neutral: "text-text-muted",
 } as const;
 
 const formatarContador = (n: number) => (n > 99 ? "99+" : String(n));
@@ -50,7 +51,7 @@ export function NavegacaoPrincipal({
 
   return (
     <LayoutGroup id={grupo}>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {itens.map((item) => {
           const ativo = rotaAtiva(pathname, item.href);
           const n = item.contador && contadores ? contadores[item.contador.chave] : 0;
@@ -69,12 +70,12 @@ export function NavegacaoPrincipal({
               }
               onClick={onNavegar}
               className={cn(
-                "group relative flex items-center gap-3 rounded-md px-3 font-medium outline-none",
-                tamanho === "toque" ? "h-11 text-base" : "h-10 text-sm",
+                "group relative flex items-center gap-2.5 rounded-md px-2.5 font-medium outline-none",
+                tamanho === "toque" ? "h-11 text-base" : "h-9 text-sm",
                 "transition-colors duration-(--dur-fast) ease-standard",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                 recolhida && "w-10 justify-center px-0",
-                ativo ? "text-on-primary" : "text-text-muted hover:bg-surface-warm hover:text-text",
+                ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
               )}
             >
               {ativo ? (
@@ -82,19 +83,21 @@ export function NavegacaoPrincipal({
                   layoutId="indicador-ativo"
                   transition={transicao}
                   aria-hidden="true"
-                  className="absolute inset-0 rounded-md bg-primary shadow-1"
+                  className="absolute inset-0 rounded-md bg-surface-muted"
                 />
               ) : null}
-              <Icon icon={item.icone} size={20} className="relative" />
+              <Icon icon={item.icone} size={16} className={cn("relative shrink-0", ativo && "text-primary")} />
               {/* rótulo entra com fade ao expandir a sidebar (some na hora ao recolher: saída mais rápida) */}
-              {recolhida ? null : <span className="relative min-w-0 flex-1 animate-fade-in truncate">{item.rotulo}</span>}
+              {recolhida ? null : (
+                <span className="relative min-w-0 flex-1 animate-fade-in truncate">{item.rotulo}</span>
+              )}
               {n > 0 && item.contador ? (
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "tnum relative inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-semibold",
+                    "tnum relative inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
                     TOM_CONTADOR[item.contador.tom],
-                    recolhida && "absolute -top-1 -right-1 ring-2 ring-bg-subtle",
+                    recolhida && "absolute -top-1 -right-1 bg-surface-muted ring-2 ring-bg-subtle",
                   )}
                 >
                   {formatarContador(n)}

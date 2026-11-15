@@ -146,10 +146,10 @@ export function ChartCard<T>(props: ChartCardProps<T>) {
   const dados = "dados" in estado ? estado.dados : undefined;
   const alternavel = dados !== undefined && !(estaVazio?.(dados) ?? false);
   return (
-    <Card className={cn("flex min-w-0 flex-col gap-4 p-4 sm:p-6", className)}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className={cn("flex min-w-0 flex-col gap-4 p-4 sm:p-5", className)}>
+      <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <Heading level={headingLevel} size="lg" className="break-words">
+          <Heading level={headingLevel} size="base" className="break-words">
             {titulo}
           </Heading>
           {descricao ? (
@@ -164,9 +164,10 @@ export function ChartCard<T>(props: ChartCardProps<T>) {
             aria-label={`Visualização de ${titulo}`}
             value={alternavel ? visao : "grafico"}
             onValueChange={setVisao}
+            size="sm"
             options={[
-              { value: "grafico", label: "Gráfico", icon: ChartColumn, disabled: !alternavel },
-              { value: "tabela", label: "Tabela", icon: Table2, disabled: !alternavel },
+              { value: "grafico", label: "Gráfico", icon: ChartColumn, hideLabel: true, disabled: !alternavel },
+              { value: "tabela", label: "Tabela", icon: Table2, hideLabel: true, disabled: !alternavel },
             ]}
           />
         </div>

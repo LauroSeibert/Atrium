@@ -66,7 +66,13 @@ export function LeadCard({
 }: LeadCardProps) {
   const motivoPerda = lead.motivoPerda ? MOTIVO_PERDA_ROTULO[lead.motivoPerda] : null;
   return (
-    <Card className={cn("flex flex-col gap-2 p-3 text-sm", arrastando && "rotate-1 border-primary shadow-3 motion-reduce:rotate-0", className)}>
+    <Card
+      className={cn(
+        "flex flex-col gap-2 p-3 text-sm",
+        arrastando && "rotate-1 border-primary shadow-3 motion-reduce:rotate-0",
+        className,
+      )}
+    >
       <div className="flex items-start gap-1">
         {alca}
         <h3 className="min-w-0 flex-1 text-base font-semibold break-words text-text">

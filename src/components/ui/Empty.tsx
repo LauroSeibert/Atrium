@@ -19,7 +19,7 @@ export function Empty({ icon, title, description, action, headingLevel = 3, clas
   return (
     <div className={cn("flex flex-col items-center gap-3 px-6 py-12 text-center", className)} {...props}>
       {icon ? (
-        <span className="flex size-12 items-center justify-center rounded-full bg-surface-warm text-text">
+        <span className="flex size-12 items-center justify-center rounded-full bg-surface-muted text-text">
           <Icon icon={icon} size={24} />
         </span>
       ) : null}

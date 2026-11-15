@@ -11,7 +11,7 @@ export type AvatarIniciaisProps = Omit<IlustracaoProps, "viewBox" | "children" |
 
 /** Pares fundo/texto dos tokens de UI já verificados (não usam a paleta `--illus-*`). */
 const TONS = {
-  beige: { fundo: "var(--surface-warm)", texto: "var(--text)" },
+  beige: { fundo: "var(--surface-muted)", texto: "var(--text)" },
   verde: { fundo: "var(--primary)", texto: "var(--on-primary)" },
 } as const;
 

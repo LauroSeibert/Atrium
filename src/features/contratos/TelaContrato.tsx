@@ -19,7 +19,7 @@ import {
 } from "@/components/patterns/PaymentSchedule";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
 import { SectionCard } from "@/components/patterns/SectionCard";
-import { StatCard } from "@/components/patterns/StatCard";
+import { StatCard, StatGroup } from "@/components/patterns/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -144,18 +144,21 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
       />
 
       <div className="flex min-w-0 flex-col gap-6">
-        <section aria-label="Indicadores do contrato" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatGroup aria-label="Indicadores do contrato" colunas={3}>
           <StatCard
+            variante="celula"
             rotulo="Pago"
             formato="moedaCompleta"
             estado={{ fase: "success", dados: { valor: resumo.recebido } }}
           />
           <StatCard
+            variante="celula"
             rotulo="A receber"
             formato="moedaCompleta"
             estado={{ fase: "success", dados: { valor: resumo.aReceber } }}
           />
           <StatCard
+            variante="celula"
             rotulo="Atrasado"
             formato="moedaCompleta"
             estado={{
@@ -163,7 +166,7 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
               dados: { valor: resumo.emAtraso, tom: resumo.atrasadas > 0 ? "alerta" : "neutro" },
             }}
           />
-        </section>
+        </StatGroup>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <SectionCard titulo="Dados do contrato">

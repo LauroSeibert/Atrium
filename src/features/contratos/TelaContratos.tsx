@@ -162,40 +162,41 @@ export function TelaContratos() {
       id: "numero",
       cabecalho: "Contrato",
       celula: (l) => (
-        <div className="flex flex-col">
-          <Button asChild variant="link" className="justify-start font-medium">
-            <Link href={`/contratos/${l.contrato.id}`}>{l.contrato.numero}</Link>
-          </Button>
-          <span className="text-xs text-text-muted">{TIPO_CONTRATO_ROTULO[l.contrato.tipo]}</span>
+        <div className="flex flex-col gap-0.5">
+          <Link
+            href={`/contratos/${l.contrato.id}`}
+            className="rounded-sm font-mono text-sm font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {l.contrato.numero}
+          </Link>
+          <span className="tnum text-xs whitespace-nowrap text-text-muted">
+            {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} · {formatData(l.contrato.inicio)} a {formatData(l.contrato.fim)}
+          </span>
         </div>
       ),
     },
     {
       id: "imovel",
       cabecalho: "Imóvel",
-      className: "min-w-48",
+      className: "min-w-44 max-w-60",
       celula: (l) => (
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium">{(l.imovel ?? semImovel).titulo}</span>
-          <span className="tnum text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate">{(l.imovel ?? semImovel).titulo}</span>
+          <span className="font-mono text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
         </div>
       ),
     },
     {
       id: "partes",
       cabecalho: "Partes",
-      className: "min-w-48",
-      celula: (l) => <span className="break-words">{resumoPartes(l)}</span>,
+      className: "min-w-40 max-w-56",
+      celula: (l) => <span className="break-words text-text-muted">{resumoPartes(l)}</span>,
     },
-    { id: "valor", cabecalho: "Valor", alinhamento: "direita", celula: (l) => formatMoeda(l.contrato.valor) },
     {
-      id: "vigencia",
-      cabecalho: "Vigência",
-      celula: (l) => (
-        <span className="tnum whitespace-nowrap">
-          {formatData(l.contrato.inicio)} a {formatData(l.contrato.fim)}
-        </span>
-      ),
+      id: "valor",
+      cabecalho: "Valor",
+      alinhamento: "direita",
+      celula: (l) => <span className="whitespace-nowrap">{formatMoeda(l.contrato.valor)}</span>,
     },
     {
       id: "status",
@@ -208,11 +209,12 @@ export function TelaContratos() {
     },
     {
       id: "proximoVencimento",
-      cabecalho: "Próximo vencimento",
+      cabecalho: "Vencimento",
       celula: (l) =>
         l.proximoVencimento ? (
-          <span className="tnum whitespace-nowrap">
-            {formatData(l.proximoVencimento.vencimento)} · {formatMoeda(l.proximoVencimento.valor)}
+          <span className="tnum flex flex-col whitespace-nowrap">
+            <span>{formatData(l.proximoVencimento.vencimento)}</span>
+            <span className="text-xs text-text-muted">{formatMoeda(l.proximoVencimento.valor)}</span>
           </span>
         ) : (
           <span className="text-text-muted">—</span>

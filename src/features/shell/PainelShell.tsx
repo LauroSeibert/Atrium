@@ -199,6 +199,9 @@ export function PainelShell({
             contadores={dadosContadores}
           />
         }
+        sidebarCompacta={
+          <Sidebar pathname={pathname} recolhida fixa onAlternarRecolhida={() => {}} contadores={dadosContadores} />
+        }
         mobileNav={
           <MobileNav
             aberto={menuAberto}

@@ -10,7 +10,7 @@ import { ActivityFeed } from "@/components/patterns/ActivityFeed";
 import { FunnelChartCard } from "@/components/patterns/FunnelChart";
 import { RevenueChartCard } from "@/components/patterns/RevenueChart";
 import { SectionCard } from "@/components/patterns/SectionCard";
-import { StatCard } from "@/components/patterns/StatCard";
+import { StatCard, StatGroup } from "@/components/patterns/StatCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { rotaDaEntidade } from "@/components/layout/navegacao";
 import { Select } from "@/components/ui/Select";
@@ -93,38 +93,39 @@ export function TelaDashboard() {
           </div>
         }
       />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12 xl:gap-6">
-        <h2 className="sr-only">Indicadores</h2>
+      <h2 className="sr-only">Indicadores</h2>
+      <StatGroup aria-label="Indicadores" className="mb-6 xl:mb-8">
         <StatCard
+          variante="celula"
           rotulo="Imóveis ativos"
           estado={mapear(d, (x) => x.kpis.imoveisAtivos)}
           comparacao={comparacao}
           onTentarNovamente={recarregar}
-          className="xl:col-span-3"
         />
         <StatCard
+          variante="celula"
           rotulo="Leads novos"
           estado={mapear(d, (x) => x.kpis.leadsNovos)}
           comparacao={comparacao}
           onTentarNovamente={recarregar}
-          className="xl:col-span-3"
         />
         <StatCard
-          rotulo="Visitas nos próximos 7 dias"
+          variante="celula"
+          rotulo="Visitas em 7 dias"
           estado={mapear(d, (x) => x.kpis.visitasProximas)}
           comparacao="vs. 7 dias anteriores"
           onTentarNovamente={recarregar}
-          className="xl:col-span-3"
         />
         <StatCard
+          variante="celula"
           rotulo="Receita"
           formato="moeda"
           estado={mapear(d, (x) => x.kpis.receita)}
           comparacao={comparacao}
           onTentarNovamente={recarregar}
-          className="xl:col-span-3"
         />
-
+      </StatGroup>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-12 xl:gap-8">
         <h2 className="sr-only">Receita, meta e funil</h2>
         <RevenueChartCard
           estado={mapear(d, (x) => x.receita12m)}
@@ -142,7 +143,11 @@ export function TelaDashboard() {
           onTentarNovamente={recarregar}
           className="md:col-span-2 xl:col-span-7"
         />
-        <SectionCard titulo="Atividades recentes" className="md:col-span-2 xl:col-span-5 xl:row-span-2">
+        <SectionCard
+          titulo="Atividades recentes"
+          variante="aberta"
+          className="md:col-span-2 xl:col-span-5 xl:row-span-2"
+        >
           <ActivityFeed
             estado={atividades}
             autores={(id) => corretores?.[id]}
@@ -156,7 +161,7 @@ export function TelaDashboard() {
             aria-label="Atividades recentes"
           />
         </SectionCard>
-        <SectionCard titulo="Próximos compromissos" className="md:col-span-2 xl:col-span-7">
+        <SectionCard titulo="Próximos compromissos" variante="aberta" className="md:col-span-2 xl:col-span-7">
           <AgendaList estado={agenda} agora={agora} onTentarNovamente={recarregar} />
         </SectionCard>
       </div>

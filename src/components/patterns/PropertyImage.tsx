@@ -50,7 +50,7 @@ export function PropertyImage({ tipo, fachada, comodo, titulo, decorativa, class
         role={decorativa ? undefined : "img"}
         aria-label={decorativa ? undefined : rotulo}
         aria-hidden={decorativa ? true : undefined}
-        className={cn(MOLDURA, "flex flex-col items-center justify-center gap-2 bg-surface-warm", className)}
+        className={cn(MOLDURA, "flex flex-col items-center justify-center gap-2 bg-surface-muted", className)}
       >
         <Icon icon={ImageOff} size={24} className="text-text-muted" />
         <span className="text-sm text-text-muted">Sem ilustração</span>

@@ -40,7 +40,7 @@ describe("AvatarIlustrado", () => {
 });
 
 describe("AvatarIniciais", () => {
-  const permitidos = ["surface-warm", "text", "primary", "on-primary"];
+  const permitidos = ["surface-muted", "text", "primary", "on-primary"];
 
   it.each(["beige", "verde"] as const)("tom %s: img 64x64, nome acessível, cores permitidas", (tom) => {
     render(<AvatarIniciais nome="Ana Beatriz Souza" tom={tom} />);
@@ -53,7 +53,7 @@ describe("AvatarIniciais", () => {
 
   it("usa os tokens de UI de cada tom", () => {
     const { container, rerender } = render(<AvatarIniciais nome="Ana Souza" />);
-    expect(container.querySelector("circle")).toHaveAttribute("fill", "var(--surface-warm)");
+    expect(container.querySelector("circle")).toHaveAttribute("fill", "var(--surface-muted)");
     expect(container.querySelector("text")).toHaveAttribute("fill", "var(--text)");
     rerender(<AvatarIniciais nome="Ana Souza" tom="verde" />);
     expect(container.querySelector("circle")).toHaveAttribute("fill", "var(--primary)");

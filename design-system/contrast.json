@@ -27,7 +27,7 @@
     },
     {
       "fg": "text",
-      "bg": "surface-warm",
+      "bg": "surface-muted",
       "min": 4.5,
       "use": "Texto em chips/destaques"
     },
@@ -51,7 +51,7 @@
     },
     {
       "fg": "text-muted",
-      "bg": "surface-warm",
+      "bg": "surface-muted",
       "min": 4.5,
       "use": "Texto secundário em chips"
     },
@@ -123,7 +123,7 @@
     },
     {
       "fg": "ring",
-      "bg": "surface-warm",
+      "bg": "surface-muted",
       "min": 3,
       "use": "Anel de foco em chip"
     },
@@ -284,18 +284,6 @@
       "use": "Texto informativo em menus/modais"
     },
     {
-      "fg": "accent-ochre",
-      "bg": "surface",
-      "min": 3,
-      "use": "Série de gráfico (objeto gráfico, WCAG 1.4.11; sempre com rótulo; nunca texto)"
-    },
-    {
-      "fg": "accent-ochre",
-      "bg": "bg-subtle",
-      "min": 3,
-      "use": "Série de gráfico sobre fundo de seção"
-    },
-    {
       "fg": "on-danger",
       "bg": "danger",
       "min": 4.5,
@@ -408,11 +396,23 @@
       "bg": "surface-raised",
       "min": 3,
       "use": "Gráfico: série 5 (barra, linha, fatia) sobre tooltip"
+    },
+    {
+      "fg": "primary",
+      "bg": "primary-subtle",
+      "min": 4.5,
+      "use": "Texto/ícone em seleção"
+    },
+    {
+      "fg": "text",
+      "bg": "primary-subtle",
+      "min": 4.5,
+      "use": "Texto em linha selecionada"
     }
   ],
   "decorative": {
     "border": "Divisórias decorativas: isentas do 3:1 (WCAG 1.4.11 só exige 3:1 para limites que identificam um controle). Para inputs e controles use border-strong.",
-    "surface-warm": "Proibido como fundo de controles (border-strong fica < 3:1) e de texto de status (success/warning ficam < 4,5:1). Chips de status usam o próprio *-bg.",
+    "surface-muted": "Proibido como fundo de controles (border-strong fica < 3:1) e de texto de status (success/warning ficam < 4,5:1). Chips de status usam o próprio *-bg.",
     "ring-offset": "O anel de foco sempre usa outline-offset: 2px (assenta sobre o fundo, não sobre o primário). ring × primary < 3:1, então offset 0 é proibido.",
     "illus-accent": "Acento ocre das ilustrações é só decorativo (sol, luminária, planta): nunca carrega informação. A silhueta legível vem de illus-wall/roof/wall-alt sobre illus-sky (≥ 3:1)."
   }

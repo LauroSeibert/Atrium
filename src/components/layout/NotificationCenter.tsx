@@ -161,7 +161,7 @@ export function NotificationCenter({
                           aria-hidden="true"
                           className={cn(
                             "mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full",
-                            t.tom === "atraso" ? "bg-danger-bg text-danger" : "bg-surface-warm text-text",
+                            t.tom === "atraso" ? "bg-danger-bg text-danger" : "bg-surface-muted text-text",
                           )}
                         >
                           <Icon icon={t.icone} size={16} />

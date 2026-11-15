@@ -157,7 +157,7 @@ export function DataTable<T extends object>({
   const todosNaPagina = idsPagina.length > 0 && marcadosNaPagina === idsPagina.length;
 
   const cabecalhoSelecao = selecionavel ? (
-    <TableHead className={cn("sticky left-0 z-(--z-base) w-12 bg-bg-subtle px-0")}>
+    <TableHead className={cn("sticky left-0 z-(--z-base) w-12 min-w-12 bg-bg-subtle px-0")}>
       <div className="flex justify-center">
         <Checkbox
           aria-label="Selecionar todos desta página"
@@ -204,7 +204,7 @@ export function DataTable<T extends object>({
           {Array.from({ length: linhasSkeleton ?? Math.min(porPagina, 10) }, (_, i) => (
             <TableRow key={i} className="hover:bg-transparent">
               {selecionavel ? (
-                <TableCell className="w-12 px-0">
+                <TableCell className="w-12 min-w-12 px-0">
                   <Skeleton shape="rect" className="mx-auto size-5" />
                 </TableCell>
               ) : null}
@@ -234,7 +234,7 @@ export function DataTable<T extends object>({
         </p>
       ) : null}
       {selecionavel && selecionadosAgora > 0 ? (
-        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-md border border-border bg-surface-warm px-4 py-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-md border border-border bg-surface-muted px-4 py-2">
           <p aria-hidden="true" className="tnum text-sm font-medium text-text">
             {selecionadosAgora === 1 ? "1 selecionado" : `${selecionadosAgora} selecionados`}
           </p>
@@ -311,7 +311,7 @@ export function DataTable<T extends object>({
                       className="bg-surface"
                     >
                       {selecionavel ? (
-                        <TableCell className="sticky left-0 z-(--z-base) w-12 bg-inherit px-0">
+                        <TableCell className="sticky left-0 z-(--z-base) w-12 min-w-12 bg-inherit px-0">
                           <div className="flex justify-center">
                             <Checkbox
                               aria-label={rotuloSelecao?.(linha.original) ?? "Selecionar linha"}

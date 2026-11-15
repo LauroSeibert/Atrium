@@ -4,12 +4,11 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
-const base = "relative rounded-lg border bg-surface text-text shadow-1";
+const base = "relative rounded-lg border bg-surface text-text";
 const interactiveClasses = [
   // Hover (Fase 9): elevação + 2 px para cima; sem deslocamento com reduced-motion.
   "block cursor-pointer text-left transition duration-(--dur-base) ease-standard",
-  "hover:-translate-y-0.5 hover:border-border-strong hover:shadow-2 motion-reduce:hover:translate-y-0",
-  "active:translate-y-0 active:shadow-1",
+  "hover:border-border-strong",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
 ];
 
@@ -66,7 +65,7 @@ export function CardHeader({ className, ...props }: ComponentProps<"div">) {
 }
 
 export function CardTitle({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("text-lg font-semibold text-text", className)} {...props} />;
+  return <div className={cn("text-base font-semibold tracking-tight text-text", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {

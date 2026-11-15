@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Progress as ProgressPrimitive } from "radix-ui";
 import { useId } from "react";
@@ -22,24 +23,42 @@ export type ProgressProps = Omit<ProgressPrimitive.ProgressProps, "value" | "max
     label: string;
     /** Esconde o texto de valor (ex.: "45%"). */
     hideValue?: boolean;
+    /** Conteúdo extra à direita do rótulo, antes do valor (ex.: "R$ 77 mil de 195 mil"). */
+    detalhe?: ReactNode;
+    /** Rótulo só para leitores de tela (quando o contexto visual já diz o que é). */
+    ocultarRotulo?: boolean;
   };
 
 /** Barra de progresso com rótulo e valor em texto. */
-export function Progress({ value, label, tone, hideValue = false, className, ...props }: ProgressProps) {
+export function Progress({
+  value,
+  label,
+  tone,
+  hideValue = false,
+  detalhe,
+  ocultarRotulo = false,
+  className,
+  ...props
+}: ProgressProps) {
   const labelId = useId();
   const clamped = Math.min(100, Math.max(0, value));
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span id={labelId} className="font-medium text-text">
+      <div className={cn("flex items-baseline justify-between gap-3 text-sm", ocultarRotulo && "sr-only")}>
+        <span id={labelId} className="min-w-0 truncate font-medium text-text">
           {label}
         </span>
-        {hideValue ? null : <span className="tnum text-text-muted">{Math.round(clamped)}%</span>}
+        {detalhe || !hideValue ? (
+          <span className="flex shrink-0 items-baseline gap-2">
+            {detalhe ? <span className="tnum text-xs text-text-muted">{detalhe}</span> : null}
+            {hideValue ? null : <span className="tnum w-9 text-right text-text">{Math.round(clamped)}%</span>}
+          </span>
+        ) : null}
       </div>
       <ProgressPrimitive.Root
         value={clamped}
         aria-labelledby={labelId}
-        className="h-2 w-full overflow-hidden rounded-full bg-surface-warm"
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
         {...props}
       >
         <ProgressPrimitive.Indicator

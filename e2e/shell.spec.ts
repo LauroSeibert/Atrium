@@ -195,7 +195,8 @@ test.describe("layout nos breakpoints", () => {
         await page.goto(rota);
         await aguardarCarregado(page);
         expect(await semRolagemHorizontal(page)).toBeLessThanOrEqual(0);
-        if (largura >= 1024) {
+        // ≥ 768 px: trilho de ícones (tablet) ou sidebar completa (desktop); abaixo, gaveta.
+        if (largura >= 768) {
           await expect(menuPrincipal(page)).toBeVisible();
         } else {
           await expect(menuPrincipal(page)).toBeHidden();
