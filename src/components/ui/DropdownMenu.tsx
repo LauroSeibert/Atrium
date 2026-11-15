@@ -1,6 +1,6 @@
 import { DropdownMenu as MenuPrimitive } from "radix-ui";
 import { Check, ChevronRight, Circle, type LucideIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
@@ -14,15 +14,6 @@ const panel =
   "z-(--z-popover) min-w-48 rounded-lg border border-border bg-surface-raised p-1 text-sm text-text shadow-2";
 const item =
   "relative flex h-9 cursor-pointer items-center gap-2 rounded-sm px-2 outline-none select-none data-[highlighted]:bg-bg-subtle data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
-
-/** Atalho de teclado (visual apenas; o atalho real é implementado fora). */
-function Shortcut({ children }: { children: ReactNode }) {
-  return (
-    <span className="ml-auto rounded-sm border border-border px-1 pl-2 text-xs text-text-muted" aria-hidden="true">
-      {children}
-    </span>
-  );
-}
 
 export function DropdownMenuContent({
   className,
@@ -42,14 +33,12 @@ export function DropdownMenuContent({
 
 export type DropdownMenuItemProps = ComponentProps<typeof MenuPrimitive.Item> & {
   icon?: LucideIcon;
-  shortcut?: string;
   tone?: "default" | "destructive";
 };
 
 export function DropdownMenuItem({
   className,
   icon,
-  shortcut,
   tone = "default",
   children,
   ...props
@@ -59,14 +48,13 @@ export function DropdownMenuItem({
       className={cn(item, tone === "destructive" && "text-danger data-[highlighted]:bg-danger-bg", className)}
       {...props}
     >
-      {/* Com `asChild` o Slot exige um único filho: ícone e atalho vão dentro do próprio filho. */}
+      {/* Com `asChild` o Slot exige um único filho: o ícone vai dentro do próprio filho. */}
       {props.asChild ? (
         children
       ) : (
         <>
           {icon ? <Icon icon={icon} size={16} /> : null}
           {children}
-          {shortcut ? <Shortcut>{shortcut}</Shortcut> : null}
         </>
       )}
     </MenuPrimitive.Item>
@@ -76,9 +64,8 @@ export function DropdownMenuItem({
 export function DropdownMenuCheckboxItem({
   className,
   children,
-  shortcut,
   ...props
-}: ComponentProps<typeof MenuPrimitive.CheckboxItem> & { shortcut?: string }) {
+}: ComponentProps<typeof MenuPrimitive.CheckboxItem>) {
   return (
     <MenuPrimitive.CheckboxItem className={cn(item, "pl-8", className)} {...props}>
       <span className="absolute left-2 inline-flex size-4 items-center justify-center">
@@ -87,7 +74,6 @@ export function DropdownMenuCheckboxItem({
         </MenuPrimitive.ItemIndicator>
       </span>
       {children}
-      {shortcut ? <Shortcut>{shortcut}</Shortcut> : null}
     </MenuPrimitive.CheckboxItem>
   );
 }

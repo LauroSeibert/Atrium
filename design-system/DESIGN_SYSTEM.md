@@ -179,6 +179,7 @@ Cada texto na tela compete pela atenção. Antes de acrescentar um rótulo, subt
 - **Título que diz o que é (ou o que fazer)**, sem subtítulo explicando o óbvio. Uma linha de instrução só quando a ação não é evidente.
 - **Itens de lista com nome + no máximo uma linha curta de contexto.** Metadados que não decidem nada saem (ou vão para leitor de tela/tooltip).
 - **Nada de repetir:** a trilha não repete o `h1`; o botão não repete o título do card; o avatar basta na topbar (nome e papel ficam no menu).
+- **Sem indicadores de atalho na interface** (⌘K, Esc, teclas em menus e na paleta). Os atalhos continuam funcionando e são anunciados com `aria-keyshortcuts`; o átomo `Kbd` fica só para documentação/ajuda.
 - **Acessibilidade não é desculpa para poluir:** contexto extra vai em `sr-only`, nunca em texto visível redundante.
 
 ### Checklist de revisão de tela

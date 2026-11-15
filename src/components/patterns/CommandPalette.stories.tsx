@@ -42,9 +42,9 @@ function montarGrupos(porGrupo = 5): GrupoPaleta[] {
       id: "acoes",
       rotulo: "Ações",
       itens: [
-        { id: "novo-imovel", rotulo: "Novo imóvel", icone: FilePlus2, atalho: ["N", "I"], onSelect },
-        { id: "novo-lead", rotulo: "Novo lead", icone: UserPlus, atalho: ["N", "L"], onSelect },
-        { id: "tema", rotulo: "Alternar tema", icone: Moon, atalho: ["⌘", "J"], onSelect },
+        { id: "novo-imovel", rotulo: "Novo imóvel", icone: FilePlus2, onSelect },
+        { id: "novo-lead", rotulo: "Novo lead", icone: UserPlus, onSelect },
+        { id: "tema", rotulo: "Alternar tema", icone: Moon, onSelect },
       ],
     },
   ];
@@ -83,7 +83,7 @@ export const DadosExtremos: Story = {
             descricao:
               "AT-9999 · Jardim Paulista, São Paulo, SP, Brasil, na esquina da alameda com a avenida principal",
             icone: Building2,
-            atalho: ["⌘", "Shift", "Alt", "I"],
+           
             onSelect,
           },
         ],

@@ -14,16 +14,16 @@ const grupos: GrupoPaleta[] = [
       { id: "2", rotulo: "Casa em Pinheiros", onSelect: vi.fn() },
     ],
   },
-  { id: "acoes", rotulo: "Ações", itens: [{ id: "novo", rotulo: "Novo lead", atalho: ["N", "L"], onSelect: vi.fn() }] },
+  { id: "acoes", rotulo: "Ações", itens: [{ id: "novo", rotulo: "Novo lead", onSelect: vi.fn() }] },
 ];
 
 describe("CommandPalette (RF-02, RF-35)", () => {
-  it("mostra grupos, itens e atalhos", () => {
+  it("mostra grupos e itens, sem indicador de atalho", () => {
     render(<CommandPalette aberto onAbertoChange={vi.fn()} grupos={grupos} />);
     expect(screen.getByRole("dialog", { name: "Paleta de comandos" })).toBeInTheDocument();
     expect(screen.getByText("Imóveis")).toBeInTheDocument();
     expect(screen.getByText("Ações")).toBeInTheDocument();
-    expect(screen.getByText("N")).toBeInTheDocument();
+    expect(screen.queryByText("Esc")).not.toBeInTheDocument();
   });
 
   it("filtra sem acento e mostra o estado vazio", async () => {

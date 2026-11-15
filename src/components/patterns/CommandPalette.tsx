@@ -9,7 +9,6 @@ import type { Recurso } from "@/lib/recurso";
 import { Button } from "../ui/Button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
-import { Kbd } from "../ui/Kbd";
 import { Spinner } from "../ui/Spinner";
 
 export type ItemPaleta = {
@@ -17,8 +16,6 @@ export type ItemPaleta = {
   rotulo: string;
   descricao?: string;
   icone?: LucideIcon;
-  /** Teclas do atalho, uma `Kbd` por entrada (ex.: `["G", "L"]`). */
-  atalho?: string[];
   onSelect: () => void;
 };
 
@@ -111,7 +108,6 @@ export function CommandPalette({
               placeholder={placeholder}
               className="h-12 w-full bg-transparent text-base text-text placeholder:text-text-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
             />
-            <Kbd aria-hidden="true">Esc</Kbd>
           </div>
           <Command.List className="max-h-80 overflow-y-auto p-2">
             {carregando ? null : (
@@ -147,13 +143,6 @@ export function CommandPalette({
                         <span className="truncate text-xs text-text-muted">{item.descricao}</span>
                       ) : null}
                     </span>
-                    {item.atalho?.length ? (
-                      <span className="flex shrink-0 items-center gap-1">
-                        {item.atalho.map((t) => (
-                          <Kbd key={t}>{t}</Kbd>
-                        ))}
-                      </span>
-                    ) : null}
                   </Command.Item>
                 ))}
               </Command.Group>

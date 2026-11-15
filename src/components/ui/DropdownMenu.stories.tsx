@@ -32,7 +32,7 @@ export const AcoesDoImovel: Story = {
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Apto 52, Ed. Solar das Palmeiras</DropdownMenuLabel>
           <DropdownMenuItem icon={ExternalLink}>Abrir detalhes</DropdownMenuItem>
-          <DropdownMenuItem icon={Pencil} shortcut="E">
+          <DropdownMenuItem icon={Pencil}>
             Editar
           </DropdownMenuItem>
           <DropdownMenuItem icon={Copy} disabled>
@@ -46,7 +46,7 @@ export const AcoesDoImovel: Story = {
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuSeparator />
-          <DropdownMenuItem icon={Trash2} tone="destructive" shortcut="Del">
+          <DropdownMenuItem icon={Trash2} tone="destructive">
             Excluir imóvel
           </DropdownMenuItem>
         </DropdownMenuContent>
