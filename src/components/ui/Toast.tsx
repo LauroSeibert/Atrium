@@ -1,7 +1,7 @@
 "use client";
 
 import { Toast as ToastPrimitive } from "radix-ui";
-import { CircleAlert, CircleCheck, Info, X } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, Undo2, X } from "lucide-react";
 import { create } from "zustand";
 import { cn } from "@/lib/cn";
 import { Button } from "./Button";
@@ -49,9 +49,9 @@ export function toast(input: ToastInput): string {
 toast.dismiss = (id: string) => useToastStore.getState().dismiss(id);
 
 const tones = {
-  success: { icon: CircleCheck, color: "text-success", bar: "bg-success-bg" },
-  error: { icon: CircleAlert, color: "text-danger", bar: "bg-danger-bg" },
-  info: { icon: Info, color: "text-info", bar: "bg-info-bg" },
+  success: { icon: CircleCheck, color: "text-success" },
+  error: { icon: CircleAlert, color: "text-danger" },
+  info: { icon: Info, color: "text-info" },
 } as const;
 
 /** Provider + viewport. Monte uma vez no layout raiz. Erros são anunciados de forma assertiva. */
@@ -71,41 +71,40 @@ export function Toaster() {
             onOpenChange={(open) => {
               if (!open) dismiss(t.id);
             }}
-            className="relative flex items-start gap-3 rounded-lg border border-border bg-surface-raised p-4 pr-12 text-sm text-text shadow-3 data-[state=closed]:animate-fade-out data-[state=open]:animate-slide-in-up data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform data-[swipe=end]:animate-swipe-out-right data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=move]:transition-none"
+            className="flex items-start gap-3 rounded-lg border border-border bg-surface-raised py-3 pr-2 pl-4 text-sm text-text shadow-3 data-[state=closed]:animate-fade-out data-[state=open]:animate-slide-in-up data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform data-[swipe=end]:animate-swipe-out-right data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=move]:transition-none"
           >
-            <span
-              className={cn(
-                "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
-                tone.bar,
-                tone.color,
-              )}
-            >
-              <Icon icon={tone.icon} size={20} />
-            </span>
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <Icon icon={tone.icon} size={16} className={cn("mt-0.5 shrink-0", tone.color)} />
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 self-center">
               <ToastPrimitive.Title className="font-medium break-words">{t.title}</ToastPrimitive.Title>
               {t.description ? (
                 <ToastPrimitive.Description className="break-words text-text-muted">
                   {t.description}
                 </ToastPrimitive.Description>
               ) : null}
+            </div>
+            <div className="-my-1 flex shrink-0 items-center gap-1">
               {t.action ? (
                 <ToastPrimitive.Action asChild altText={`${t.action.label}: ${t.title}`}>
-                  <Button variant="link" size="sm" className="self-start font-semibold" onClick={t.action.onClick}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leadingIcon={t.action.label === "Desfazer" ? Undo2 : undefined}
+                    onClick={t.action.onClick}
+                  >
                     {t.action.label}
                   </Button>
                 </ToastPrimitive.Action>
               ) : null}
+              <ToastPrimitive.Close asChild>
+                <Button variant="ghost" size="sm" icon={X} aria-label="Fechar" className="text-text-muted" />
+              </ToastPrimitive.Close>
             </div>
-            <ToastPrimitive.Close asChild>
-              <Button variant="ghost" size="sm" icon={X} aria-label="Fechar" className="absolute top-2 right-2" />
-            </ToastPrimitive.Close>
           </ToastPrimitive.Root>
         );
       })}
       <ToastPrimitive.Viewport
         data-toast-viewport=""
-        className="fixed right-0 bottom-0 z-(--z-toast) m-0 flex w-full flex-col gap-2 p-4 outline-none sm:max-w-sm"
+        className="fixed right-0 bottom-0 z-(--z-toast) m-0 flex w-full flex-col gap-2 p-4 outline-none sm:max-w-md"
       />
     </ToastPrimitive.Provider>
   );
