@@ -29,7 +29,7 @@ export function TabsTrigger({ className, children, count, ...props }: TabsTrigge
         "disabled:cursor-not-allowed disabled:opacity-50",
         "after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-transparent",
         "after:transition-colors after:duration-(--dur-base) after:ease-standard",
-        "data-[state=active]:text-text data-[state=active]:after:bg-primary",
+        "data-[state=active]:text-text data-[state=active]:after:bg-accent",
         className,
       )}
       {...props}

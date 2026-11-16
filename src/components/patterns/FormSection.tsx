@@ -11,7 +11,6 @@ import type { z } from "zod";
 import { cn } from "@/lib/cn";
 import { formatNumero } from "@/lib/format";
 import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
 import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
@@ -33,25 +32,23 @@ export type FormSectionProps = {
   className?: string;
 };
 
-/** Seção do formulário: card com título, descrição e grade de campos (1 col em 360 px, 2 a partir de 768 px). */
+/** Seção do formulário: sem caixa, fio no topo e título em serifa; grade de campos (1 col em 360 px, 2 a partir de 768 px). */
 export function FormSection({ id, titulo, descricao, children, className }: FormSectionProps) {
   const tituloId = `${id}-titulo`;
   return (
-    <Card asChild className={cn("scroll-mt-4", className)}>
-      <section id={id} aria-labelledby={tituloId}>
-        <div className="flex flex-col gap-1 p-4 pb-0 md:p-6 md:pb-0">
-          <Heading level={2} size="lg" id={tituloId}>
-            {titulo}
-          </Heading>
-          {descricao ? (
-            <Text tone="muted" size="sm">
-              {descricao}
-            </Text>
-          ) : null}
-        </div>
-        <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:p-6">{children}</div>
-      </section>
-    </Card>
+    <section id={id} aria-labelledby={tituloId} className={cn("scroll-mt-4 border-t border-border pt-7", className)}>
+      <div className="flex flex-col gap-1">
+        <Heading level={2} size="2xl" id={tituloId}>
+          {titulo}
+        </Heading>
+        {descricao ? (
+          <Text tone="muted" size="sm">
+            {descricao}
+          </Text>
+        ) : null}
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">{children}</div>
+    </section>
   );
 }
 
@@ -72,7 +69,7 @@ export function FormSectionIndex({ secoes, className }: FormSectionIndexProps) {
           <li key={s.id}>
             <a
               href={`#${s.id}`}
-              className="inline-flex min-h-10 items-center rounded-md px-3 text-sm text-text-muted transition duration-(--dur-fast) ease-standard hover:bg-bg-subtle hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-md:min-h-11 max-md:border max-md:border-border-strong max-md:text-text lg:w-full"
+              className="inline-flex min-h-10 items-center rounded-md px-3 text-sm text-text-muted underline-offset-4 transition duration-(--dur-fast) ease-standard hover:text-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-md:min-h-11 max-md:border max-md:border-border-strong max-md:text-text lg:w-full"
             >
               {s.titulo}
             </a>
@@ -263,12 +260,9 @@ export function RodapeEnvio({
 /** Esqueleto de uma seção: título, descrição e `campos` rótulos + entradas na grade final. */
 export function FormSectionSkeleton({ campos = 4, className }: { campos?: number; className?: string }) {
   return (
-    <Card className={cn(className)}>
-      <div className="flex flex-col gap-2 p-4 pb-0 md:p-6 md:pb-0">
-        <Skeleton className="h-6 w-40" />
-        <Skeleton className="h-4 w-64 max-w-full" />
-      </div>
-      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:p-6">
+    <div className={cn("border-t border-border pt-7", className)}>
+      <Skeleton className="h-8 w-40" />
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
         {Array.from({ length: campos }, (_, i) => (
           <div key={i} className="flex flex-col gap-2">
             <Skeleton className="h-4 w-24" />
@@ -276,7 +270,7 @@ export function FormSectionSkeleton({ campos = 4, className }: { campos?: number
           </div>
         ))}
       </div>
-    </Card>
+    </div>
   );
 }
 

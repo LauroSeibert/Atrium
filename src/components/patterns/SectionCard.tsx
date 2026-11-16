@@ -34,11 +34,16 @@ export function SectionCard({
   const cabecalho = (
     <div
       className={cn(
-        "flex min-h-8 min-w-0 items-center justify-between gap-3",
-        variante === "aberta" && "border-b border-border pb-3",
+        "flex min-h-8 min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-2",
+        variante === "aberta" && "border-b border-border pb-4",
       )}
     >
-      <Heading id={id} level={headingLevel} size="base" className="min-w-0 break-words">
+      <Heading
+        id={id}
+        level={headingLevel}
+        size={headingLevel === 2 ? "2xl" : "xl"}
+        className="min-w-0 break-words"
+      >
         {titulo}
       </Heading>
       {acoes ? <div className="flex shrink-0 items-center gap-2">{acoes}</div> : null}
@@ -46,14 +51,14 @@ export function SectionCard({
   );
   if (variante === "aberta")
     return (
-      <section aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-4", className)}>
+      <section aria-labelledby={id} className={cn("flex min-w-0 flex-col gap-5", className)}>
         {cabecalho}
         {children}
       </section>
     );
   return (
     <Card asChild className={className}>
-      <section aria-labelledby={id} className="flex min-w-0 flex-col gap-4 p-4 sm:p-5">
+      <section aria-labelledby={id} className="flex min-w-0 flex-col gap-5 p-5 sm:px-8 sm:pt-7.5 sm:pb-7">
         {cabecalho}
         {children}
       </section>

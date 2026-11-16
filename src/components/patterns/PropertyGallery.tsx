@@ -111,7 +111,7 @@ export function PropertyGallery({
         ) : null}
       </div>
 
-      <p aria-live="polite" className="tnum flex flex-wrap items-baseline gap-x-2 text-sm text-text-muted">
+      <p aria-live="polite" className="flex flex-wrap items-baseline gap-x-2 num text-sm text-text-muted">
         <span className="font-medium text-text">
           {atual + 1} de {total}
         </span>
@@ -131,8 +131,8 @@ export function PropertyGallery({
                 aria-current={i === atual ? "true" : undefined}
                 onClick={() => ir(i)}
                 className={cn(
-                  "block w-20 cursor-pointer overflow-hidden rounded-md border-2 transition duration-(--dur-fast) ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                  i === atual ? "border-primary" : "border-border hover:border-border-strong",
+                  "block w-20 cursor-pointer overflow-hidden rounded-lg border transition duration-(--dur-fast) ease-standard focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  i === atual ? "border-text" : "border-transparent hover:border-line-strong",
                 )}
               >
                 <PropertyImage tipo={tipo} comodo={c.tipo} decorativa className="rounded-none" />

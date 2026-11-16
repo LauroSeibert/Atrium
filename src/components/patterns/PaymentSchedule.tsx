@@ -106,20 +106,23 @@ function AcaoDaParcela({ item, acao, onRegistrarPagamento, prefixo = "parcela" }
 function Resumo({ resumo }: { resumo: ResumoCronograma }) {
   const { total, pagas, recebido, atrasadas, emAtraso } = resumo;
   return (
-    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Resumo do cronograma">
-      <div className="rounded-md border border-border bg-surface p-3">
-        <dt className="text-sm text-text-muted">Parcelas pagas</dt>
-        <dd className="tnum text-lg font-semibold text-text">
+    <dl
+      className="grid grid-cols-1 gap-x-8 gap-y-4 border-b border-border-soft pb-5 sm:grid-cols-3"
+      aria-label="Resumo do cronograma"
+    >
+      <div>
+        <dt className="eyebrow">Parcelas pagas</dt>
+        <dd className="num mt-1.5 text-md text-text">
           {pagas} de {total}
         </dd>
       </div>
-      <div className="rounded-md border border-border bg-surface p-3">
-        <dt className="text-sm text-text-muted">Total recebido</dt>
-        <dd className="tnum text-lg font-semibold text-text">{formatMoeda(recebido)}</dd>
+      <div>
+        <dt className="eyebrow">Total recebido</dt>
+        <dd className="num mt-1.5 text-md text-text">{formatMoeda(recebido)}</dd>
       </div>
-      <div className="rounded-md border border-border bg-surface p-3">
-        <dt className="text-sm text-text-muted">Em atraso</dt>
-        <dd className={cn("tnum text-lg font-semibold", atrasadas > 0 ? "text-danger" : "text-text")}>
+      <div>
+        <dt className={cn("eyebrow", atrasadas > 0 && "text-danger")}>Em atraso</dt>
+        <dd className={cn("num mt-1.5 text-md", atrasadas > 0 ? "text-danger" : "text-text")}>
           {atrasadas === 0
             ? "Nenhuma"
             : `${atrasadas} ${atrasadas === 1 ? "parcela" : "parcelas"} · ${formatMoeda(emAtraso)}`}
@@ -144,16 +147,16 @@ function Cronograma({
       </p>
 
       {/* 360 px: lista empilhada. */}
-      <ul aria-label="Parcelas" className="flex flex-col gap-3 md:hidden">
+      <ul aria-label="Parcelas" className="flex flex-col md:hidden">
         {itens.map((item) => (
-          <li key={item.parcela.numero} className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3">
+          <li key={item.parcela.numero} className="flex flex-col gap-2 border-t border-border-soft py-4 first:border-t-0">
             <div className="flex items-start justify-between gap-2">
-              <span className="font-medium text-text">Parcela {item.parcela.numero}</span>
+              <span className="text-md font-medium text-text">Parcela <span className="num">{item.parcela.numero}</span></span>
               <StatusBadge status={item.status} />
             </div>
             <div className="flex items-baseline justify-between gap-2 text-sm">
               <span className="tnum text-text-muted">Vence em {formatData(item.parcela.vencimento)}</span>
-              <span className="tnum font-semibold text-text">{formatMoeda(item.parcela.valor)}</span>
+              <span className={cn("num text-text", item.status === "atrasado" && "text-danger")}>{formatMoeda(item.parcela.valor)}</span>
             </div>
             {item.status === "atrasado" ? <p className="text-sm text-danger">{textoAtraso(item.diasAtraso)}</p> : null}
             <AcaoDaParcela
@@ -183,7 +186,7 @@ function Cronograma({
               <TableRow key={item.parcela.numero}>
                 <TableCell className="tnum font-medium">{item.parcela.numero}</TableCell>
                 <TableCell className="tnum">{formatData(item.parcela.vencimento)}</TableCell>
-                <TableCell align="right">{formatMoeda(item.parcela.valor)}</TableCell>
+                <TableCell align="right" className={cn("num", item.status === "atrasado" && "text-danger")}>{formatMoeda(item.parcela.valor)}</TableCell>
                 <TableCell>
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={item.status} />

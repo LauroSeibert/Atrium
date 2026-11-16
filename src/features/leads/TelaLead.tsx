@@ -47,8 +47,8 @@ export type TelaLeadProps = { id: string; modo: "pagina" | "drawer" };
 
 function Linha({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-border py-2 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-      <dt className="text-sm text-text-muted">{rotulo}</dt>
+    <div className="flex flex-col gap-1 border-b border-border-soft py-3 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+      <dt className="text-caption text-text-muted">{rotulo}</dt>
       <dd className="min-w-0 text-sm break-words text-text sm:text-right">{children}</dd>
     </div>
   );
@@ -130,7 +130,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
         <DrawerDescription className="sr-only">Detalhes do lead</DrawerDescription>
       </DrawerHeader>
     ) : (
-      <PageHeader titulo={nome ?? "Lead"} />
+      <PageHeader eyebrow="Comercial · lead" titulo={nome ?? "Lead"} />
     );
 
   const corpo = (
@@ -143,7 +143,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
       {({ lead, responsavel, imoveisVistos, visitas, negociacoes, podeAgendarVisita }) => {
         const i = lead.interesse;
         return (
-          <div className="flex animate-fade-in flex-col gap-4">
+          <div className="flex animate-fade-in flex-col gap-8">
             <DefinirTrilha rotulo={lead.nome} />
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm text-text-muted">
@@ -173,7 +173,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
               </p>
             )}
 
-            <SectionCard headingLevel={nivel} titulo="Negociações">
+            <SectionCard variante="aberta" headingLevel={nivel} titulo="Negociações">
               <ul className="flex flex-col">
                 {negociacoes.map((n) => {
                   const etapa = ETAPA_UI[n.etapa];
@@ -181,7 +181,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
                   return (
                     <li
                       key={n.id}
-                      className="flex flex-col gap-2 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:gap-4"
+                      className="flex flex-col gap-2 border-b border-border-soft py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:gap-4"
                     >
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <p className="text-sm break-words text-text">
@@ -195,7 +195,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
                         </p>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
                           <Badge tone={etapa.tom}>{etapa.rotulo}</Badge>
-                          <span className="tnum">{n.valor === null ? "Sem valor" : formatMoeda(n.valor)}</span>
+                          <span className="num">{n.valor === null ? "Sem valor" : formatMoeda(n.valor)}</span>
                           {n.motivoPerda ? <span>Motivo da perda: {MOTIVO_PERDA_ROTULO[n.motivoPerda]}</span> : null}
                           {n.contrato ? <span>Contrato vinculado: {n.contrato.numero}</span> : null}
                         </div>
@@ -264,7 +264,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
               </ul>
             </SectionCard>
 
-            <SectionCard headingLevel={nivel} titulo="Contato e interesse">
+            <SectionCard variante="aberta" headingLevel={nivel} titulo="Contato e interesse">
               <dl className="flex flex-col">
                 <Linha rotulo="Telefone">
                   {lead.contato.telefone ? (
@@ -303,7 +303,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
             </SectionCard>
 
             {imoveisVistos.length > 0 ? (
-              <SectionCard headingLevel={nivel} titulo="Imóveis vistos">
+              <SectionCard variante="aberta" headingLevel={nivel} titulo="Imóveis vistos">
                 <ul className="flex flex-col gap-2">
                   {imoveisVistos.map((im) => (
                     <li key={im.id} className="text-sm break-words">
@@ -323,7 +323,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
               </SectionCard>
             ) : null}
 
-            <SectionCard headingLevel={nivel} titulo="Linha do tempo">
+            <SectionCard variante="aberta" headingLevel={nivel} titulo="Linha do tempo">
               <FormNota leadId={lead.id} />
               <ActivityFeed
                 estado={atividades}
@@ -334,7 +334,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
               />
             </SectionCard>
 
-            <SectionCard headingLevel={nivel} titulo="Histórico de alterações">
+            <SectionCard variante="aberta" headingLevel={nivel} titulo="Histórico de alterações">
               <ChangeLog estado={alteracoes} autores={autores} onTentarNovamente={recarregarAlteracoes} />
             </SectionCard>
 

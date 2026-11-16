@@ -35,7 +35,8 @@ beforeEach(() => {
 describe("TelaDashboard (RF-10…16)", () => {
   it("carrega KPIs, gráficos, atividades com link de origem, compromissos e metas", async () => {
     render(<TelaDashboard />);
-    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: /^Bom dia, \S+\.$/ })).toBeInTheDocument();
 
     for (const rotulo of ["Imóveis ativos", "Leads novos", "Visitas nos próximos 7 dias", "Receita"])
       expect(await screen.findByRole("group", { name: rotulo })).toBeInTheDocument();
@@ -55,7 +56,7 @@ describe("TelaDashboard (RF-10…16)", () => {
     const agenda = await screen.findByRole("group", { name: "Próximos compromissos" });
     expect(within(agenda).getAllByRole("listitem").length).toBeGreaterThan(0);
 
-    expect(await screen.findByRole("heading", { name: "Meta do mês" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Meta de novembro" })).toBeInTheDocument();
     expect(await screen.findByText("Geral")).toBeInTheDocument();
   });
 

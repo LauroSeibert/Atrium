@@ -37,7 +37,7 @@ export function CartaoFinanceiro({ titulo, subtitulo, status, campos, acao, clas
         {campos.map((c) => (
           <div key={c.rotulo} className="min-w-0">
             <dt className="text-text-muted">{c.rotulo}</dt>
-            <dd className="tnum font-medium break-words text-text">{c.valor}</dd>
+            <dd className="num break-words text-text">{c.valor}</dd>
           </div>
         ))}
       </dl>

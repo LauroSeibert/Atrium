@@ -28,11 +28,11 @@ export function SpecList({ imovel, className }: SpecListProps) {
     ["IPTU", moeda(imovel.iptu)],
   ];
   return (
-    <dl className={cn("grid grid-cols-1 gap-x-8 sm:grid-cols-2", className)}>
+    <dl className={cn("grid grid-cols-1 gap-x-10 sm:grid-cols-2", className)}>
       {itens.map(([rotulo, valor]) => (
-        <div key={rotulo} className="flex items-baseline justify-between gap-4 border-b border-border py-2">
-          <dt className="text-sm text-text-muted">{rotulo}</dt>
-          <dd className={cn("tnum text-right text-sm font-medium", valor === "—" ? "text-text-muted" : "text-text")}>
+        <div key={rotulo} className="flex items-baseline justify-between gap-4 border-b border-border-soft py-3.5">
+          <dt className="text-caption text-text-muted">{rotulo}</dt>
+          <dd className={cn("text-right num text-sm text-text", valor === "—" ? "text-text-muted" : "text-text")}>
             {valor === "—" ? (
               <>
                 <span aria-hidden="true">—</span>

@@ -106,7 +106,7 @@ export function CommandPalette({
                 onBuscaChange?.(v);
               }}
               placeholder={placeholder}
-              className="h-12 w-full bg-transparent text-base text-text outline-none placeholder:text-text-muted"
+              className="h-12 w-full bg-transparent text-base text-text outline-none placeholder:text-placeholder"
             />
           </div>
           <Command.List className="max-h-80 overflow-y-auto p-2">

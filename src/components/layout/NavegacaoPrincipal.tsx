@@ -22,13 +22,13 @@ import {
   type ItemNavegacao,
 } from "./navegacao";
 
-// Contadores discretos: só número; cor de estado apenas quando pede atenção (atraso/risco).
+// Contadores em mono sobre trilho de tinta; cor de estado só quando pede atenção (atraso/risco).
 const TOM_CONTADOR = {
-  primary: "text-primary",
-  info: "text-text-muted",
-  danger: "bg-danger-bg text-danger",
-  warning: "bg-warning-bg text-warning",
-  neutral: "text-text-muted",
+  primary: "text-text",
+  info: "text-text",
+  danger: "text-danger",
+  warning: "text-warning",
+  neutral: "text-text",
 } as const;
 
 const formatarContador = (n: number) => (n > 99 ? "99+" : String(n));
@@ -55,10 +55,10 @@ type Contexto = Required<Pick<NavegacaoPrincipalProps, "pathname" | "recolhida" 
     transicao: ReturnType<typeof useTransicaoToken>;
   };
 
-const alvo = (t: Contexto["tamanho"]) => (t === "toque" ? "h-11 text-base" : "h-9 text-sm");
+const alvo = (t: Contexto["tamanho"]) => (t === "toque" ? "h-11 text-base" : "h-10 text-sm");
 const FOCO = "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 const LINHA =
-  "group relative flex w-full items-center gap-2.5 rounded-md px-2.5 font-medium transition-colors duration-(--dur-fast) ease-standard";
+  "group relative flex w-full items-center gap-3 rounded-lg px-3 font-regular transition-colors duration-(--dur-fast) ease-standard";
 
 function Indicador({ transicao }: { transicao: Contexto["transicao"] }) {
   return (
@@ -66,7 +66,7 @@ function Indicador({ transicao }: { transicao: Contexto["transicao"] }) {
       layoutId="indicador-ativo"
       transition={transicao}
       aria-hidden="true"
-      className="absolute inset-0 rounded-md bg-surface-muted"
+      className="absolute inset-0 rounded-lg bg-primary-subtle"
     />
   );
 }
@@ -95,29 +95,28 @@ function LinkItem({ item, ctx, filho = false }: { item: ItemNavegacao; ctx: Cont
         LINHA,
         FOCO,
         alvo(tamanho),
-        filho && "pl-9",
-        compacto && "w-10 justify-center px-0",
-        ativo ? "font-semibold text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
+        filho && "pl-10.5 text-caption",
+        compacto && "w-11 justify-center px-0",
+        ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
       )}
     >
       {ativo ? (
         ctx.flutuante ? (
-          <span aria-hidden="true" className="absolute inset-0 rounded-md bg-surface-muted" />
+          <span aria-hidden="true" className="absolute inset-0 rounded-lg bg-primary-subtle" />
         ) : (
           <Indicador transicao={transicao} />
         )
       ) : null}
-      {filho ? null : <Icon icon={item.icone} size={16} className={cn("relative shrink-0", ativo && "text-primary")} />}
+      {filho ? null : <Icon icon={item.icone} size={18} className="relative shrink-0" />}
       {/* rótulo entra com fade ao expandir a sidebar (some na hora ao recolher: saída mais rápida) */}
       {compacto ? null : <span className="relative min-w-0 flex-1 animate-fade-in truncate">{item.rotulo}</span>}
       {n > 0 && item.contador ? (
         <span
           aria-hidden="true"
           className={cn(
-            "tnum relative inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
+            "num relative inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-sunken px-2 text-2xs",
             TOM_CONTADOR[item.contador.tom],
-            compacto && "absolute -top-1 -right-1 ring-2 ring-bg-subtle",
-            compacto && item.contador.tom !== "danger" && item.contador.tom !== "warning" && "bg-surface-muted",
+            compacto && "absolute -top-1 -right-1 ring-2 ring-bg",
           )}
         >
           {formatarContador(n)}
@@ -150,11 +149,11 @@ function Submenu({ item, ctx }: { item: ItemComSubmenu; ctx: Contexto }) {
   const [flutuanteAberto, setFlutuanteAberto] = useState(false);
   // Pai ativo mostra o indicador só quando os filhos não estão à vista.
   const indicadorNoPai = ativo && (recolhida || !aberto);
-  const aparencia = ativo ? "font-semibold text-text" : "text-text-muted hover:bg-surface-muted hover:text-text";
+  const aparencia = ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text";
   const conteudo = (
     <>
       {indicadorNoPai ? <Indicador transicao={transicao} /> : null}
-      <Icon icon={item.icone} size={16} className={cn("relative shrink-0", ativo && "text-primary")} />
+      <Icon icon={item.icone} size={18} className="relative shrink-0" />
       {recolhida ? null : (
         <>
           <span className="relative min-w-0 flex-1 animate-fade-in truncate text-left">{item.rotulo}</span>
@@ -181,7 +180,7 @@ function Submenu({ item, ctx }: { item: ItemComSubmenu; ctx: Contexto }) {
               aria-label={item.rotulo}
               aria-haspopup="dialog"
               aria-current={indicadorNoPai ? "true" : undefined}
-              className={cn(LINHA, FOCO, alvo(tamanho), "w-10 justify-center px-0", aparencia)}
+              className={cn(LINHA, FOCO, alvo(tamanho), "w-11 justify-center px-0", aparencia)}
             >
               {conteudo}
             </button>
@@ -245,7 +244,7 @@ function Grupo({ grupo, ctx }: { grupo: GrupoNavegacao; ctx: Contexto }) {
     // Sem rótulo: um separador discreto entre grupos.
     return (
       <li>
-        <div aria-hidden="true" className="mx-3 my-2 border-t border-border" />
+        <div aria-hidden="true" className="mx-3 my-3 border-t border-border" />
         <ul className="flex flex-col items-center gap-0.5">
           {grupo.itens.map((item) => (
             <li key={item.href}>
@@ -258,8 +257,8 @@ function Grupo({ grupo, ctx }: { grupo: GrupoNavegacao; ctx: Contexto }) {
   }
 
   const classeRotulo = cn(
-    "flex w-full items-center gap-1 rounded-md px-2.5 text-xs font-medium text-text-muted",
-    ctx.tamanho === "toque" ? "h-11" : "mt-4 mb-1 h-6",
+    "eyebrow flex w-full items-center gap-1 rounded-md px-3 text-text-muted",
+    ctx.tamanho === "toque" ? "h-11" : "mt-5 mb-1 h-6",
   );
   return (
     <li className={cn(recolhivel && "mt-1")}>
@@ -270,7 +269,7 @@ function Grupo({ grupo, ctx }: { grupo: GrupoNavegacao; ctx: Contexto }) {
           aria-expanded={aberto}
           aria-controls={listaId}
           onClick={alternar}
-          className={cn(classeRotulo, FOCO, "text-sm hover:text-text")}
+          className={cn(classeRotulo, FOCO, "hover:text-text")}
         >
           <span className="flex-1 text-left">{grupo.rotulo}</span>
           <Icon

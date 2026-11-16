@@ -17,18 +17,22 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
+        /** Tinta. Um por cabeçalho de página, no máximo. */
         primary: "bg-primary text-on-primary hover:bg-primary-hover",
-        secondary: "border border-border bg-surface text-text shadow-1 hover:border-border-strong hover:bg-bg-subtle",
-        ghost: "text-text hover:bg-surface-muted",
-        destructive: "bg-danger text-on-danger hover:bg-danger-hover",
-        link: "h-auto px-0 text-primary underline-offset-4 hover:underline active:scale-100",
+        /** Fantasma com fio: período, Exportar, ações secundárias. */
+        secondary: "border border-line-strong bg-surface text-text hover:border-border-strong",
+        ghost: "text-text-2 hover:bg-surface-muted hover:text-text",
+        /** Confirmação destrutiva: botão em tinta; o rótulo diz o que se perde (nunca vermelho cheio). */
+        destructive: "bg-primary text-on-primary hover:bg-primary-hover",
+        /** Link de texto: fio sublinhado que escurece no hover ("Abrir agenda", "Ver todos"). */
+        link: "h-auto px-0 text-caption font-regular text-text underline decoration-line-strong decoration-1 underline-offset-4 hover:decoration-text active:scale-100",
       },
       size: {
         sm: "h-8 px-3 text-sm",
         md: "h-10 px-4 text-sm",
-        lg: "h-11 px-6 text-base",
-        /** 44 px abaixo de `md` (alvo de toque), 40 px a partir de `md`. */
-        touch: "h-11 px-4 text-sm md:h-10",
+        lg: "h-11 px-4.5 text-sm",
+        /** 44 px (alvo de toque e padrão dos cabeçalhos). */
+        touch: "h-11 px-4.5 text-sm",
       },
       iconOnly: { true: "px-0" },
     },
@@ -36,7 +40,7 @@ export const buttonVariants = cva(
       { iconOnly: true, size: "sm", className: "w-8" },
       { iconOnly: true, size: "md", className: "w-10" },
       { iconOnly: true, size: "lg", className: "w-11" },
-      { iconOnly: true, size: "touch", className: "w-11 md:w-10" },
+      { iconOnly: true, size: "touch", className: "w-11" },
     ],
     defaultVariants: { variant: "primary", size: "md" },
   },
@@ -60,7 +64,7 @@ export type ButtonProps = WithText | IconOnly;
 
 /**
  * Botão. Uma ação `primary` por vista (Von Restorff); demais `secondary`/`ghost`.
- * Alvos: sm 32 px (só em tabelas densas), md 40 px (padrão desktop), lg 44 px (mobile), touch 44 px abaixo de md e 40 px depois.
+ * Alvos: sm 32 px (só em tabelas densas), md 40 px, lg e touch 44 px (cabeçalhos, mobile).
  */
 export function Button({
   variant,
@@ -76,7 +80,7 @@ export function Button({
   type,
   ...props
 }: ButtonProps) {
-  const iconSize = size === "lg" ? 20 : 16;
+  const iconSize = 16;
   const iconOnly = Boolean(icon);
   const classes = cn(buttonVariants({ variant, size, iconOnly }), className);
 

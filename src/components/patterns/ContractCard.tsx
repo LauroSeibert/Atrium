@@ -60,7 +60,7 @@ export function ContractCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm text-text-muted">{TIPO_CONTRATO_ROTULO[tipo]}</p>
-          <h3 className="text-lg font-semibold break-words text-text">{numero}</h3>
+          <h3 className="num text-md font-medium break-words text-text">{numero}</h3>
         </div>
         <Badge tone={status.tom} dot>
           {status.rotulo}
@@ -85,7 +85,7 @@ export function ContractCard({
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <div>
           <dt className="text-text-muted">Valor</dt>
-          <dd className="tnum font-semibold text-text">{formatMoeda(valor)}</dd>
+          <dd className="num text-text">{formatMoeda(valor)}</dd>
         </div>
         <div>
           <dt className="text-text-muted">Vigência</dt>

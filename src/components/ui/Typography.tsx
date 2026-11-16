@@ -5,14 +5,15 @@ import { cn } from "@/lib/cn";
 
 /* ---------- Heading ---------- */
 
-const headingVariants = cva("font-semibold tracking-tight text-text", {
+/** De `xl` para cima o título é editorial (Instrument Serif, sempre 400); `lg`/`base` são Geist 500. */
+const headingVariants = cva("text-text", {
   variants: {
     size: {
-      "3xl": "text-3xl",
-      "2xl": "text-2xl",
-      xl: "text-xl",
-      lg: "text-lg",
-      base: "text-base",
+      "3xl": "display text-3xl",
+      "2xl": "display text-2xl",
+      xl: "display text-xl",
+      lg: "text-lg font-medium",
+      base: "text-base font-medium",
     },
   },
   defaultVariants: { size: "xl" },
@@ -66,6 +67,13 @@ export function Text({ as: Tag = "p", size, tone, weight, className, ...props }:
   return <Tag className={cn(textVariants({ size, tone, weight }), className)} {...props} />;
 }
 
+/* ---------- Eyebrow ---------- */
+
+/** Rótulo em caixa alta acima de títulos e KPIs ("Financeiro · visão geral"). */
+export function Eyebrow({ className, ...props }: ComponentProps<"p">) {
+  return <p className={cn("eyebrow", className)} {...props} />;
+}
+
 /* ---------- Label ---------- */
 
 export type LabelProps = ComponentProps<typeof LabelPrimitive.Root> & {
@@ -78,7 +86,7 @@ export function Label({ className, children, requirement, ...props }: LabelProps
   return (
     <LabelPrimitive.Root
       className={cn(
-        "text-sm font-medium text-text peer-disabled:cursor-not-allowed peer-disabled:text-text-muted",
+        "text-caption font-medium text-text peer-disabled:cursor-not-allowed peer-disabled:text-text-muted",
         className,
       )}
       {...props}
@@ -110,8 +118,8 @@ export type NumericProps = ComponentProps<"span"> & {
   weight?: "regular" | "medium" | "semibold";
 };
 
-/** Número com algarismos tabulares (tabelas e KPIs). Formate antes com `@/lib/format`. */
-export function Numeric({ size = "sm", weight = "medium", className, ...props }: NumericProps) {
+/** Número em Geist Mono com algarismos tabulares (dinheiro em tabelas e listas). Formate antes com `@/lib/format`. */
+export function Numeric({ size = "sm", weight = "regular", className, ...props }: NumericProps) {
   const sizes = {
     sm: "text-sm",
     base: "text-base",
@@ -121,5 +129,43 @@ export function Numeric({ size = "sm", weight = "medium", className, ...props }:
     "3xl": "text-3xl",
   } as const;
   const weights = { regular: "font-regular", medium: "font-medium", semibold: "font-semibold" } as const;
-  return <span className={cn("tnum", sizes[size], weights[weight], className)} {...props} />;
+  return <span className={cn("num", sizes[size], weights[weight], className)} {...props} />;
+}
+
+/* ---------- Destaque ---------- */
+
+/** Separa prefixo/sufixo de unidade de um valor já formatado: "R$ 3,7 mi" → ["R$ ", "3,7", " mi"]. */
+export function partesDestaque(texto: string): [string, string, string] {
+  const m = /^(-?\s*R\$\s?)?(.*?)((?:\s(?:mil|mi|bi))|(?:,\d{2})|%)?$/u.exec(texto);
+  if (!m) return ["", texto, ""];
+  return [m[1] ?? "", m[2] ?? texto, m[3] ?? ""];
+}
+
+export type DestaqueProps = ComponentProps<"span"> & {
+  /** Valor já formatado (`@/lib/format`). */
+  valor: string;
+  /** `4xl` KPI (padrão), `5xl` título, `6xl` resultado do mês, `3xl`/`2xl` destaques menores. */
+  size?: "2xl" | "3xl" | "4xl" | "5xl" | "6xl";
+};
+
+/**
+ * Número de destaque em Instrument Serif com as unidades menores e em text-2
+ * ("R$ 3,7 mi", "R$ 3.712.120,00"). Os números são o herói da tela.
+ */
+export function Destaque({ valor, size = "4xl", className, ...props }: DestaqueProps) {
+  const [antes, numero, depois] = partesDestaque(valor);
+  const tamanhos = {
+    "2xl": "text-2xl",
+    "3xl": "text-3xl",
+    "4xl": "text-4xl",
+    "5xl": "text-5xl",
+    "6xl": "text-6xl tracking-tight",
+  } as const;
+  return (
+    <span className={cn("display tnum leading-display", tamanhos[size], className)} {...props}>
+      {antes ? <span className="unidade">{antes}</span> : null}
+      {numero}
+      {depois ? <span className="unidade">{depois}</span> : null}
+    </span>
+  );
 }

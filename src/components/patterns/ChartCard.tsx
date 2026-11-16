@@ -146,10 +146,10 @@ export function ChartCard<T>(props: ChartCardProps<T>) {
   const dados = "dados" in estado ? estado.dados : undefined;
   const alternavel = dados !== undefined && !(estaVazio?.(dados) ?? false);
   return (
-    <Card className={cn("flex min-w-0 flex-col gap-4 p-4 sm:p-5", className)}>
+    <Card className={cn("flex min-w-0 flex-col gap-6 p-5 sm:px-8 sm:pt-7.5 sm:pb-7", className)}>
       <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <Heading level={headingLevel} size="base" className="break-words">
+          <Heading level={headingLevel} size="2xl" className="break-words">
             {titulo}
           </Heading>
           {descricao ? (

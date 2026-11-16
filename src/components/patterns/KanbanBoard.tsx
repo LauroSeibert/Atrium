@@ -27,7 +27,6 @@ import { cn } from "@/lib/cn";
 import { paraCss, useTransicaoToken } from "@/lib/motion";
 import { formatMoeda } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
-import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "./EmptyState";
@@ -190,22 +189,20 @@ function Coluna({
     <section
       aria-labelledby={titulo}
       className={cn(
-        "flex w-72 shrink-0 flex-col gap-3 rounded-lg border bg-bg-subtle p-3 sm:w-80",
+        "flex w-72 shrink-0 flex-col gap-4 rounded-lg border p-2 sm:w-80",
         // coluna-alvo destaca com transição curta (Fase 9)
         "transition-colors duration-(--dur-fast) ease-standard",
-        negado ? "border-danger bg-danger-bg" : isOver ? "border-primary" : "border-border",
+        negado ? "border-danger-line" : isOver ? "border-line-strong bg-surface-muted" : "border-transparent",
       )}
     >
-      <header className="flex flex-col gap-1">
-        <div className="flex items-center justify-between gap-2">
-          <h2 id={titulo} className="flex items-center gap-2 text-base font-semibold text-text">
-            <Badge tone={info.tom}>{info.rotulo}</Badge>
-            <span className="font-normal text-sm text-text-muted">
-              {leads.length} {leads.length === 1 ? "negociação" : "negociações"}
-            </span>
-          </h2>
-        </div>
-        <p className="tnum text-sm text-text-muted">
+      <header className="flex flex-col gap-1 border-b border-border px-1 pb-3">
+        <h2 id={titulo} className="flex items-baseline justify-between gap-2">
+          <span className="eyebrow text-text">{info.rotulo}</span>
+          <span className="num text-xs text-text-muted">
+            {leads.length} {leads.length === 1 ? "negociação" : "negociações"}
+          </span>
+        </h2>
+        <p className="num text-caption text-text-2">
           <span className="sr-only">Valor somado: </span>
           {soma > 0 ? formatMoeda(soma, { compacto: true }) : "Sem valor"}
         </p>
@@ -383,7 +380,7 @@ export function KanbanBoardSkeleton({ etapas = ETAPAS }: { etapas?: readonly Eta
       {etapas.map((e, i) => (
         <div
           key={e}
-          className="flex w-72 shrink-0 flex-col gap-3 rounded-lg border border-border bg-bg-subtle p-3 sm:w-80"
+          className="flex w-72 shrink-0 flex-col gap-3 p-2 sm:w-80"
         >
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="h-4 w-1/3" />

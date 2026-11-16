@@ -96,3 +96,21 @@ Saem: bege, ocre, `--accent-ochre`, gradientes, sombras em cards.
 5. Dashboard.
 6. Imóveis, Leads, Contratos, Financeiro, Configurações.
 7. QA visual (1440/1024/834/390, claro e escuro), axe, e2e, auditoria, catálogo.
+
+---
+
+# §2. Reformulação "quiet luxury" (2026-11-16)
+
+Pedido do Lauro: reformulação completa seguindo o DESIGN.md enviado por ele e o canvas de inspiração (Dashboard, Agenda, Financeiro, Visual direction), para "um app com alma". Esta seção substitui a paleta verde perene e a sidebar clara da §1.
+
+**Direção:** banco privado ou estúdio de arquitetura. Porcelana, papel, tinta, pedra e um único acento em latão; Instrument Serif nos títulos e números de destaque, Geist na interface, Geist Mono no dinheiro de tabela. Fios em vez de caixas, um painel em tinta por tela, cabeçalho editorial em toda página.
+
+**Decisões:**
+
+- O nome continua **Atrium** (o documento dizia "Atrius").
+- O DESIGN.md prevalece sobre a §1: sai o verde, entra o latão; a sidebar passa a ser em tinta. A estrutura do menu (Comercial, Operação, Financeiro com submenu, Relatórios) não muda.
+- Inputs mantêm `--border-strong` (3:1) em vez do fio claro do guia (1,3:1). Barras em pedra nos gráficos ficam abaixo de 3:1 por decisão de design e estão documentadas em `contrast.json` (há resumo acessível, rótulo e tabela).
+- Sem dica ⌘K visível (preferência "menos é mais"); o atalho segue em `aria-keyshortcuts`.
+- Botão destrutivo em tinta, com rótulo explícito, como pede o guia.
+- Implementação: tokens em `design-system/tokens.json`, classe `.tinta` gerada para superfícies escuras, receitas em `DESIGN_SYSTEM.md` §2, §6 e §12.
+- Foco nas telas: o catálogo de componentes não foi atualizado nesta etapa (pedido do Lauro).

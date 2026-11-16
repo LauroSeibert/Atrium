@@ -30,7 +30,7 @@ export function CartaoLinha({ titulo, rotuloAcessivel, subtitulo, selo, children
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold break-words text-text">{titulo}</h3>
+          <h3 className="text-base font-medium break-words text-text">{titulo}</h3>
           {subtitulo ? <p className="text-sm break-words text-text-muted">{subtitulo}</p> : null}
         </div>
         {selo}

@@ -84,3 +84,44 @@ export function agendaDoPeriodo(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([data, lista]) => ({ data, itens: lista.sort((a, b) => chave(a).localeCompare(chave(b))) }));
 }
+
+export type ResumoAgenda = {
+  /** Visitas que ainda contam: agendadas ou realizadas (canceladas e não comparecimentos ficam de fora). */
+  visitas: number;
+  vencimentos: number;
+  /** Soma dos vencimentos em aberto do período, em centavos. */
+  aReceber: number;
+  /** Visitas que contam, por corretor, da maior para a menor. */
+  porCorretor: { corretorId: string; visitas: number }[];
+};
+
+const VISITA_CONTA: Readonly<Record<StatusVisita, boolean>> = {
+  agendada: true,
+  realizada: true,
+  cancelada: false,
+  naoCompareceu: false,
+};
+
+/** Totais do período da Agenda (RF-73) a partir de `agendaDoPeriodo`. */
+export function resumoAgenda(dias: readonly DiaAgenda[]): ResumoAgenda {
+  const porCorretor = new Map<string, number>();
+  let visitas = 0;
+  let vencimentos = 0;
+  let aReceber = 0;
+  for (const i of dias.flatMap((d) => d.itens)) {
+    if (i.tipo === "visita") {
+      if (!VISITA_CONTA[i.visita.status]) continue;
+      visitas += 1;
+      porCorretor.set(i.visita.corretorId, (porCorretor.get(i.visita.corretorId) ?? 0) + 1);
+    } else {
+      vencimentos += 1;
+      aReceber += i.parcela.valor;
+    }
+  }
+  return {
+    visitas,
+    vencimentos,
+    aReceber,
+    porCorretor: [...porCorretor].map(([corretorId, n]) => ({ corretorId, visitas: n })).sort((a, z) => z.visitas - a.visitas),
+  };
+}

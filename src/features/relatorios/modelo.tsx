@@ -29,6 +29,8 @@ export const PERIODO_ROTULO: Record<Periodo, string> = {
 
 export type Relatorio = {
   aba: string;
+  /** Uma linha: o que o relatório mostra (lista de relatórios). */
+  descricao: string;
   titulo: string;
   tituloVazio: string;
   arquivo: string;
@@ -45,6 +47,7 @@ const soma = (xs: number[]) => xs.reduce((s, x) => s + x, 0);
 
 const vendas: Relatorio = {
   aba: "Vendas",
+  descricao: "Quantidade e valor das vendas fechadas, mês a mês.",
   titulo: "Vendas por período",
   tituloVazio: "Nenhuma venda no período",
   arquivo: "relatorio-vendas.csv",
@@ -71,6 +74,7 @@ const vendas: Relatorio = {
 
 const corretores: Relatorio = {
   aba: "Corretores",
+  descricao: "Negociações e receita de cada corretor.",
   titulo: "Desempenho dos corretores",
   tituloVazio: "Nenhum corretor no recorte",
   arquivo: "relatorio-corretores.csv",
@@ -125,6 +129,7 @@ const corretores: Relatorio = {
 
 const conversao: Relatorio = {
   aba: "Conversão",
+  descricao: "Do primeiro contato ao fechamento, etapa por etapa.",
   titulo: "Conversão de leads",
   tituloVazio: "Nenhum lead no período",
   arquivo: "relatorio-conversao.csv",
@@ -148,6 +153,7 @@ const conversao: Relatorio = {
 
 const procurados: Relatorio = {
   aba: "Imóveis",
+  descricao: "Os imóveis com mais interesse no período.",
   titulo: "Imóveis mais procurados",
   tituloVazio: "Nenhuma procura no período",
   arquivo: "relatorio-imoveis-procurados.csv",
@@ -189,6 +195,7 @@ const procurados: Relatorio = {
 
 const receita: Relatorio = {
   aba: "Receita",
+  descricao: "Receita de vendas e locações por mês.",
   titulo: "Receita por período",
   tituloVazio: "Nenhuma receita no período",
   arquivo: "relatorio-receita.csv",

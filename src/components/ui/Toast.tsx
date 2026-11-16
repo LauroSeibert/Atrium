@@ -71,7 +71,7 @@ export function Toaster() {
             onOpenChange={(open) => {
               if (!open) dismiss(t.id);
             }}
-            className="flex items-start gap-3 rounded-lg border border-border bg-surface-raised py-3 pr-2 pl-4 text-sm text-text shadow-3 data-[state=closed]:animate-fade-out data-[state=open]:animate-slide-in-up data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform data-[swipe=end]:animate-swipe-out-right data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=move]:transition-none"
+            className="flex items-start gap-3 rounded-lg border border-border bg-surface-raised py-3 pr-2 pl-4 text-sm text-text shadow-2 data-[state=closed]:animate-fade-out data-[state=open]:animate-slide-in-up data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform data-[swipe=end]:animate-swipe-out-right data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x) data-[swipe=move]:transition-none"
           >
             <Icon icon={tone.icon} size={16} className={cn("mt-0.5 shrink-0", tone.color)} />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5 self-center">

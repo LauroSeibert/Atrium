@@ -115,6 +115,7 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
     <>
       <DefinirTrilha rotulo={imovel.codigo} />
       <PageHeader
+        eyebrow={`Imóveis · ${imovel.codigo}`}
         titulo={imovel.titulo}
         acoes={
           <>
@@ -165,18 +166,18 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
             fachada={imovel.fachada}
             titulo={imovel.titulo}
           />
-          <SectionCard titulo="Sobre o imóvel">
+          <SectionCard titulo="Sobre o imóvel" variante="aberta">
             {imovel.descricao ? <Text className="break-words whitespace-pre-line">{imovel.descricao}</Text> : null}
             <FeatureChips diferenciais={imovel.diferenciais} />
           </SectionCard>
-          <SectionCard titulo="Ficha técnica">
+          <SectionCard titulo="Ficha técnica" variante="aberta">
             <SpecList imovel={imovel} />
           </SectionCard>
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
           <SectionCard titulo="Resumo">
-            <PrecoImovel imovel={imovel} />
+            <PrecoImovel imovel={imovel} tamanho="3xl" />
             <SelosImovel imovel={imovel} />
             {imovel.motivoInativo ? (
               <Text tone="muted" size="sm">
@@ -230,7 +231,7 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
               <ul aria-label="Contratos do imóvel" className="flex flex-col gap-2">
                 {contratos.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-2">
-                    <Button asChild variant="link" className="tnum text-sm">
+                    <Button asChild variant="link" className="num text-sm">
                       <Link href={`/contratos/${c.id}`}>{c.numero}</Link>
                     </Button>
                     <Badge tone={STATUS_CONTRATO_UI[c.status].tom} size="sm">

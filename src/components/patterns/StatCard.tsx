@@ -1,11 +1,12 @@
 "use client";
-import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { useId, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { formatMoeda, formatNumero, formatPercentual } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
 import { Card } from "../ui/Card";
 import { Icon } from "../ui/Icon";
+import { Destaque } from "../ui/Typography";
 import { Skeleton } from "../ui/Skeleton";
 import { EstadoRecurso } from "./EstadoRecurso";
 
@@ -71,7 +72,7 @@ export const kpiVazio = (k: DadosStat) =>
 
 type Leitura = {
   tom: "bom" | "ruim" | "neutro";
-  icone: typeof ArrowUp;
+  icone: typeof ArrowUpRight;
   texto: string;
   /** Parte destacada (ex.: "8,0%"); vazia quando não há número. */
   quanto: string;
@@ -96,7 +97,7 @@ function lerVariacao(v: VariacaoKpi, sentido: SentidoKpi, comparacao: string, po
   const quanto = nova ? "" : pontos ? `${formatNumero(v.fracao, 1)} p.p.` : formatPercentual(v.fracao);
   return {
     tom: bom ? "bom" : "ruim",
-    icone: subiu ? ArrowUp : ArrowDown,
+    icone: subiu ? ArrowUpRight : ArrowDownRight,
     texto: nova ? `novo ${comparacao}` : `${quanto} ${comparacao}`,
     quanto: nova ? "novo" : quanto,
     contexto: comparacao,
@@ -107,6 +108,12 @@ function lerVariacao(v: VariacaoKpi, sentido: SentidoKpi, comparacao: string, po
 }
 
 const COR_TOM = { bom: "text-success", ruim: "text-danger", neutro: "text-text-muted" } as const;
+
+/** Célula: respiro editorial, alinhada à esquerda da faixa; card: padding de painel. */
+const PADDING = {
+  celula: "py-6 pr-4 pl-4 odd:pl-0 sm:pt-6.5 sm:pr-7 sm:pb-7.5 sm:pl-7 sm:odd:pl-0 lg:odd:pl-7 lg:first:pl-0",
+  card: "p-5 sm:px-7 sm:py-6.5",
+} as const;
 
 /** Resumo textual da tendência (alternativa à mini-linha, que é decorativa). */
 export function resumoTendencia(tendencia: number[], formatar: (n: number) => string): string {
@@ -167,7 +174,7 @@ export type StatCardProps = {
   sentido?: SentidoKpi;
   /** Texto da comparação. Padrão: "vs. mês anterior". */
   comparacao?: string;
-  /** Mostra a mini tendência. Padrão: sim. */
+  /** Lê a tendência para leitores de tela (a mini-linha visual saiu: só números com eixo contam). Padrão: sim. */
   tendencia?: boolean;
   /**
    * `card` (padrão): painel próprio com borda. `celula`: sem caixa, para viver dentro de um
@@ -178,8 +185,8 @@ export type StatCardProps = {
 };
 
 /**
- * Faixa de KPIs: um único painel com divisórias finas entre as células (2 colunas no celular/tablet,
- * N a partir de 1024 px). Os filhos são `StatCard variante="celula"`.
+ * Faixa de KPIs sem caixa: fio de tinta em cima, fio claro embaixo e divisórias verticais finas
+ * (2 colunas no celular/tablet, N a partir de 1024 px). Os filhos são `StatCard variante="celula"`.
  */
 export function StatGroup({
   children,
@@ -197,10 +204,10 @@ export function StatGroup({
       role="group"
       aria-label={rotulo}
       className={cn(
-        "grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border",
+        "grid grid-cols-2 gap-px overflow-hidden border-t border-b border-t-text border-b-border bg-border",
         colunas === 3 && "lg:grid-cols-3",
         colunas === 4 && "lg:grid-cols-4",
-        "[&>*]:bg-surface",
+        "[&>*]:bg-bg",
         // número ímpar de KPIs no grid de 2 colunas: a última célula ocupa a linha toda (sem "buraco")
         "[&>*:last-child:nth-child(odd)]:col-span-2",
         colunas !== 2 && "lg:[&>*:last-child:nth-child(odd)]:col-span-1",
@@ -221,14 +228,13 @@ export function StatCardSkeleton({
 }) {
   const Caixa = variante === "card" ? Card : "div";
   return (
-    <Caixa aria-busy="true" className={cn("flex flex-col gap-3 p-4 sm:p-5", className)}>
+    <Caixa aria-busy="true" className={cn("flex flex-col gap-4", PADDING[variante], className)}>
       <span className="sr-only" role="status">
         Carregando indicador
       </span>
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-8 w-2/3" />
+      <Skeleton className="h-3 w-1/2" />
+      <Skeleton className="h-14 w-2/3" />
       <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-8 w-full" />
     </Caixa>
   );
 }
@@ -260,33 +266,30 @@ function Corpo({
   const serie = kpi.tendencia ?? [];
   const Caixa = variante === "card" ? Card : "div";
   return (
-    <Caixa className="flex h-full min-w-0 flex-col gap-1 p-4 sm:p-5" role="group" aria-labelledby={`${id}-r`}>
-      <p id={`${id}-r`} className="text-sm text-text-muted">
+    <Caixa
+      className={cn("flex h-full min-w-0 flex-col", PADDING[variante])}
+      role="group"
+      aria-labelledby={`${id}-r`}
+    >
+      <p id={`${id}-r`} className="eyebrow">
         {rotulo}
       </p>
-      <div className="flex items-end justify-between gap-3">
-        <p
-          className={cn(
-            "tnum min-w-0 leading-heading font-semibold tracking-tight [overflow-wrap:anywhere]",
-            formato === "moedaCompleta" ? "text-lg sm:text-2xl" : "text-xl sm:text-2xl",
-            kpi.tom === "alerta" ? "text-danger" : "text-text",
-          )}
-        >
-          {formatar(kpi.valor)}
-        </p>
-        {leitura !== null && !vazio && tendencia && serie.length > 1 ? (
-          <div className="mb-1 shrink-0 sm:w-20">
-            <Sparkline valores={serie} className="hidden h-6 sm:block" />
-            <span className="sr-only">{resumoTendencia(serie, formatar)}</span>
-          </div>
-        ) : null}
-      </div>
+      <p className={cn("mt-4.5 mb-3.5 min-w-0 [overflow-wrap:anywhere]", kpi.tom === "alerta" ? "text-danger" : "text-text")}>
+        <Destaque
+          valor={formatar(kpi.valor)}
+          size={formato === "moedaCompleta" || variante === "card" ? "3xl" : "4xl"}
+          className={kpi.tom === "alerta" ? "[&_.unidade]:text-danger" : undefined}
+        />
+      </p>
+      {leitura !== null && !vazio && tendencia && serie.length > 1 ? (
+        <span className="sr-only">{resumoTendencia(serie, formatar)}</span>
+      ) : null}
       {leitura === null ? null : vazio ? (
-        <p className="mt-auto pt-1 text-xs text-text-muted">Sem dados no período</p>
+        <p className="mt-auto text-caption text-text-muted">Sem dados no período</p>
       ) : (
-        <p className="mt-auto flex min-w-0 flex-wrap items-center gap-x-1 pt-1 text-xs text-text-muted">
+        <p className="mt-auto flex min-w-0 flex-wrap items-center gap-x-1.5 text-caption text-text-muted">
           <span className={cn("inline-flex shrink-0 items-center gap-0.5 font-medium", COR_TOM[leitura.tom])}>
-            <Icon icon={leitura.icone} size={16} />
+            <Icon icon={leitura.icone} size={14} />
             <span aria-hidden="true" className="tnum">
               {leitura.quanto}
             </span>

@@ -92,13 +92,13 @@ export function TelaRepasses() {
       id: "repasse",
       cabecalho: "Repasse",
       alinhamento: "direita",
-      celula: (l) => <span className="font-medium whitespace-nowrap">{formatMoeda(l.repasse)}</span>,
+      celula: (l) => <span className="whitespace-nowrap">{formatMoeda(l.repasse)}</span>,
     },
   ];
 
   return (
     <>
-      <PageHeader titulo="Repasses" />
+      <PageHeader eyebrow="Financeiro · repasses" titulo="Repasses" />
       <div className="flex min-w-0 flex-col gap-4">
         <FilterBar
           aVista={

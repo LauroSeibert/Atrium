@@ -102,7 +102,7 @@ function Item({
         <span
           aria-hidden="true"
           className={cn(
-            "absolute bottom-0 w-px -translate-x-1/2 bg-border",
+            "absolute bottom-0 w-px -translate-x-1/2 bg-border-soft",
             compacto ? "top-8 left-3.5" : "top-9 left-4",
           )}
         />
@@ -110,14 +110,14 @@ function Item({
       <span
         aria-hidden="true"
         className={cn(
-          "z-10 inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-muted",
-          compacto ? "size-7" : "size-8",
+          "z-10 inline-flex shrink-0 items-center justify-center rounded-full text-text-muted",
+          compacto ? "size-7 bg-surface-muted" : "size-8 border border-border bg-surface",
         )}
       >
         <Icon icon={ICONE_ATIVIDADE[atividade.tipo]} size={16} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-1">
-        <p className="text-sm font-medium break-words text-text">{titulo_}</p>
+        <p className={cn("break-words text-text", compacto ? "text-caption" : "text-sm font-medium")}>{titulo_}</p>
         {detalhe ? <p className="tnum text-xs break-words text-text-muted">{detalhe}</p> : null}
         <p className="text-xs text-text-muted">
           {nomeDoAutor(autores, atividade.autorId)} ·{" "}

@@ -33,6 +33,24 @@ const PERIODO_UI: Record<Periodo, { rotulo: string; comparacao: string }> = {
 };
 const OPCOES_PERIODO = PERIODOS.map((p) => ({ value: p, label: PERIODO_UI[p].rotulo }));
 
+const FUSO = "America/Sao_Paulo";
+const dataPorExtenso = new Intl.DateTimeFormat("pt-BR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: FUSO,
+});
+const horaDe = new Intl.DateTimeFormat("pt-BR", { hour: "numeric", hourCycle: "h23", timeZone: FUSO });
+const mesPorExtenso = new Intl.DateTimeFormat("pt-BR", { month: "long", timeZone: FUSO });
+
+/** "Bom dia", "Boa tarde" ou "Boa noite" pela hora local de `agora`. */
+function saudacaoDaHora(agora: Date): string {
+  const h = Number(horaDe.format(agora));
+  if (h >= 5 && h < 12) return "Bom dia";
+  if (h >= 12 && h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 const ehPeriodo = (v: string | undefined): v is Periodo => PERIODOS.some((p) => p === v);
 
 type Nomes = Awaited<ReturnType<typeof fakeApi.getDashboard>>["nomes"];
@@ -71,12 +89,17 @@ export function TelaDashboard() {
   const agenda = useMemo(() => mapear(d, (x) => x.compromissos.map((c) => itemDeAgenda(c, x.nomes))), [d]);
   const metas = useMemo(() => mapear(d, (x) => x.meta), [d]);
   const corretores = dados?.nomes.corretores;
+  const { estado: perfil } = useConsulta(useCallback(() => fakeApi.getPerfil(), []));
+  const primeiroNome = dadosDe(perfil)?.nome.trim().split(/\s+/)[0];
   const nomeDe = useCallback((id: string) => corretores?.[id] ?? "Corretor", [corretores]);
 
   return (
     <>
       <PageHeader
-        titulo="Dashboard"
+        eyebrow={
+          agora ? `${dataPorExtenso.format(agora).replace(/^./, (c) => c.toLocaleUpperCase("pt-BR"))}` : "Visão geral"
+        }
+        titulo={agora ? `${saudacaoDaHora(agora)}${primeiroNome ? `, ${primeiroNome}` : ""}.` : "Dashboard"}
         acaoPrimaria={
           <AcaoLink href="/leads?novo=1" icone={Plus}>
             Novo lead
@@ -93,7 +116,7 @@ export function TelaDashboard() {
           </div>
         }
       />
-      <StatGroup aria-label="Indicadores" className="mb-6 xl:mb-8">
+      <StatGroup aria-label="Indicadores" className="mb-10">
         <StatCard
           variante="celula"
           rotulo="Imóveis ativos"
@@ -134,6 +157,7 @@ export function TelaDashboard() {
         <MetaRealizado
           estado={metas}
           nomeDe={nomeDe}
+          mes={agora ? mesPorExtenso.format(agora) : undefined}
           onTentarNovamente={recarregar}
           className="md:col-span-2 xl:col-span-4"
         />
@@ -161,7 +185,9 @@ export function TelaDashboard() {
           />
         </SectionCard>
         <SectionCard titulo="Próximos compromissos" variante="aberta" className="md:col-span-2 xl:col-span-7">
-          <AgendaList estado={agenda} agora={agora} onTentarNovamente={recarregar} />
+          <div className="rounded-lg border border-border bg-surface p-6">
+            <AgendaList estado={agenda} agora={agora} onTentarNovamente={recarregar} />
+          </div>
         </SectionCard>
       </div>
     </>

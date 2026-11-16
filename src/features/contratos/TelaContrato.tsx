@@ -7,7 +7,8 @@
 import { rotaDoImovel } from "@/components/layout/navegacao";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
+import { cn } from "@/lib/cn";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ChangeLog } from "@/components/patterns/ChangeLog";
 import { ConfirmDestructive, type FaseConfirmacao } from "@/components/patterns/ConfirmDestructive";
@@ -20,9 +21,9 @@ import {
 } from "@/components/patterns/PaymentSchedule";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
 import { SectionCard } from "@/components/patterns/SectionCard";
-import { StatCard, StatGroup } from "@/components/patterns/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Destaque } from "@/components/ui/Typography";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { podeRegistrarPagamento, type TipoContrato } from "@/domain";
@@ -51,6 +52,18 @@ const TITULO_CRONOGRAMA: Record<TipoContrato, string> = {
   locacao: "Cronograma de aluguéis",
   venda: "Cronograma de parcelas",
 };
+
+function Medida({ rotulo, valor, alerta = false }: { rotulo: string; valor: number; alerta?: boolean }) {
+  const id = useId();
+  return (
+    <div role="group" aria-labelledby={id}>
+      <p id={id} className="eyebrow">
+        {rotulo}
+      </p>
+      <p className={cn("mt-2 num text-xl", alerta && "text-danger")}>{moeda(valor)}</p>
+    </div>
+  );
+}
 
 function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<string, string> }) {
   const { contrato } = d;
@@ -102,9 +115,10 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
     <>
       <DefinirTrilha rotulo={contrato.numero} />
       <PageHeader
+        eyebrow="Operação · contrato"
         titulo={
           <span className="flex flex-wrap items-center gap-3">
-            Contrato {contrato.numero}
+            Contrato <span className="num text-2xl text-text-2">{contrato.numero}</span>
             <Badge tone={status.tom} dot>
               {status.rotulo}
             </Badge>
@@ -125,7 +139,7 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
               </Button>
             ) : null}
             {podeCancelar ? (
-              <Button variant="destructive" onClick={() => setCancelando(true)}>
+              <Button variant="secondary" onClick={() => setCancelando(true)}>
                 Cancelar contrato
               </Button>
             ) : null}
@@ -146,62 +160,71 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
         }
       />
 
-      <div className="flex min-w-0 flex-col gap-6">
-        <StatGroup aria-label="Indicadores do contrato" colunas={3}>
-          <StatCard
-            variante="celula"
-            rotulo="Pago"
-            formato="moedaCompleta"
-            estado={{ fase: "success", dados: { valor: resumo.recebido } }}
-          />
-          <StatCard
-            variante="celula"
-            rotulo="A receber"
-            formato="moedaCompleta"
-            estado={{ fase: "success", dados: { valor: resumo.aReceber } }}
-          />
-          <StatCard
-            variante="celula"
-            rotulo="Atrasado"
-            formato="moedaCompleta"
-            estado={{
-              fase: "success",
-              dados: { valor: resumo.emAtraso, tom: resumo.atrasadas > 0 ? "alerta" : "neutro" },
-            }}
-          />
-        </StatGroup>
+      <div className="flex min-w-0 flex-col gap-8">
+        <section aria-label="Resumo de valor" className="tinta rounded-lg bg-ink-panel p-7 text-text sm:p-8">
+          <p className="eyebrow">Valor do contrato</p>
+          <p className="mt-4 mb-6">
+            <Destaque valor={moeda(contrato.valor)} size="5xl" />
+          </p>
+          {resumo.total > 0 ? (
+            <>
+              <div
+                role="progressbar"
+                aria-label="Parcelas pagas"
+                aria-valuemin={0}
+                aria-valuemax={resumo.total}
+                aria-valuenow={resumo.pagas}
+                aria-valuetext={`${resumo.pagas} de ${resumo.total} parcelas pagas`}
+                className="h-1 rounded-full bg-ink-track"
+              >
+                <div
+                  className="h-full rounded-full bg-accent"
+                  style={{ width: `${resumo.total > 0 ? (resumo.pagas / resumo.total) * 100 : 0}%` }}
+                />
+              </div>
+              <p className="mt-2 num text-xs text-text-muted">
+                {resumo.pagas} de {resumo.total} parcelas pagas
+              </p>
+            </>
+          ) : null}
+          <div className="mt-7 grid grid-cols-1 gap-x-8 gap-y-5 border-t border-border pt-6 sm:grid-cols-3">
+            <Medida rotulo="Pago" valor={resumo.recebido} />
+            <Medida rotulo="A receber" valor={resumo.aReceber} />
+            <Medida rotulo="Atrasado" valor={resumo.emAtraso} alerta={resumo.atrasadas > 0} />
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <SectionCard titulo="Dados do contrato">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <div>
-                <dt className="text-text-muted">Tipo</dt>
+                <dt className="text-caption text-text-muted">Tipo</dt>
                 <dd className="font-medium">{TIPO_CONTRATO_ROTULO[contrato.tipo]}</dd>
               </div>
               <div>
-                <dt className="text-text-muted">Valor</dt>
-                <dd className="tnum font-medium">{moeda(contrato.valor)}</dd>
+                <dt className="text-caption text-text-muted">Valor</dt>
+                <dd className="num font-medium">{moeda(contrato.valor)}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-text-muted">Vigência</dt>
+                <dt className="text-caption text-text-muted">Vigência</dt>
                 <dd className="tnum font-medium">
                   {formatData(contrato.inicio)} a {formatData(contrato.fim)}
                 </dd>
               </div>
               {contrato.taxaAdministracao !== null ? (
                 <div>
-                  <dt className="text-text-muted">Taxa de administração</dt>
+                  <dt className="text-caption text-text-muted">Taxa de administração</dt>
                   <dd className="tnum font-medium">{formatPercentual(contrato.taxaAdministracao / 100)}</dd>
                 </div>
               ) : null}
               {contrato.motivoCancelamento ? (
                 <div className="col-span-2">
-                  <dt className="text-text-muted">Motivo do cancelamento</dt>
+                  <dt className="text-caption text-text-muted">Motivo do cancelamento</dt>
                   <dd className="font-medium break-words">{contrato.motivoCancelamento}</dd>
                 </div>
               ) : null}
             </dl>
-            <div className="flex flex-col gap-1 border-t border-border pt-3 text-sm">
+            <div className="flex flex-col gap-1 border-t border-border-soft pt-3 text-sm">
               <span className="text-text-muted">Imóvel</span>
               {imovel ? (
                 <Button asChild variant="link" className="justify-start text-left whitespace-normal">
@@ -227,7 +250,7 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
           </SectionCard>
 
           <SectionCard titulo="Partes">
-            <ul className="flex flex-col divide-y divide-border">
+            <ul className="flex flex-col divide-y divide-border-soft">
               {contrato.partes.map((p) => (
                 <li
                   key={`${p.papel}-${p.documento}`}
@@ -235,7 +258,7 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
                 >
                   <span className="text-text-muted">{PAPEL[p.papel]}</span>
                   <span className="font-medium break-words">{p.nome}</span>
-                  <span className="tnum text-text-muted">{formatDocumentoMascarado(p.documento)}</span>
+                  <span className="num text-caption text-text-muted">{formatDocumentoMascarado(p.documento)}</span>
                 </li>
               ))}
             </ul>

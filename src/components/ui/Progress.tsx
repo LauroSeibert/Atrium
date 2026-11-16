@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 const barVariants = cva("size-full rounded-full transition-transform duration-(--dur-base) ease-standard", {
   variants: {
     tone: {
-      primary: "bg-primary",
+      primary: "bg-accent",
       success: "bg-success",
       warning: "bg-warning",
       danger: "bg-danger",
@@ -58,7 +58,7 @@ export function Progress({
       <ProgressPrimitive.Root
         value={clamped}
         aria-labelledby={labelId}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
+        className="h-1 w-full overflow-hidden rounded-full bg-surface-muted"
         {...props}
       >
         <ProgressPrimitive.Indicator

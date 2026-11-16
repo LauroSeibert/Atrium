@@ -11,10 +11,10 @@ type Theme = "light" | "dark";
 type TokenNode = { $value: unknown; $description?: string };
 
 const isToken = ([key]: [string, unknown]) => !key.startsWith("$");
-const scaleNames = ["green", "neutral"] as const;
+const scaleNames = ["brass", "warm"] as const;
 const scaleLabel: Record<(typeof scaleNames)[number], string> = {
-  green: "Verde perene",
-  neutral: "Neutro",
+  brass: "Latão",
+  warm: "Neutros quentes",
 };
 
 const semanticEntries = Object.entries(tokens.semantic.light).filter(isToken) as [string, TokenNode][];
@@ -25,27 +25,11 @@ const fmtRatio = (n: number) =>
 const swatch = (cssVar: string): CSSProperties => ({ backgroundColor: `var(--${cssVar})` });
 
 const brandColors = [
-  {
-    token: "brand-white",
-    name: "Branco",
-    value: tokens.color.brand.white.$value,
-    share: 85,
-    role: "Fundo e superfícies",
-  },
-  {
-    token: "brand-graphite",
-    name: "Grafite",
-    value: tokens.color.brand.graphite.$value,
-    share: 10,
-    role: "Texto principal",
-  },
-  {
-    token: "brand-green",
-    name: "Verde perene",
-    value: tokens.color.brand.green.$value,
-    share: 5,
-    role: "Único acento: ação primária, seleção, indicadores",
-  },
+  { token: "brand-porcelain", name: "Porcelana", value: tokens.color.brand.porcelain.$value, share: 70, role: "Fundo do app" },
+  { token: "brand-paper", name: "Papel", value: tokens.color.brand.paper.$value, share: 15, role: "Cards, inputs, popovers" },
+  { token: "brand-ink", name: "Tinta", value: tokens.color.brand.ink.$value, share: 10, role: "Texto, sidebar, painel de destaque, botão primário" },
+  { token: "brand-stone", name: "Pedra", value: tokens.color.brand.stone.$value, share: 3, role: "Barras de períodos não atuais" },
+  { token: "brand-brass", name: "Latão", value: tokens.color.brand.brass.$value, share: 2, role: "Único acento: período atual, progresso, ativo" },
 ];
 
 const adjustments = adjustmentsData.items.map((a) => ({
@@ -161,7 +145,7 @@ export function ColorsReference() {
     <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-8 sm:px-8 sm:py-12">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-4">
-          <AtriumLogo className="h-8 w-auto self-start" />
+          <AtriumLogo className="self-start" />
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">Design system</p>
             <h1 className="text-3xl font-semibold tracking-tight">Cores</h1>
@@ -217,7 +201,7 @@ export function ColorsReference() {
               className={`${t} flex flex-wrap items-center gap-4 rounded-lg border border-border bg-bg p-4 sm:gap-6 sm:p-6`}
             >
               <AtriumMark className="size-12 shrink-0" />
-              <AtriumLogo className="h-8 w-auto" />
+              <AtriumLogo />
               <span className="ml-auto text-xs text-text-muted">{t === "light" ? "Claro" : "Escuro"}</span>
             </div>
           ))}
@@ -227,7 +211,7 @@ export function ColorsReference() {
       <Section
         id="escalas"
         title="Escalas"
-        description="Interpoladas em OKLCH preservando o matiz. Âncora: green-900 é o verde exato da marca; os neutros não têm matiz."
+        description="Interpoladas em OKLCH preservando o matiz. Âncora: brass-600 é o latão exato da marca; os neutros puxam para o matiz da tinta."
       >
         <div className="flex flex-col gap-6">
           {scaleNames.map((name) => {
@@ -237,7 +221,7 @@ export function ColorsReference() {
                 <h3 className="text-sm font-semibold">{scaleLabel[name]}</h3>
                 <ol className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
                   {scale.map(([step, node]) => {
-                    const anchor = name === "green" && step === "900";
+                    const anchor = name === "brass" && step === "600";
                     return (
                       <li key={step} className="flex flex-col gap-1">
                         <div

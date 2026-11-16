@@ -122,14 +122,14 @@ export function TelaComissoes() {
       id: "valor",
       cabecalho: "Comissão",
       alinhamento: "direita",
-      celula: (l) => <span className="font-medium whitespace-nowrap">{formatMoeda(l.valor)}</span>,
+      celula: (l) => <span className="whitespace-nowrap">{formatMoeda(l.valor)}</span>,
     },
     {
       id: "status",
       cabecalho: "Status",
       celula: (l) => (
         <span className="flex flex-col gap-0.5">
-          <Badge tone={STATUS_COMISSAO_UI[l.status].tom} dot>
+          <Badge tone={STATUS_COMISSAO_UI[l.status].tom}>
             {STATUS_COMISSAO_UI[l.status].rotulo}
           </Badge>
           {l.pagaEm ? <span className="tnum text-xs text-text-muted">{formatData(l.pagaEm)}</span> : null}
@@ -176,7 +176,7 @@ export function TelaComissoes() {
 
   return (
     <>
-      <PageHeader titulo="Comissões" />
+      <PageHeader eyebrow="Financeiro · comissões" titulo="Comissões" />
       <div className="flex min-w-0 flex-col gap-4">
         <FilterBar
           aVista={filtrosBarra}

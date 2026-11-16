@@ -167,7 +167,7 @@ export function TelaReceitas() {
       id: "status",
       cabecalho: "Status",
       celula: (l) => (
-        <Badge tone={STATUS_PARCELA_UI[l.status].tom} dot>
+        <Badge tone={STATUS_PARCELA_UI[l.status].tom}>
           {STATUS_PARCELA_UI[l.status].rotulo}
         </Badge>
       ),
@@ -224,6 +224,7 @@ export function TelaReceitas() {
   return (
     <>
       <PageHeader
+        eyebrow="Financeiro · receitas"
         titulo="Receitas"
         acoes={
           <Button variant="secondary" leadingIcon={Download} onClick={() => void exportar()} disabled={!total}>

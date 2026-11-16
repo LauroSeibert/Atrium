@@ -42,6 +42,24 @@
       "from": "Bege, ocre, neutros esverdeados",
       "to": "Neutros puros + verde perene",
       "why": "Brief de refinamento: um único acento; estrutura por cinzas, borda e tipografia."
+    },
+    {
+      "token": "Paleta (quiet luxury)",
+      "from": "Neutros puros + verde perene",
+      "to": "Porcelana, tinta, pedra e latão",
+      "why": "DESIGN.md do Lauro (2026-11-16): neutros quentes e um acento metálico."
+    },
+    {
+      "token": "--border-strong (inputs)",
+      "from": "#E7E2D7 (fio do guia)",
+      "to": "{semantic.light.border-strong}",
+      "why": "O fio claro tem 1,3:1; contorno de input precisa de 3:1 (WCAG 1.4.11). Fios decorativos seguem o guia."
+    },
+    {
+      "token": "Barras em pedra (chart-2, chart-4)",
+      "from": "—",
+      "to": "abaixo de 3:1, documentado",
+      "why": "Só o período atual leva cor; todo gráfico tem resumo acessível, rótulo no período atual e a alternativa Tabela."
     }
   ]
 }

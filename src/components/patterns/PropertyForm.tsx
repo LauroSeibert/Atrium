@@ -205,8 +205,8 @@ export function PropertyForm({ valoresIniciais, corretores, onSalvar, envio, onC
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <FormSectionIndex secoes={SECOES} className="lg:sticky lg:top-4 lg:w-56 lg:shrink-0" />
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
-          <FormSection id="basico" titulo="Básico" descricao="Como o imóvel aparece nos anúncios.">
+        <div className="flex min-w-0 flex-1 flex-col gap-12">
+          <FormSection id="basico" titulo="Básico">
             <Field
               label="Título"
               requirement="required"
@@ -255,7 +255,7 @@ export function PropertyForm({ valoresIniciais, corretores, onSalvar, envio, onC
             </Field>
           </FormSection>
 
-          <FormSection id="valores" titulo="Valores" descricao="Informe em reais; o sistema guarda em centavos.">
+          <FormSection id="valores" titulo="Valores">
             {moeda("preco", "Preço", { obrigatorio: true })}
             {moeda("condominio", "Condomínio (mensal)")}
             {moeda("iptu", "IPTU (mensal)")}
@@ -330,7 +330,7 @@ export function PropertyForm({ valoresIniciais, corretores, onSalvar, envio, onC
             <Comodos control={control} idCampo={id} erro={msg("comodos")} msg={msg} />
           </FormSection>
 
-          <FormSection id="diferenciais" titulo="Diferenciais" descricao="Destaques que aparecem como etiquetas.">
+          <FormSection id="diferenciais" titulo="Diferenciais">
             <Field
               label="Diferenciais"
               description="Digite e pressione Enter para adicionar."

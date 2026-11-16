@@ -88,7 +88,7 @@ export function Combobox({
           disabled={disabled}
           className={cn(
             "flex w-full cursor-pointer items-center justify-between gap-2 rounded-md border bg-surface px-3 text-left",
-            size === "lg" ? "h-11 text-base" : "h-10 text-sm",
+            size === "lg" ? "h-11 text-base" : "h-11 text-sm",
             "transition duration-(--dur-fast) ease-standard",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             "disabled:cursor-not-allowed disabled:opacity-50",
@@ -118,7 +118,7 @@ export function Combobox({
             <Command.Input
               placeholder={searchPlaceholder}
               aria-label="Buscar"
-              className="h-10 w-full rounded-sm border-b border-border bg-transparent px-2 text-sm text-text placeholder:text-text-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              className="h-10 w-full rounded-sm border-b border-border bg-transparent px-2 text-sm text-text placeholder:text-placeholder focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
             />
             <Command.List ref={listRef} className="max-h-60 overflow-y-auto py-1">
               <Command.Empty className="px-2 py-3 text-center text-sm text-text-muted">{emptyText}</Command.Empty>

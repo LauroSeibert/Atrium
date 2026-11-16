@@ -7,14 +7,14 @@ import { Icon } from "./Icon";
 
 const itemVariants = cva(
   [
-    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm font-medium whitespace-nowrap text-text-muted",
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md font-regular whitespace-nowrap text-text-2",
     "transition-colors duration-(--dur-fast) ease-standard hover:text-text",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
     "disabled:cursor-not-allowed disabled:opacity-50",
-    "data-[state=on]:bg-surface data-[state=on]:text-text data-[state=on]:shadow-1 data-[state=on]:ring-1 data-[state=on]:ring-border-strong",
+    "data-[state=on]:bg-surface data-[state=on]:text-text data-[state=on]:shadow-1",
   ],
   {
-    variants: { size: { sm: "h-6 px-2 text-sm", md: "h-8 px-3 text-sm" } },
+    variants: { size: { sm: "h-6.5 px-2.5 text-caption", md: "h-9.5 px-3.5 text-caption" } },
     defaultVariants: { size: "md" },
   },
 );
@@ -39,7 +39,8 @@ export type SegmentedControlProps<T extends string> = {
 
 /**
  * Escolha única obrigatória entre poucas opções (ex.: Grade | Lista).
- * Alturas: `md` = contêiner `h-10` (40 px) com itens `h-8`; `sm` = contêiner `h-8` (32 px) com itens `h-6` (24 px, alvo mínimo).
+ * Trilho quente sem borda e segmento selecionado em papel com a única sombra permitida.
+ * Alturas: `md` = trilho 44 px com itens de 38 px; `sm` = trilho 32 px com itens de 26 px.
  */
 export function SegmentedControl<T extends string>({
   value,
@@ -59,8 +60,8 @@ export function SegmentedControl<T extends string>({
       }}
       aria-label={props["aria-label"]}
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-0.5",
-        size === "sm" ? "h-8" : "h-10",
+        "inline-flex items-center gap-0.5 rounded-md bg-bg-subtle p-0.75",
+        size === "sm" ? "h-8" : "h-11",
         className,
       )}
     >

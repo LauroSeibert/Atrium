@@ -23,8 +23,8 @@ export function Empty({ icon, title, description, action, headingLevel = 3, clas
           <Icon icon={icon} size={24} />
         </span>
       ) : null}
-      <Heading className="text-lg font-semibold text-text">{title}</Heading>
-      {description ? <p className="max-w-md text-sm text-text-muted">{description}</p> : null}
+      <Heading className="display text-2xl text-text">{title}</Heading>
+      {description ? <p className="max-w-md text-sm text-text-2">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );

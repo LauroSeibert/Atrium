@@ -45,7 +45,7 @@ export function ContatoCard({
           <li className="flex items-center gap-2">
             <Icon icon={Phone} size={16} className="shrink-0 text-text-muted" />
             <span className="sr-only">Telefone: </span>
-            <span className="tnum">{formatTelefone(telefone)}</span>
+            <span className="num text-caption">{formatTelefone(telefone)}</span>
           </li>
         ) : null}
         {email ? (

@@ -8,7 +8,7 @@ const base = "relative rounded-lg border bg-surface text-text";
 const interactiveClasses = [
   // Hover (Fase 9): elevação + 2 px para cima; sem deslocamento com reduced-motion.
   "block cursor-pointer text-left transition duration-(--dur-base) ease-standard",
-  "hover:border-border-strong",
+  "hover:border-line-strong",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
 ];
 
@@ -61,11 +61,11 @@ export function Card({
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("flex flex-col gap-1 p-6 pb-0", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-1 p-5 pb-0 sm:px-8 sm:pt-7.5", className)} {...props} />;
 }
 
 export function CardTitle({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("text-base font-semibold tracking-tight text-text", className)} {...props} />;
+  return <div className={cn("display text-2xl text-text", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: ComponentProps<"p">) {
@@ -73,9 +73,9 @@ export function CardDescription({ className, ...props }: ComponentProps<"p">) {
 }
 
 export function CardContent({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("p-6", className)} {...props} />;
+  return <div className={cn("p-5 sm:px-8 sm:py-7.5", className)} {...props} />;
 }
 
 export function CardFooter({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("flex items-center gap-2 p-6 pt-0", className)} {...props} />;
+  return <div className={cn("flex items-center gap-2 p-5 pt-0 sm:px-8 sm:pb-7.5", className)} {...props} />;
 }

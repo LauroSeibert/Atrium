@@ -15,7 +15,7 @@ export type AppShellProps = {
 
 /**
  * Esqueleto do painel (Fase 7): skip link, sidebar fixa à esquerda, topbar fixa no topo e área de
- * conteúdo com largura máxima de 1280 px e padding responsivo. Só layout: nada de dados aqui.
+ * conteúdo com largura máxima de 1240 px (+ calhas) e padding responsivo. Só layout: nada de dados aqui.
  */
 export function AppShell({ sidebar, sidebarCompacta, topbar, mobileNav, children }: AppShellProps) {
   return (
@@ -31,7 +31,7 @@ export function AppShell({ sidebar, sidebarCompacta, topbar, mobileNav, children
         <main
           id="conteudo"
           tabIndex={-1}
-          className="mx-auto w-full max-w-320 flex-1 px-4 pt-6 pb-24 outline-none md:px-8 md:pt-8 md:pb-12 xl:px-10 xl:pt-10"
+          className="mx-auto w-full max-w-338 flex-1 px-5 pt-8 pb-24 outline-none md:px-10 md:pt-12 md:pb-20 xl:px-14 xl:pt-14"
         >
           {children}
         </main>

@@ -207,7 +207,7 @@ export function TelaLeads() {
       cabecalho: "Imóvel",
       celula: (l) =>
         l.imovel ? (
-          <span className="tnum">{l.imovel.codigo}</span>
+          <span className="num text-caption">{l.imovel.codigo}</span>
         ) : (
           <span className="text-text-muted">Sem imóvel</span>
         ),
@@ -221,7 +221,7 @@ export function TelaLeads() {
       id: "valor",
       cabecalho: "Valor",
       alinhamento: "direita",
-      celula: (l) => (l.valor === null ? "—" : formatMoeda(l.valor)),
+      celula: (l) => <span className="num whitespace-nowrap">{l.valor === null ? "—" : formatMoeda(l.valor)}</span>,
     },
     { id: "origem", cabecalho: "Origem", celula: (l) => ORIGEM_ROTULO[l.lead.origem] },
     { id: "responsavel", cabecalho: "Responsável", celula: (l) => responsaveis[l.responsavelId] ?? "Sem responsável" },
@@ -254,6 +254,7 @@ export function TelaLeads() {
   return (
     <>
       <PageHeader
+        eyebrow="Comercial · funil"
         titulo="Leads"
         acaoPrimaria={
           <AcaoLink href={hrefNovo} icone={UserPlus}>

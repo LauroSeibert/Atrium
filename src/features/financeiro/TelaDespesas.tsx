@@ -167,7 +167,7 @@ export function TelaDespesas() {
       id: "status",
       cabecalho: "Status",
       celula: (l) => (
-        <Badge tone={STATUS_DESPESA_UI[l.status].tom} dot>
+        <Badge tone={STATUS_DESPESA_UI[l.status].tom}>
           {STATUS_DESPESA_UI[l.status].rotulo}
         </Badge>
       ),
@@ -211,6 +211,7 @@ export function TelaDespesas() {
   return (
     <>
       <PageHeader
+        eyebrow="Financeiro · despesas"
         titulo="Despesas"
         acaoPrimaria={
           <Button size="touch" leadingIcon={Plus} onClick={() => setAlvo({ modo: "nova" })}>

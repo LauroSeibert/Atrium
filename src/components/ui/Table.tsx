@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 export type TableDensity = "comfortable" | "compact";
 const DensityContext = createContext<TableDensity>("comfortable");
 
-const rowHeight = { comfortable: "h-12", compact: "h-9" } as const;
+const rowHeight = { comfortable: "h-14", compact: "h-10" } as const;
 
 export type TableProps = ComponentProps<"table"> & {
   /** Nome da região rolável (obrigatório: a tabela rola por teclado). */
@@ -19,7 +19,10 @@ export type TableProps = ComponentProps<"table"> & {
   containerClassName?: string;
 };
 
-/** Tabela dentro de uma região rolável e focável (WCAG 2.1.1). Linhas 48 px (confortável) ou 36 px (compacta). */
+/**
+ * Tabela dentro de uma região rolável e focável (WCAG 2.1.1). Sem fios entre colunas: cabeçalho em
+ * eyebrow e um fio suave no topo de cada linha. Linhas 56 px (confortável) ou 40 px (compacta).
+ */
 export function Table({
   "aria-label": ariaLabel,
   density = "comfortable",
@@ -50,7 +53,7 @@ export function TableCaption({ className, ...props }: ComponentProps<"caption">)
 }
 
 export function TableHeader({ className, ...props }: ComponentProps<"thead">) {
-  return <thead className={cn("sticky top-0 z-(--z-sticky) bg-bg-subtle", className)} {...props} />;
+  return <thead className={cn("sticky top-0 z-(--z-sticky) bg-surface", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: ComponentProps<"tbody">) {
@@ -61,7 +64,7 @@ export function TableRow({ className, ...props }: ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "border-b border-border transition-colors duration-(--dur-fast) ease-standard hover:bg-bg-subtle",
+        "border-b border-border-soft transition-colors duration-(--dur-fast) ease-standard hover:bg-bg",
         "data-[state=selected]:bg-surface-muted",
         className,
       )}
@@ -99,7 +102,7 @@ export function TableHead({
       scope={scope}
       aria-sort={sortable ? sortDirection : undefined}
       className={cn(
-        "border-b border-border px-4 text-xs font-medium whitespace-nowrap text-text-muted",
+        "eyebrow border-b border-border px-4 whitespace-nowrap first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6",
         rowHeight[density],
         align === "right" ? "text-right" : "text-left",
         className,
@@ -134,7 +137,12 @@ export function TableCell({
   const density = useContext(DensityContext);
   return (
     <td
-      className={cn("px-4", rowHeight[density], align === "right" ? "tnum text-right" : "text-left", className)}
+      className={cn(
+        "px-4 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6",
+        rowHeight[density],
+        align === "right" ? "num text-right" : "text-left",
+        className,
+      )}
       {...props}
     />
   );

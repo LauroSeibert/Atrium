@@ -61,7 +61,7 @@ export function Slider({
         )}
       >
         <SliderPrimitive.Track className="relative h-2 grow rounded-full bg-surface-muted">
-          <SliderPrimitive.Range className="absolute h-full rounded-full bg-primary" />
+          <SliderPrimitive.Range className="absolute h-full rounded-full bg-accent" />
         </SliderPrimitive.Track>
         {current.map((v, i) => (
           <SliderPrimitive.Thumb

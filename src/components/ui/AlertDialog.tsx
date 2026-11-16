@@ -57,13 +57,13 @@ export function AlertDialog({
             if (loading) event.preventDefault();
           }}
           className={cn(
-            "fixed top-1/2 left-1/2 z-(--z-modal) flex w-11/12 max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg border border-border bg-surface-raised p-6 text-text shadow-3",
+            "fixed top-1/2 left-1/2 z-(--z-modal) flex w-11/12 max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg border border-border bg-surface-raised p-6 text-text shadow-2 sm:p-8",
             "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
             className,
           )}
         >
           <div className="flex flex-col gap-2">
-            <AlertPrimitive.Title className="text-lg font-semibold">{title}</AlertPrimitive.Title>
+            <AlertPrimitive.Title className="display text-2xl">{title}</AlertPrimitive.Title>
             <AlertPrimitive.Description className="text-sm text-text-muted">{description}</AlertPrimitive.Description>
           </div>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

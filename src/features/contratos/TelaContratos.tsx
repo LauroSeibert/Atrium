@@ -12,6 +12,7 @@ import type { DataTableAcaoEmLote, DataTableColuna } from "@/components/patterns
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
+import { StatCard, StatGroup, type DadosStat } from "@/components/patterns/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -22,6 +23,7 @@ import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
 import { PERMITIDO, type StatusExibicaoContrato, type TipoContrato } from "@/domain";
 import { DEBOUNCE_BUSCA_MS, useParametrosUrl } from "@/features/dados/useParametrosUrl";
+import { mapear, type Recurso } from "@/lib/recurso";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { baixarCsv } from "@/lib/csv";
 import { formatData, formatMoeda } from "@/lib/format";
@@ -52,6 +54,10 @@ function resumoPartes(l: LinhaContrato): string {
   const nomes = [primeira, segunda].filter(Boolean).map((p) => p!.nome);
   return resto.length > 0 ? `${nomes.join(", ")} +${resto.length}` : nomes.join(", ");
 }
+
+/** Contagem por status de exibição (agregação de exibição; o status vem derivado do domínio). */
+const kpi = (r: Recurso<Record<string, number>>, s: StatusExibicaoContrato, alerta = false): Recurso<DadosStat> =>
+  mapear(r, (m) => ({ valor: m[s] ?? 0, tom: alerta && (m[s] ?? 0) > 0 ? "alerta" : "neutro" }));
 
 const semImovel = { titulo: "Imóvel removido", codigo: "—" };
 
@@ -91,6 +97,14 @@ export function TelaContratos() {
     [filtros, pagina, ordem],
   );
   const { estado, recarregar } = useConsulta(carregar);
+
+  const carregarResumo = useCallback(async () => {
+    const todos = await fakeApi.listContratos({}, { pagina: 1, porPagina: 100_000 }, "recentes");
+    const m: Record<string, number> = {};
+    for (const l of todos.itens) m[l.statusExibicao] = (m[l.statusExibicao] ?? 0) + 1;
+    return m;
+  }, []);
+  const { estado: resumo, recarregar: recarregarResumo } = useConsulta(carregarResumo);
 
   const total = "dados" in estado && estado.dados ? estado.dados.total : undefined;
 
@@ -168,11 +182,11 @@ export function TelaContratos() {
         <div className="flex flex-col gap-0.5">
           <Link
             href={`/contratos/${l.contrato.id}`}
-            className="rounded-sm font-mono text-sm font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="num rounded-sm text-caption font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {l.contrato.numero}
           </Link>
-          <span className="tnum text-xs text-text-muted">
+          <span className="num text-xs text-text-muted">
             {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} ·{" "}
             <span className="whitespace-nowrap">
               <span className="sr-only">Vigência: </span>
@@ -188,26 +202,27 @@ export function TelaContratos() {
       className: "min-w-44 max-w-60",
       celula: (l) => (
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="line-clamp-2">{(l.imovel ?? semImovel).titulo}</span>
-          <span className="font-mono text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
+          <span className="line-clamp-2 text-md">{(l.imovel ?? semImovel).titulo}</span>
+          <span className="num text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
         </div>
       ),
     },
     {
       id: "partes",
-      cabecalho: "Partes",
+      cabecalho: "Cliente",
       className: "min-w-40 max-w-56",
-      celula: (l) => <span className="break-words text-text-muted">{resumoPartes(l)}</span>,
+      celula: (l) => <span className="break-words text-text-2">{resumoPartes(l)}</span>,
     },
     {
       id: "valor",
       cabecalho: "Valor",
       alinhamento: "direita",
-      celula: (l) => <span className="whitespace-nowrap">{formatMoeda(l.contrato.valor)}</span>,
+      celula: (l) => <span className="num whitespace-nowrap">{formatMoeda(l.contrato.valor)}</span>,
     },
     {
       id: "status",
       cabecalho: "Status",
+      alinhamento: "direita",
       celula: (l) => (
         <Badge tone={STATUS_CONTRATO_UI[l.statusExibicao].tom} dot>
           {STATUS_CONTRATO_UI[l.statusExibicao].rotulo}
@@ -217,9 +232,10 @@ export function TelaContratos() {
     {
       id: "proximoVencimento",
       cabecalho: "Próximo vencimento",
+      alinhamento: "direita",
       celula: (l) =>
         l.proximoVencimento ? (
-          <span className="tnum flex flex-col whitespace-nowrap">
+          <span className="num flex flex-col items-end whitespace-nowrap">
             <span>{formatData(l.proximoVencimento.vencimento)}</span>
             <span className="text-xs text-text-muted">{formatMoeda(l.proximoVencimento.valor)}</span>
           </span>
@@ -276,6 +292,7 @@ export function TelaContratos() {
   return (
     <>
       <PageHeader
+        eyebrow="Operação · carteira"
         titulo="Contratos"
         acoes={
           <Button variant="secondary" leadingIcon={Download} onClick={exportarVisiveis} disabled={!total}>
@@ -283,7 +300,12 @@ export function TelaContratos() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-6">
+        <StatGroup aria-label="Indicadores de contratos" colunas={3}>
+          <StatCard variante="celula" rotulo="Em dia" estado={kpi(resumo, "ativo")} onTentarNovamente={recarregarResumo} />
+          <StatCard variante="celula" rotulo="Rascunhos" estado={kpi(resumo, "rascunho")} onTentarNovamente={recarregarResumo} />
+          <StatCard variante="celula" rotulo="Inadimplentes" estado={kpi(resumo, "inadimplente", true)} onTentarNovamente={recarregarResumo} />
+        </StatGroup>
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => url.definir({ busca: b })}

@@ -34,7 +34,8 @@ describe("TelaRelatorios (RF-82)", () => {
   it("mostra o primeiro relatório com tabela acessível", async () => {
     render(<TelaRelatorios />);
     expect(await screen.findByRole("table", { name: "Vendas por período" })).toBeInTheDocument();
-    expect(screen.getAllByRole("tab")).toHaveLength(5);
+    expect(screen.getByRole("button", { name: /^Vendas por período/, expanded: true })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { expanded: false })).toHaveLength(4);
   });
 
   it("aba e filtros vêm da URL", async () => {
@@ -47,7 +48,7 @@ describe("TelaRelatorios (RF-82)", () => {
   it("trocar de aba grava na URL", async () => {
     render(<TelaRelatorios />);
     await screen.findByRole("table", { name: "Vendas por período" });
-    await userEvent.click(screen.getByRole("tab", { name: "Conversão" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Conversão de leads/ }));
     expect(replace).toHaveBeenCalledWith("/relatorios?relatorio=conversao", { scroll: false });
   });
 

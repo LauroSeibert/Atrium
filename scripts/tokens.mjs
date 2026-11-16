@@ -4,7 +4,7 @@
  *
  * 1. Gera as escalas 50→950 (OKLCH, matiz preservado) a partir das cores da marca
  *    e grava em design-system/tokens.json (color.scale), mantendo as âncoras exatas:
- *      green-900 = brand.green · neutral: cinza neutro puro (50 = branco quase puro)
+ *      brass-600 = brand.brass · warm: neutros quentes no matiz da tinta (brand.ink)
  * 2. Emite src/styles/tokens.css (CSS variables, tema claro em :root e escuro em .dark).
  *
  * Uso: node scripts/tokens.mjs            (gera)
@@ -65,7 +65,8 @@ function buildScale(anchorHex, anchorStep, { chromaOverride } = {}) {
 
 const tokens = loadTokens(TOKENS_JSON);
 const brand = tokens.color.brand;
-const green = brand.green.$value;
+const brass = brand.brass.$value;
+const ink = oklch(brand.ink.$value);
 
 const scaleTokens = (scale, desc) => {
   const node = { $type: "color", $description: desc };
@@ -73,15 +74,15 @@ const scaleTokens = (scale, desc) => {
   return node;
 };
 
-// Neutro puro (sem matiz): a identidade vem do verde, não de cinzas tingidos.
-const neutral = {};
+// Neutros quentes: nenhum cinza frio; todo neutro puxa levemente para o matiz da tinta.
+const warm = {};
 for (const step of STEPS) {
-  neutral[step] = formatHex({ mode: "oklch", l: Math.min(TARGET_L[step] + 0.01, 0.99), c: 0, h: 0 }).toUpperCase();
+  warm[step] = formatHex({ mode: "oklch", l: Math.min(TARGET_L[step] + 0.01, 0.99), c: 0.012, h: ink.h ?? 85 }).toUpperCase();
 }
 
 tokens.color.scale = {
-  green: scaleTokens(buildScale(green, 900), "Escala do verde perene (âncora 900)"),
-  neutral: scaleTokens(neutral, "Cinzas neutros (sem matiz)"),
+  brass: scaleTokens(buildScale(brass, 600), "Escala do latão (âncora 600 = brand.brass)"),
+  warm: scaleTokens(warm, "Neutros quentes (matiz da tinta)"),
 };
 
 const jsonOut = JSON.stringify(tokens, null, 2) + "\n";
@@ -116,6 +117,7 @@ push("  /* semânticos (claro) */");
 for (const [k, n] of entries(tokens.semantic.light)) push(`  --${k}: ${v(n)};`);
 push();
 push("  /* tipografia */");
+push(`  --font-family-serif: ${tokens.font.family.serif.$value.join(", ")};`);
 push(`  --font-family-sans: ${tokens.font.family.sans.$value.join(", ")};`);
 push(`  --font-family-mono: ${tokens.font.family.mono.$value.join(", ")};`);
 for (const [k, n] of entries(tokens.font.size)) push(`  --font-size-${k}: ${n.$value};`);
@@ -162,6 +164,19 @@ push("  /* no escuro, elevação = cor + borda; sombra quase imperceptível */")
 push("  --elevation-1: 0 0 0 1px var(--border);");
 push("  --elevation-2: 0 0 0 1px var(--border);");
 push("  --elevation-3: 0 0 0 1px var(--border-strong);");
+push("}");
+push();
+push("/*");
+push(" * Superfícies em tinta (sidebar, menu do celular): os semânticos do tema escuro valem dentro delas");
+push(" * nos dois temas, então componentes genéricos (navegação, botões) funcionam sem variante própria.");
+push(" * As cores da própria tinta (--sidebar*, --ink-panel) seguem o tema da página.");
+push(" */");
+push(".tinta {");
+push("  color-scheme: dark;");
+for (const [k, n] of entries(tokens.semantic.dark)) {
+  if (k.startsWith("sidebar") || k === "ink-panel") continue;
+  push(`  --${k}: ${v(n)};`);
+}
 push("}");
 push();
 push("@media (prefers-reduced-motion: reduce) {");

@@ -79,6 +79,7 @@ export function TelaImoveis() {
   return (
     <>
       <PageHeader
+        eyebrow="Operação · carteira"
         titulo="Imóveis"
         acaoPrimaria={
           <AcaoLink href="/imoveis/novo" icone={Plus}>
@@ -242,8 +243,8 @@ function Listagem({ usuario }: { usuario: Corretor }) {
               {i.titulo}
             </Link>
           </Button>
-          <span className="tnum text-xs text-text-muted">
-            {i.codigo} · {i.endereco.bairro}
+          <span className="text-xs text-text-muted">
+            <span className="num">{i.codigo}</span> · {i.endereco.bairro}
           </span>
         </div>
       ),
@@ -264,7 +265,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
       alinhamento: "direita",
       ordenavel: true,
       celula: (i) => (
-        <span className="tnum">
+        <span className="num">
           {formatMoeda(i.preco, { semCentavos: true })}
           {i.finalidade === "locacao" ? <span className="text-text-muted">/mês</span> : null}
         </span>
@@ -275,13 +276,13 @@ function Listagem({ usuario }: { usuario: Corretor }) {
       cabecalho: "Área útil",
       alinhamento: "direita",
       ordenavel: true,
-      celula: (i) => <span className="tnum">{formatArea(i.areaUtil)}</span>,
+      celula: (i) => <span className="num">{formatArea(i.areaUtil)}</span>,
     },
     {
       id: "quartos",
       cabecalho: "Quartos",
       alinhamento: "direita",
-      celula: (i) => <span className="tnum">{i.quartos}</span>,
+      celula: (i) => <span className="num">{i.quartos}</span>,
     },
     {
       id: "corretor",
@@ -307,7 +308,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-6">
       <FilterBar
         busca={p.busca}
         onBuscaChange={aoBuscar}
@@ -420,7 +421,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                   aria-label="Imóveis"
                   className={
                     view === "lista"
-                      ? "flex flex-col gap-3"
+                      ? "flex flex-col"
                       : "grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
                   }
                 >

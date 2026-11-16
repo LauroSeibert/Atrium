@@ -12,7 +12,7 @@ export const DialogClose = DialogPrimitive.Close;
 export const dialogContentVariants = cva(
   [
     "fixed top-1/2 left-1/2 z-(--z-modal) flex max-h-screen w-11/12 -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto",
-    "rounded-lg border border-border bg-surface-raised p-6 text-text shadow-3",
+    "rounded-lg border border-border bg-surface-raised p-6 text-text shadow-2 sm:p-8",
     "data-[state=closed]:animate-scale-out data-[state=open]:animate-scale-in",
   ],
   {
@@ -64,7 +64,7 @@ export function DialogFooter({ className, ...props }: ComponentProps<"div">) {
 }
 
 export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title className={cn("text-lg font-semibold text-text", className)} {...props} />;
+  return <DialogPrimitive.Title className={cn("display text-2xl text-text", className)} {...props} />;
 }
 
 export function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {

@@ -12,6 +12,7 @@ import { DataTable, type DataTableColuna } from "@/components/patterns/DataTable
 import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
 import { LinkCodigo } from "@/components/patterns/LinkCodigo";
+import { StatCard, StatGroup } from "@/components/patterns/StatCard";
 import { CANAL_ANUNCIO_ROTULO, STATUS_ANUNCIO_UI } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +35,7 @@ import { enviandoLinha, useAcaoEmLinha } from "@/features/dados/useAcaoEmLinha";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { DEBOUNCE_BUSCA_MS, useParametrosUrl } from "@/features/dados/useParametrosUrl";
 import { formatData, formatNumero } from "@/lib/format";
+import { mapear } from "@/lib/recurso";
 import { usePreferencia } from "@/lib/preferencias";
 import { fakeApi } from "@/mocks/services/fakeApi";
 
@@ -161,6 +163,8 @@ export function TelaAnuncios() {
     return { itens: lista, total: lista.length, pagina: 1, porPagina: Math.max(lista.length, 1), totalPaginas: 1 };
   }, [busca, canal, status]);
   const { estado, recarregar } = useConsulta(carregar);
+  // Indicadores da carteira inteira (não seguem os filtros da tabela).
+  const todos = useConsulta(useCallback(() => fakeApi.listAnuncios({}), []));
   const total = "dados" in estado && estado.dados ? estado.dados.total : undefined;
 
   const alternarStatus = (s: StatusAnuncio, marcado: boolean) =>
@@ -239,7 +243,7 @@ export function TelaAnuncios() {
       cabecalho: "Publicado em",
       celula: (a) =>
         a.publicadoEm ? (
-          <span className="tnum whitespace-nowrap">{formatData(a.publicadoEm)}</span>
+          <span className="num whitespace-nowrap">{formatData(a.publicadoEm)}</span>
         ) : (
           <span className="text-text-muted">—</span>
         ),
@@ -248,9 +252,14 @@ export function TelaAnuncios() {
       id: "visualizacoes",
       cabecalho: "Visualizações",
       alinhamento: "direita",
-      celula: (a) => formatNumero(a.visualizacoes),
+      celula: (a) => <span className="num">{formatNumero(a.visualizacoes)}</span>,
     },
-    { id: "contatos", cabecalho: "Contatos", alinhamento: "direita", celula: (a) => formatNumero(a.contatos) },
+    {
+      id: "contatos",
+      cabecalho: "Contatos",
+      alinhamento: "direita",
+      celula: (a) => <span className="num">{formatNumero(a.contatos)}</span>,
+    },
     {
       id: "acoes",
       cabecalho: <span className="sr-only">Ações</span>,
@@ -323,6 +332,7 @@ export function TelaAnuncios() {
   return (
     <>
       <PageHeader
+        eyebrow="Operação · portais"
         titulo="Anúncios"
         acaoPrimaria={
           <Button size="touch" onClick={() => setNovo(true)}>
@@ -330,7 +340,33 @@ export function TelaAnuncios() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      {/* Se a carteira falha, a tabela já mostra o erro com "Tentar de novo"; os indicadores só somem. */}
+      {todos.estado.fase === "error" ? null : (
+        <StatGroup aria-label="Indicadores" colunas={3} className="mb-10">
+          <StatCard
+            variante="celula"
+            rotulo="Anúncios ativos"
+            tendencia={false}
+            estado={mapear(todos.estado, (l) => ({ valor: l.filter((a) => a.status === "publicado").length }))}
+            onTentarNovamente={todos.recarregar}
+          />
+          <StatCard
+            variante="celula"
+            rotulo="Visualizações"
+            tendencia={false}
+            estado={mapear(todos.estado, (l) => ({ valor: l.reduce((t, a) => t + a.visualizacoes, 0) }))}
+            onTentarNovamente={todos.recarregar}
+          />
+          <StatCard
+            variante="celula"
+            rotulo="Contatos"
+            tendencia={false}
+            estado={mapear(todos.estado, (l) => ({ valor: l.reduce((t, a) => t + a.contatos, 0) }))}
+            onTentarNovamente={todos.recarregar}
+          />
+        </StatGroup>
+      )}
+      <div className="flex min-w-0 flex-col gap-6">
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => url.definir({ busca: b })}

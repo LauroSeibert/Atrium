@@ -45,7 +45,7 @@ export function Input({
     <div
       className={cn(
         inputShellClasses(control.invalid),
-        size === "lg" ? "h-11 text-base" : "h-10 text-sm",
+        size === "lg" ? "h-11 text-base" : "h-11 text-sm",
         wrapperClassName,
       )}
     >
@@ -57,7 +57,7 @@ export function Input({
         aria-describedby={control["aria-describedby"]}
         aria-invalid={control["aria-invalid"]}
         className={cn(
-          "h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-text-muted disabled:cursor-not-allowed",
+          "h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-placeholder disabled:cursor-not-allowed",
           className,
         )}
       />

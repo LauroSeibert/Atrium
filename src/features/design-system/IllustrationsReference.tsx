@@ -91,7 +91,7 @@ export function IllustrationsReference() {
     <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-8 sm:px-8 sm:py-12">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-4">
-          <AtriumLogo className="h-8 w-auto self-start" />
+          <AtriumLogo className="self-start" />
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">Design system</p>
             <h1 className="text-3xl font-semibold tracking-tight">Ilustrações</h1>

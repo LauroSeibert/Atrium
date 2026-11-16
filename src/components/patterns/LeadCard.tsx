@@ -90,14 +90,14 @@ export function LeadCard({
   return (
     <Card
       className={cn(
-        "flex flex-col gap-2 p-3 text-sm",
-        arrastando && "rotate-1 border-primary shadow-3 motion-reduce:rotate-0",
+        "flex flex-col gap-2.5 p-4 text-caption",
+        arrastando && "rotate-1 border-line-strong motion-reduce:rotate-0",
         className,
       )}
     >
       <div className="flex items-start gap-1">
         {alca}
-        <h3 className="min-w-0 flex-1 text-base font-semibold break-words text-text">
+        <h3 className="min-w-0 flex-1 text-md font-medium break-words text-text">
           <button
             type="button"
             aria-label={rotuloNegociacao(negociacao)}
@@ -116,27 +116,24 @@ export function LeadCard({
           />
         ) : null}
       </div>
-      <p className="line-clamp-2 break-words text-text">
+      <p className="line-clamp-2 break-words text-text-2">
         {imovel ? (
           <>
-            <span className="tnum font-medium">{imovel.codigo}</span> · {imovel.titulo}
+            <span className="num text-xs text-text-muted">{imovel.codigo}</span> · {imovel.titulo}
           </>
         ) : (
           <span className="text-text-muted">Sem imóvel</span>
         )}
       </p>
-      <p className="tnum text-text">
+      <p className="num text-sm text-text">
         {negociacao.valor === null ? <span className="text-text-muted">Sem valor</span> : formatMoeda(negociacao.valor)}
       </p>
       <p className="line-clamp-2 text-text-muted">{resumirInteresse(lead.interesse)}</p>
       {motivoPerda ? <p className="text-text-muted">Motivo da perda: {motivoPerda}</p> : null}
-      <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
-        <span className="min-w-0 truncate">{ORIGEM_ROTULO[lead.origem]}</span>
+      <div className="flex items-center gap-2 border-t border-border-soft pt-2.5 text-xs text-text-muted">
+        <Avatar name={responsavel} size={24} className="border border-border" />
+        <span className="min-w-0 flex-1 truncate">{ORIGEM_ROTULO[lead.origem]}</span>
         <span className="shrink-0">{formatRelativo(ultimaAtividade ?? negociacao.atualizadoEm, agora)}</span>
-      </div>
-      <div className="flex items-center gap-2 text-xs text-text-muted">
-        <Avatar name={responsavel} size={24} />
-        <span className="min-w-0 truncate">{responsavel}</span>
       </div>
     </Card>
   );

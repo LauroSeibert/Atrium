@@ -1,45 +1,32 @@
-import type { SVGProps } from "react";
+import type { ComponentProps, SVGProps } from "react";
+import { cn } from "@/lib/cn";
 
 /**
- * Marca Atrium: o átrio da domus romana visto de cima.
- * - Ladrilho = a casa (domus).
- * - Quadrado externo + diagonais = o telhado compluviado, com as quatro águas
- *   caindo para o centro.
- * - Quadrado central = o impluvium (o espelho d'água que recebe a chuva),
- *   com o reflexo do céu aberto (compluvium).
- *
- * Cores vêm só dos tokens: no claro, ladrilho Hunter Green e traço Polar Snow;
- * no escuro, ladrilho Soft Beige e traço Hunter Green (via --primary/--on-primary).
+ * Monograma Atrium: um "A" de traço serifado (haste fina à esquerda, grossa à direita, pés de serifa)
+ * num quadrado de cantos suaves, em tinta, com fio de latão. Desenhado em traço (não texto) para não
+ * depender da webfont nem virar texto visível para leitores de tela. É a marca da sidebar recolhida.
+ * Cores só por tokens: --sidebar, --accent e --on-ink-strong.
  */
 export function AtriumMark({ title = "Atrium", ...props }: SVGProps<SVGSVGElement> & { title?: string }) {
   return (
-    <svg viewBox="0 0 32 32" role="img" aria-label={title} {...props}>
-      <rect width="32" height="32" rx="8" fill="var(--primary)" />
-      <g fill="none" stroke="var(--on-primary)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
-        <rect x="6" y="6" width="20" height="20" rx="1.5" />
-        <path d="M6.6 6.6 12 12M25.4 6.6 20 12M6.6 25.4 12 20M25.4 25.4 20 20" />
+    <svg viewBox="0 0 32 32" role="img" aria-label={title || undefined} {...props}>
+      <rect x="0.5" y="0.5" width="31" height="31" rx="8.5" fill="var(--sidebar)" stroke="var(--accent)" />
+      <g fill="none" stroke="var(--on-ink-strong)" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 8 10.2 23.5" strokeWidth="1.1" />
+        <path d="M16 8 21.8 23.5" strokeWidth="2" />
+        <path d="M12.3 18.4h7.6" strokeWidth="1.1" />
+        <path d="M8.6 23.6h3.4M19.9 23.6h3.6" strokeWidth="1.1" />
       </g>
-      <rect x="12" y="12" width="8" height="8" rx="1" fill="var(--on-primary)" />
-      <rect x="14.25" y="14.25" width="3.5" height="3.5" rx="0.5" fill="none" stroke="var(--primary)" strokeWidth="1" />
     </svg>
   );
 }
 
-export function AtriumLogo({ className, ...props }: SVGProps<SVGSVGElement>) {
+/** Marca completa: monograma + "Atrium" em Instrument Serif (texto real, cor --text). */
+export function AtriumLogo({ className, ...props }: ComponentProps<"span">) {
   return (
-    <svg viewBox="0 0 128 32" width="128" height="32" role="img" aria-label="Atrium" className={className} {...props}>
-      <AtriumMark x="0" y="0" width="32" height="32" aria-hidden="true" title="" role="presentation" />
-      <text
-        x="42"
-        y="23"
-        fill="var(--text)"
-        fontFamily="var(--font-sans)"
-        fontSize="21"
-        fontWeight="600"
-        letterSpacing="-0.4"
-      >
-        Atrium
-      </text>
-    </svg>
+    <span className={cn("inline-flex items-center gap-3 text-text", className)} {...props}>
+      <AtriumMark className="size-8 shrink-0" aria-hidden="true" title="" />
+      <span className="display text-2xl leading-display">Atrium</span>
+    </span>
   );
 }

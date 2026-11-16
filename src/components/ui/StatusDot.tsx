@@ -6,7 +6,7 @@ const dotVariants = cva("size-2 shrink-0 rounded-full", {
   variants: {
     tone: {
       neutral: "bg-text-muted",
-      primary: "bg-primary",
+      primary: "bg-accent",
       success: "bg-success",
       warning: "bg-warning",
       danger: "bg-danger",

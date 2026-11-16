@@ -3,7 +3,7 @@ import { Avatar as AvatarPrimitive } from "radix-ui";
 import { cn } from "@/lib/cn";
 
 const avatarVariants = cva(
-  "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted font-medium text-text select-none",
+  "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-muted font-semibold text-text select-none",
   {
     variants: {
       size: {

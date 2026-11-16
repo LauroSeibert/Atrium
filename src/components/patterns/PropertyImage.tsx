@@ -31,7 +31,7 @@ export type PropertyImageProps = {
   className?: string;
 };
 
-const MOLDURA = "aspect-4/3 overflow-hidden rounded-lg";
+const MOLDURA = "aspect-4/3 overflow-hidden rounded-lg bg-surface-sunken";
 
 /** Ilustração do imóvel: cômodo, fachada escolhida, fachada derivada do tipo ou fallback. */
 export function PropertyImage({ tipo, fachada, comodo, titulo, decorativa, className }: PropertyImageProps) {
@@ -50,10 +50,10 @@ export function PropertyImage({ tipo, fachada, comodo, titulo, decorativa, class
         role={decorativa ? undefined : "img"}
         aria-label={decorativa ? undefined : rotulo}
         aria-hidden={decorativa ? true : undefined}
-        className={cn(MOLDURA, "flex flex-col items-center justify-center gap-2 bg-surface-muted", className)}
+        className={cn(MOLDURA, "flex flex-col items-center justify-center gap-2", className)}
       >
-        <Icon icon={ImageOff} size={24} className="text-text-muted" />
-        <span className="text-sm text-text-muted">Sem ilustração</span>
+        <Icon icon={ImageOff} size={24} className="text-text-2" />
+        <span className="text-sm text-text-2">Sem ilustração</span>
       </div>
     );
   }

@@ -11,7 +11,7 @@ export const DrawerTrigger = DialogPrimitive.Trigger;
 export const DrawerClose = DialogPrimitive.Close;
 
 export const drawerContentVariants = cva(
-  ["fixed inset-y-0 z-(--z-modal) flex w-full flex-col border-border bg-surface-raised text-text shadow-3"],
+  ["fixed inset-y-0 z-(--z-modal) flex w-full flex-col border-border bg-surface-raised text-text shadow-2"],
   {
     variants: {
       size: { sm: "max-w-80", md: "sm:max-w-md", lg: "sm:max-w-2xl" },
@@ -67,7 +67,7 @@ export function DrawerFooter({ className, ...props }: ComponentProps<"div">) {
 }
 
 export function DrawerTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title className={cn("text-lg font-semibold text-text", className)} {...props} />;
+  return <DialogPrimitive.Title className={cn("display text-2xl text-text", className)} {...props} />;
 }
 
 export function DrawerDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {

@@ -117,7 +117,7 @@ export function NotificationCenter({
           <span
             aria-hidden="true"
             data-testid="notificacoes-ponto"
-            className="pointer-events-none absolute top-2 right-2 size-2 rounded-full bg-danger ring-2 ring-bg max-lg:top-2.5 max-lg:right-2.5"
+            className="pointer-events-none absolute top-2 right-2 size-2 rounded-full bg-accent ring-2 ring-bg max-lg:top-2.5 max-lg:right-2.5"
           />
         ) : null}
       </span>
@@ -179,7 +179,7 @@ export function NotificationCenter({
                           </span>
                         </span>
                         {n.lida ? null : (
-                          <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-primary" />
+                          <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-accent" />
                         )}
                       </Link>
                     </li>

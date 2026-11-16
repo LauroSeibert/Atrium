@@ -47,10 +47,10 @@ export function ChangeLog({ estado, autores, agora, onTentarNovamente, className
         onTentarNovamente={onTentarNovamente}
       >
         {(dados) => (
-          <ol aria-label="Histórico de alterações" className="flex animate-fade-in flex-col divide-y divide-border">
+          <ol aria-label="Histórico de alterações" className="flex animate-fade-in flex-col divide-y divide-border-soft">
             {dados.map((r) => (
-              <li key={r.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0">
-                <p className="text-sm font-medium text-text">{rotuloCampo(r.campo)}</p>
+              <li key={r.id} className="flex flex-col gap-1 py-4 first:pt-0 last:pb-0">
+                <p className="eyebrow">{rotuloCampo(r.campo)}</p>
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm break-words text-text">
                   <span className="text-text-muted">
                     <span className="sr-only">De </span>
@@ -58,7 +58,7 @@ export function ChangeLog({ estado, autores, agora, onTentarNovamente, className
                   </span>
                   <Icon icon={ArrowRight} size={16} />
                   <span className="sr-only">para</span>
-                  <span className="font-medium">{textoValor(r, r.para)}</span>
+                  <span className="num font-medium">{textoValor(r, r.para)}</span>
                 </p>
                 <p className="text-xs text-text-muted">
                   {nomeDoAutor(autores, r.autorId)} · <Instante iso={r.em} agora={agora} absoluta />

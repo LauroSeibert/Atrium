@@ -12,22 +12,23 @@ O Tailwind teve os defaults de cor, raio, sombra, fonte e easing zerados: valore
 
 `npm run check:hex` falha se aparecer qualquer cor literal (hex, `rgb()`, `hsl()`, `oklch()`…) em `src/` ou `public/` fora de `tokens.css`.
 
-## 2. Marca: neutros + um acento
+## 2. Marca: quiet luxury
 
-> Refinamento de design (pós-Fase 9, `docs/BRIEF-REDESIGN.md`): saíram o bege e o ocre. A estrutura é feita de cinzas, bordas e tipografia; o verde perene é o **único acento**.
+> Reformulação de 2026-11-16 (`docs/BRIEF-REDESIGN.md` §2): o painel deve parecer um banco privado ou um estúdio de arquitetura, não um SaaS genérico. Substitui a fase "neutros + verde perene".
 
-| Cor          | HEX       | Onde entra                                                                                                             |
-| ------------ | --------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Branco       | `#FFFFFF` | Fundo (`--bg`) e superfícies (`--surface`)                                                                             |
-| Cinzas       | escala    | `--bg-subtle` (sidebar, cabeçalho de tabela), `--surface-muted` (hover, chips, item ativo), `--border`, `--text-muted` |
-| Grafite      | `#171717` | Texto principal                                                                                                        |
-| Verde perene | `#023933` | Ação primária, seleção, indicador ativo, links, ícone do item ativo. Nunca área grande                                 |
+| Cor       | HEX       | Onde entra                                                                                                   |
+| --------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| Porcelana | `#F6F4EF` | Fundo do app (`--bg`)                                                                                        |
+| Papel     | `#FFFFFF` | Cards, inputs, popovers (`--surface`)                                                                        |
+| Tinta     | `#17150F` | Texto, botão primário, sidebar (`--sidebar #121110`) e no máximo **um** painel de destaque por tela           |
+| Pedra     | `#D9D2C3` | Barras de períodos não atuais, pontos vazios                                                                 |
+| Latão     | `#9A7B4F` | **Único acento**, só em preenchimentos e marcas: período atual, progresso, item ativo, ponto de notificação |
 
-Cores de estado (sucesso, alerta, erro) só para estados reais. No tema escuro o fundo é preto neutro (`#0A0A0A`), as superfícies sobem em degraus de cinza e o verde clareia (`#5CC2AD`) para virar a ação.
+Princípios: **os números são o herói** (serifa nos KPIs, mono no dinheiro de tabela); **fios em vez de caixas** (poucos cards, nunca card dentro de card); **um acento, com parcimônia** (2–5 usos por tela, nunca texto, botão ou fundo grande); **tinta para o que importa**; **calmo, depois denso** (cabeçalho editorial, depois os dados); **só neutros quentes**. Na dúvida: tire uma borda, tire uma cor, dê espaço.
 
 ## 3. Escalas
 
-`green` gerada em OKLCH preservando o matiz (`scripts/tokens.mjs`), âncora `green-900 = #023933`. `neutral` é cinza puro (croma 0). Escalas servem a ilustração e documentação; a UI usa os semânticos.
+`brass` gerada em OKLCH preservando o matiz (`scripts/tokens.mjs`), âncora `brass-600 = #9A7B4F`. `warm` são neutros quentes no matiz da tinta (croma baixo, nada de cinza frio). Escalas servem a ilustração e documentação; a UI usa os semânticos.
 
 ## 4. Tokens semânticos — quando usar
 
@@ -46,7 +47,11 @@ Cores de estado (sucesso, alerta, erro) só para estados reais. No tema escuro o
 | `--on-primary`                                                 | Texto/ícone sobre `--primary`                                                                                            | Texto sobre fundo claro                                                                                                                          |
 | `--ring`                                                       | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` (o offset é obrigatório: `ring` × `primary` < 3:1)   | Bordas comuns                                                                                                                                    |
 | `--success/-bg`, `--warning/-bg`, `--danger/-bg`, `--info/-bg` | Badges, alertas, validação. Texto colorido sobre `-bg` **ou** sobre `surface`                                            | Decoração (cor sempre acompanhada de ícone/texto)                                                                                                |
-| `--accent-ochre`                                               | Séries de gráfico, preenchimentos                                                                                        | Texto                                                                                                                                            |
+| `--accent` (latão)                                             | Barra do período atual, preenchimento de progresso, ponto de notificação, amostra de legenda, item ativo de abas          | Texto (use `--accent-ink` se for indispensável), botões, fundos maiores que um trilho de progresso                                               |
+| `--text-2`, `--placeholder`                                    | Texto de apoio e unidades (`R$`, `mi`); placeholder de input                                                             | Texto essencial                                                                                                                                  |
+| `--border-soft`, `--line-strong`                               | Divisória entre linhas dentro de cards; contorno de pílulas e do botão fantasma (decorativos)                            | Contorno de input (use `--border-strong`)                                                                                                        |
+| `--surface-sunken`                                             | Ladrilho de imagem/ilustração, trilho da semana                                                                          | Texto `text-muted` por cima                                                                                                                      |
+| `--sidebar*`, `--ink-panel`, `--ink-track`, `--on-ink*`        | Sidebar, menu do celular, painel de destaque. Use a classe **`.tinta`**: dentro dela os semânticos viram os do escuro    | Mais de um painel em tinta por tela                                                                                                              |
 | `--chart-1` … `--chart-5`                                      | Séries de gráfico (barra, linha, fatia), ≥ 3:1 sobre `surface`/`surface-raised` nos dois temas; 1 = vendas, 2 = locações | Texto; cor como único sinal (sempre legenda/rótulo e tabela alternativa)                                                                         |
 
 ## 5. Contraste (Gate 1)
@@ -75,31 +80,31 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 
 ## 6. Tipografia, espaço, forma e movimento
 
-> Nomes no CSS: os tokens de forma/movimento usam prefixos próprios em `tokens.css` (`--corner-*`, `--elevation-*`, `--easing-*`, `--weight-*`, `--line-height-*`, `--letter-spacing-*`) e o Tailwind os expõe com os nomes do guia (`--radius-*`, `--shadow-*`, `--ease-*`, `--font-weight-*`, `--leading-*`, `--tracking-*`). Isso evita variáveis que apontam para si mesmas. Os defaults do Tailwind nesses namespaces foram zerados, e `transition` usa `--dur-base` + `ease-standard`.
+> Nomes no CSS: os tokens de forma/movimento usam prefixos próprios em `tokens.css` (`--corner-*`, `--elevation-*`, `--easing-*`, `--weight-*`, `--line-height-*`, `--letter-spacing-*`) e o Tailwind os expõe com os nomes do guia (`--radius-*`, `--shadow-*`, `--ease-*`, `--font-weight-*`, `--leading-*`, `--tracking-*`). Os defaults do Tailwind nesses namespaces foram zerados.
 
-- **Fonte:** Geist via `next/font` (`--font-sans`) e Geist Mono (`font-mono`) só para identificadores (AT-0042, CT-2026-0023). Números de tabela/KPI com a classe `tnum` (`font-feature-settings: "tnum"`).
-- **Escala (1.2):** `text-xs 12` · `text-sm 14` · `text-base 16` · `text-lg 18` · `text-xl 24` · `text-2xl 32` · `text-3xl 40`. Corpo 14 px com `line-height 1.5`; títulos `1.2`, `tracking-tight` (−0,02em). Título de página 24 px (32 no desktop); título de seção/painel 16 px semibold; rótulos 12–14 px `text-muted`.
-- **Espaçamento:** grade de 4 px (`--spacing: 4px` → `p-1 = 4`, `p-2 = 8`, `p-3 = 12`, `p-4 = 16`, `p-6 = 24`, `p-8 = 32`, `p-12 = 48`, `p-16 = 64`). Prefira esses passos.
-- **Raio:** `rounded-sm 6` · `rounded-md 8` (controles) · `rounded-lg 12` (painéis, fotos) · `rounded-xl 16` · `rounded-full`.
-- **Sombra:** `shadow-1/2/3` neutras e leves. Profundidade vem de borda e superfície: painéis não têm sombra; `shadow-2/3` só em camadas flutuantes (menu, popover, modal, toast); `shadow-1` em botão secundário e no segmento ativo.
-- **Duração:** `--dur-fast 120ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`. Com `prefers-reduced-motion`, todas viram 1 ms. Laços: `--loop-shimmer 1400ms` (skeleton); não vira 1 ms, o laço é desligado.
-- **Easing:** `ease-standard`, `ease-enter`, `ease-exit`, `ease-spring`.
-- **Peso:** `font-regular 400` · `font-medium 500` · `font-semibold 600` · `font-bold 700`. **Tracking:** `tracking-tight` · `tracking-normal` · `tracking-wide` (eyebrows em caixa alta).
-- **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-popover 45` (popover, menu, select, tooltip: abrem dentro de modais) · `--z-toast 50`.
+- **Fontes (`next/font`):** **Instrument Serif** (`font-serif`, utilitário `display`) para títulos de página, de seção e de card, números de KPI e dinheiro grande, sempre peso 400 e nunca em corpo de texto; **Geist** (`font-sans`) para a interface; **Geist Mono** (utilitário `num`, com algarismos tabulares) para dinheiro em tabelas e listas, horários, códigos (AT-0020, CT-2026-0020) e eixos de gráfico.
+- **Escala:** `text-2xs 11` (eyebrow, eixos) · `xs 12` (pílulas) · `caption 13` (metadados, variações) · `sm 14` (UI) · `md 15` · `base 16` · `lg 18` · `xl 22` (dinheiro em grade de métricas) · serifa: `2xl 30` (card) · `3xl 40` (seção) · `4xl` 44→64 (KPI) · `5xl` 44→68 (H1) · `6xl` 52→88 (resultado do mês). Os três últimos usam `clamp()` para caber em 390 px.
+- **Utilitários:** `eyebrow` (11 px, 500, caixa alta, tracking 0,14em, `text-muted`), `display`, `num`, `unidade` (unidade a ~45% do número, em `text-2`). `Destaque` (`ui/Typography`) separa "R$", "mi", "mil" e ",00" do número sozinho.
+- **Espaçamento:** grade de 4 px. Calhas 20/40/56 px, conteúdo máx. 1240 px; cabeçalho de página 56 px acima e 36–44 px abaixo; cards com 30 × 32 px de padding (20 no celular); 24 px entre cards, 40–56 px entre faixas.
+- **Raio:** `rounded-xs 2` (amostra de legenda) · `rounded-sm 6` · `rounded-md 10` (botões, inputs, segmentos) · `rounded-lg 16` (cards, ladrilhos) · `rounded-xl 20` (faixa hero em tinta) · `rounded-full`.
+- **Sombra:** quase nenhuma. Cards têm fio, não sombra. `shadow-1` só no segmento selecionado; `shadow-2` em popovers, menus, modais e toasts.
+- **Ícones:** Lucide, traço 1,6, 18 px na navegação e botões, 14–16 px em linha, sempre `currentColor` (nunca latão).
+- **Duração:** `--dur-fast 150ms` · `--dur-base 200ms` · `--dur-slow 320ms` · `--dur-page 450ms`; `ease-standard` = `cubic-bezier(0.2, 0, 0, 1)`. Só cor, fundo, opacidade e transform; nada de quicar. Com `prefers-reduced-motion`, 1 ms.
+- **Peso:** `font-regular 400` · `font-medium 500` · `font-semibold 600`. **Tracking:** `tight` · `display` · `wide` · `eyebrow`.
+- **Z-index:** `--z-base 0` · `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-popover 45` · `--z-toast 50`.
 
 ## 7. Logo
 
-O átrio da _domus_ romana visto de cima: o ladrilho é a casa, o quadrado com diagonais é o telhado de quatro águas (compluvium) e o quadrado central é o _impluvium_, o espelho d'água que recebe a chuva.
+Monograma: um "A" em Instrument Serif num quadrado de 32 px (raio 9) em tinta, com fio de latão; ao lado, "Atrium" em Instrument Serif 27 px.
 
-- Componente: `src/components/brand/AtriumLogo.tsx` (`<AtriumMark />` e `<AtriumLogo />`), usa `--primary`/`--on-primary` e se adapta ao tema sozinho.
-- Arquivos avulsos: [`brand/atrium-mark.svg`](./brand/atrium-mark.svg) (adapta via `prefers-color-scheme`), [`brand/atrium-logo-light.svg`](./brand/atrium-logo-light.svg), [`brand/atrium-logo-dark.svg`](./brand/atrium-logo-dark.svg).
-- Área de respiro mínima: ¼ da altura do símbolo. Tamanho mínimo do símbolo: 16 px.
+- Componente: `src/components/brand/AtriumLogo.tsx` (`<AtriumMark />` e `<AtriumLogo />`), só tokens (`--sidebar`, `--accent`, `--on-ink-strong`, `--text`).
+- Favicon `src/app/icon.svg` e arquivos avulsos em [`brand/`](./brand/) (com fonte de fallback serifada, pois SVG solto não carrega a webfont).
 
 ## 8. Ilustrações
 
 Biblioteca SVG flat/geométrica em `src/assets/svg/` (componentes React), vitrine em **`/design-system/illustrations`**: 8 fachadas (`SvgFachada variant="sobrado"`), 8 cômodos (`SvgComodo`), 4 estados vazios (`SvgVazio`), 6 avatares ilustrados + iniciais (`AvatarIlustrado`, `AvatarIniciais`). `PropertyImage` (`src/components/patterns/`) escolhe a fachada pelo imóvel e tem fallback "Sem ilustração".
 
-- **Paleta própria, semântica e com tema:** `--illus-sky` (céu/fundo), `--illus-ground` (chão), `--illus-wall` (volume principal), `--illus-wall-alt`, `--illus-roof`, `--illus-detail` (janelas/portas), `--illus-ink` (traços), `--illus-accent` (verde-acinzentado, só decorativo). No claro: céu cinza claro, volumes verde perene, detalhes brancos; no escuro inverte (céu grafite, volumes verde claro). Escalas fixas (`--green-*`) não mudam com o tema e não entram nas ilustrações.
+- **Paleta própria, semântica e com tema:** `--illus-sky` (fundo), `--illus-ground` (chão), `--illus-wall` (volume principal), `--illus-wall-alt`, `--illus-roof`, `--illus-detail` (janelas/portas), `--illus-ink` (traços), `--illus-accent` (latão, só decorativo). No claro: fundo pedra clara, volumes em tinta suave, janelas porcelana, como uma gravura de arquitetura; no escuro inverte (fundo tinta, volumes claros). Escalas fixas não entram nas ilustrações.
 - **Contraste:** silhueta (`wall`, `wall-alt`, `roof`) ≥ 3:1 sobre `sky` e detalhes ≥ 3:1 sobre `wall`, nos dois temas (`contrast.json`). O acento é decorativo.
 - **Técnica:** raiz comum `Ilustracao` (`role="img"` + `<title>` via `aria-labelledby`, ou `decorativa` → `aria-hidden`); `viewBox` 400×300 (4:3) para cenas, 240×180 para vazios, 64×64 para avatares; sem gradiente, filtro ou texto (exceto as iniciais, que usam `--surface-muted`/`--text` e `--primary`/`--on-primary`). Testes conferem que todo `fill`/`stroke` é `var(--illus-*)` (`paleta.testutil.ts`). Regras para novas peças: `docs/BRIEF-ILUSTRACOES.md`.
 - **Otimização:** as peças são JSX escrito à mão com poucas formas e coordenadas inteiras (o equivalente ao resultado do SVGO); não há arquivos `.svg` soltos para otimizar.
@@ -224,7 +229,7 @@ Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), tod
 
 | Peça                             | Comportamento                                                                                                                                                                                                  | Requisitos          |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `AppShell`                       | Skip link → sidebar (≥ 1024 px) ou trilho de ícones (768–1023 px) → topbar fixa (56 px) → `<main id="conteudo">` com **largura máx. 1280 px** (`max-w-320`) e padding 16/32/40 px.                             | RNF-01, RNF-03      |
+| `AppShell`                       | Skip link → sidebar (≥ 1024 px) ou trilho de ícones (768–1023 px) → topbar fixa (64 px) → `<main id="conteudo">` com **conteúdo máx. 1240 px** (`max-w-338` com as calhas) e calhas de 20/40/56 px.                             | RNF-01, RNF-03      |
 | `Sidebar` + `NavegacaoPrincipal` | Logo, 5 módulos + Configurações no rodapé. Item ativo com `aria-current="page"` e indicador que desliza (`motion` `layoutId`, `--dur-slow`). Recolhível (64 px, só ícones + tooltip, nome acessível completo). | RF-01, RF-60        |
 | Badges                           | Leads novos (`info`) e parcelas atrasadas (`danger`), calculados no domínio (`contadoresNavegacao`). Acima de 99 vira "99+"; o número exato fica no nome acessível.                                            | RF-62               |
 | `MobileNav`                      | Abaixo de 768 px a navegação vira drawer à esquerda (alvos de 44 px); escolher um item fecha. No tablet, `Sidebar recolhida fixa` (trilho).                                                                    | RF-01, RF-63        |
@@ -235,17 +240,22 @@ Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), tod
 | `PageSkeleton`                   | `loading.tsx` de cada rota: forma final de cabeçalho + conteúdo (lista, painel ou detalhe), sem salto de layout.                                                                                               | RNF-07, RNF-09      |
 | `TransicaoDeRota`                | `template.tsx` do grupo `(dashboard)`: fade + 8 px ao trocar de módulo (`--dur-slow`, `ease-enter`); com movimento reduzido, 1 ms.                                                                             | Guia §7             |
 
-**Sidebar (refinamento):** fundo cinza suave (`--bg-subtle`), itens de 36 px, item ativo numa pílula `--surface-muted` com o ícone em `--primary` (referência enviada pelo Lauro: suave, sem preenchimento sólido). Contadores só como número discreto; cor de estado apenas no que pede atenção (parcelas atrasadas). A variante `tom="marca"` (sidebar escura) continua no catálogo.
+**Sidebar (refinamento):** em tinta nos dois temas (`.tinta` + `--sidebar`), 248 px (72 recolhida), itens de 40 px, grupos com rótulo em eyebrow, item ativo em `--ink-active` (`--primary-subtle` dentro de `.tinta`) e texto mais claro; contadores em mono sobre trilho de tinta. O menu do celular usa a mesma tinta.
 
 **Persistência (RNF-16):** tema pelo `next-themes`; sidebar recolhida em `localStorage` (`atrium:sidebar-recolhida`) via `usePreferencia` (`src/lib/preferencias.ts`), tolerante a storage bloqueado. **Movimento em JS:** `src/lib/motion.ts` lê `--dur-*`/`--easing-*` do CSS; nenhuma duração literal no `motion`.
 
 **Trilha:** derivada da rota (`trilhaDaRota`); a tela que conhece o nome real do registro usa `<DefinirTrilha rotulo="AT-0012" />` (`src/features/shell/trilha.ts`).
 
-## 12. Padrões do refinamento
+## 12. Receitas de tela (quiet luxury)
 
-- **Nem tudo é card.** `SectionCard variante="painel"` agrupa um objeto (gráfico, formulário, resumo); `variante="aberta"` é título + divisória para listas (agenda, atividades).
-- **KPIs em faixa:** `StatGroup` + `StatCard variante="celula"`: um painel, divisórias de 1 px, 2 colunas no celular/tablet e N no desktop; valor, mini tendência à direita e variação em uma linha.
-- **Gráficos:** grade só horizontal e sem tracejado, eixo Y com 4 marcas, legenda em pontos de 8 px, alternância Gráfico/Tabela só com ícones (nome acessível mantido).
-- **Listas:** horário em coluna fixa à esquerda, título em uma linha, contexto em `text-xs` muted; linhas separadas por `divide-border`.
-- **Imóveis:** foto (ou ilustração) é a protagonista, sem caixa em volta; status sobre a foto; preço em destaque; código em `font-mono`.
-- **Tabelas:** cabeçalho 12 px muted em `bg-subtle`; identificadores em mono; datas e tipo do contrato como segunda linha da 1ª coluna para caber em 1280 px.
+- **Esqueleto de toda tela:** cabeçalho editorial (`PageHeader` com `eyebrow` "Seção · contexto", H1 em serifa, uma linha de resumo opcional, ações à direita, no máximo um botão primário) → faixa principal → linhas de apoio → lista ou tabela.
+- **KPIs:** `StatGroup` + `StatCard variante="celula"`: sem caixa, fio de tinta em cima e fio claro embaixo, divisórias verticais; eyebrow → número em serifa com unidades menores → variação com seta, sinal e "vs. …". Sem mini-linhas decorativas.
+- **Painel em tinta (um por tela):** `tinta bg-ink-panel` (meta do mês, resultado do mês, resumo da semana, valor do contrato); progresso em trilho `--ink-track` com preenchimento latão.
+- **Grade de métricas:** um card com `gap-px` sobre `--border`; eyebrow + valor mono 22 px; inadimplência em `--danger` no rótulo e no valor.
+- **Listas:** linhas com `border-border-soft` no topo, sem zebra; [data ou hora] [título 15/500 + meta] [avatar, valor ou pílula]. Bloco de data: eyebrow do dia + número em serifa.
+- **Tabelas:** sem fios entre colunas; cabeçalho em eyebrow; dinheiro em mono à direita; status em pílula à direita; rolagem horizontal no celular.
+- **Pílulas:** só contorno (`--line-strong`), texto `--text-2`; risco/atraso com `--danger-line` e `--danger`. Nada de chip cheio colorido; a cor entra no ponto de 6 px.
+- **Gráficos:** barras em pedra e só o período atual em latão, com o valor num chip; locações em `--stone-2` empilhadas; linha de base em tinta, grade tracejada, eixos em mono 11 px; sempre com resumo acessível e alternativa Tabela.
+- **Imóveis:** ladrilho 4:3 em `--surface-sunken`, raio 16, foto ou ilustração em traço; pílula "Venda/Locação" no canto; código mono, título 16/500, bairro em legenda.
+- **Estados:** vazio = frase em serifa + uma linha + um botão fantasma; carregando = esqueletos na forma final; erro = legenda em `--danger` com "Tentar novamente".
+- **Botões:** primário em tinta (no escuro inverte), fantasma com fio, link de texto com sublinhado fino; destrutivo também em tinta, com o rótulo dizendo o que se perde (nunca vermelho cheio).

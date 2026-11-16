@@ -13,7 +13,7 @@ export const DropdownMenuSub = MenuPrimitive.Sub;
 const panel =
   "z-(--z-popover) min-w-48 rounded-lg border border-border bg-surface-raised p-1 text-sm text-text shadow-2";
 const item =
-  "relative flex h-9 cursor-pointer items-center gap-2 rounded-sm px-2 outline-none select-none data-[highlighted]:bg-bg-subtle data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
+  "relative flex h-10 cursor-pointer items-center gap-2 rounded-md px-2.5 outline-none select-none data-[highlighted]:bg-surface-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
 
 export function DropdownMenuContent({
   className,

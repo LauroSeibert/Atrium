@@ -30,34 +30,6 @@ export const ContadoresExtremosRecolhida: Story = {
   name: "Contadores extremos (recolhida)",
   args: { recolhida: true, contadores: { leadsNovos: 1234, parcelasAtrasadas: 7 } },
 };
-export const TomMarca: Story = {
-  name: "Tom marca",
-  args: { tom: "marca", contadores: CONTADORES },
-};
-export const ComparacaoDeTom: Story = {
-  name: "Comparação de tom",
-  render: (args) => (
-    <div className="flex flex-wrap gap-6 bg-bg p-6">
-      {(
-        [
-          ["Clara (padrão)", "clara"],
-          ["Marca", "marca"],
-        ] as const
-      ).map(([legenda, tom]) => (
-        <figure key={tom} className="flex flex-col gap-2">
-          <figcaption className="text-sm font-medium text-text">{legenda}</figcaption>
-          <Sidebar
-            {...args}
-            tom={tom}
-            contadores={CONTADORES}
-            aria-label={`Menu principal, tom ${legenda}`}
-            className="h-160"
-          />
-        </figure>
-      ))}
-    </div>
-  ),
-};
 export const RotaDentroDoFinanceiro: Story = {
   name: "Rota dentro do Financeiro",
   args: { pathname: "/financeiro/receitas", contadores: CONTADORES },
@@ -79,7 +51,7 @@ export const ItemAtivoEmSubrota: Story = {
   args: { pathname: "/imoveis/abc", contadores: CONTADORES },
 };
 
-function SidebarInterativa({ tom }: { tom?: "clara" | "marca" }) {
+function SidebarInterativa() {
   const [recolhida, setRecolhida] = useState(false);
   const { pathname, capturar } = useNavegacaoLocal("/");
   return (
@@ -89,7 +61,6 @@ function SidebarInterativa({ tom }: { tom?: "clara" | "marca" }) {
         recolhida={recolhida}
         onAlternarRecolhida={() => setRecolhida((r) => !r)}
         contadores={CONTADORES}
-        tom={tom}
       />
     </div>
   );

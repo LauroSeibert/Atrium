@@ -15,10 +15,29 @@
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
   --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-line-strong: var(--line-strong);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
+  --color-text-2: var(--text-2);
   --color-text-muted: var(--text-muted);
+  --color-placeholder: var(--placeholder);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-stone: var(--stone);
+  --color-stone-2: var(--stone-2);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-ink-panel: var(--ink-panel);
+  --color-ink-track: var(--ink-track);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-strong: var(--on-ink-strong);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --color-on-ink-faint: var(--on-ink-faint);
+  --color-danger-line: var(--danger-line);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-on-primary: var(--on-primary);
@@ -51,6 +70,7 @@
   --color-current: currentColor;
 
   --font-*: initial;
+  --font-serif: var(--font-family-serif);
   --font-sans: var(--font-family-sans);
   --font-mono: var(--font-family-mono);
 
@@ -63,13 +83,29 @@
   --leading-*: initial;
   --leading-body: var(--line-height-body);
   --leading-heading: var(--line-height-heading);
+  --leading-title: var(--line-height-title);
+  --leading-display: var(--line-height-display);
 
   --tracking-*: initial;
   --tracking-tight: var(--letter-spacing-tight);
   --tracking-normal: var(--letter-spacing-normal);
   --tracking-wide: var(--letter-spacing-wide);
+  --tracking-display: var(--letter-spacing-display);
+  --tracking-eyebrow: var(--letter-spacing-eyebrow);
 
   --text-*: initial;
+  --text-2xs: var(--font-size-2xs);
+  --text-2xs--line-height: var(--line-height-heading);
+  --text-caption: var(--font-size-caption);
+  --text-caption--line-height: var(--line-height-body);
+  --text-md: var(--font-size-md);
+  --text-md--line-height: var(--line-height-body);
+  --text-4xl: var(--font-size-4xl);
+  --text-4xl--line-height: var(--line-height-display);
+  --text-5xl: var(--font-size-5xl);
+  --text-5xl--line-height: var(--line-height-display);
+  --text-6xl: var(--font-size-6xl);
+  --text-6xl--line-height: var(--line-height-display);
   --text-xs: var(--font-size-xs);
   --text-xs--line-height: var(--line-height-body);
   --text-sm: var(--font-size-sm);
@@ -81,11 +117,12 @@
   --text-xl: var(--font-size-xl);
   --text-xl--line-height: var(--line-height-heading);
   --text-2xl: var(--font-size-2xl);
-  --text-2xl--line-height: var(--line-height-heading);
+  --text-2xl--line-height: var(--line-height-title);
   --text-3xl: var(--font-size-3xl);
-  --text-3xl--line-height: var(--line-height-heading);
+  --text-3xl--line-height: var(--line-height-title);
 
   --radius-*: initial;
+  --radius-xs: var(--corner-xs);
   --radius-sm: var(--corner-sm);
   --radius-md: var(--corner-md);
   --radius-lg: var(--corner-lg);
@@ -175,8 +212,12 @@
     }
   }
   ::selection {
-    background: var(--surface-muted);
+    background: var(--surface-sunken);
     color: var(--text);
+  }
+  ::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
   }
   .tnum {
     font-feature-settings: "tnum";
@@ -270,6 +311,39 @@
   ::after {
     animation-iteration-count: 1 !important;
   }
+}
+
+/*
+ * Tipografia editorial (DESIGN_SYSTEM §6). Utilitários próprios em vez de combinações soltas:
+ * - `eyebrow`: rótulo em caixa alta acima de títulos e KPIs (11 px, 500, tracking 0.14em, text-muted).
+ * - `display`: Instrument Serif, sempre peso 400 (nunca negrito).
+ * - `num`: Geist Mono com algarismos tabulares (dinheiro em tabelas e listas, horários, códigos).
+ */
+@utility eyebrow {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-2xs);
+  line-height: var(--line-height-heading);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--letter-spacing-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+@utility display {
+  font-family: var(--font-family-serif);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--letter-spacing-display);
+}
+@utility num {
+  font-family: var(--font-family-mono);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Unidade junto a um número em destaque ("R$", "mi", ",00"): ~45% do número, em text-2 (DESIGN_SYSTEM §6). */
+@utility unidade {
+  font-size: 0.45em;
+  letter-spacing: 0;
+  color: var(--text-2);
 }
 
 /* Barra de ação inferior (RF-63): respeita a área segura do iPhone sem valor literal. */

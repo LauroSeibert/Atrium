@@ -18,6 +18,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/DropdownMenu";
 import { Icon } from "../ui/Icon";
+import { Destaque } from "../ui/Typography";
 import { Skeleton } from "../ui/Skeleton";
 import { PropertyImage } from "./PropertyImage";
 import { FINALIDADE_ROTULO, STATUS_IMOVEL_UI } from "./rotulos";
@@ -44,11 +45,19 @@ export type PropertyItemProps = {
 };
 
 /** Preço em destaque; locação mostra "/mês". */
-export function PrecoImovel({ imovel, className }: { imovel: Imovel; className?: string }) {
+export function PrecoImovel({
+  imovel,
+  tamanho = "2xl",
+  className,
+}: {
+  imovel: Imovel;
+  tamanho?: "2xl" | "3xl";
+  className?: string;
+}) {
   return (
-    <p className={cn("tnum text-xl font-semibold text-text", className)}>
-      {formatMoeda(imovel.preco, { semCentavos: true })}
-      {imovel.finalidade === "locacao" ? <span className="font-normal text-sm text-text-muted">/mês</span> : null}
+    <p className={cn("text-text", className)}>
+      <Destaque valor={formatMoeda(imovel.preco, { semCentavos: true })} size={tamanho} />
+      {imovel.finalidade === "locacao" ? <span className="ml-1 text-sm text-text-muted">/mês</span> : null}
     </p>
   );
 }
@@ -83,7 +92,32 @@ export function SpecsImovel({ imovel, className }: { imovel: Imovel; className?:
   );
 }
 
-/** Status, finalidade e código em uma linha. */
+/** Pílula de finalidade (Venda/Locação) sobre fundo claro; usada sobre o ladrilho. */
+export function PilulaFinalidade({ imovel, className }: { imovel: Imovel; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-2xs font-medium tracking-wide text-text uppercase",
+        className,
+      )}
+    >
+      {FINALIDADE_ROTULO[imovel.finalidade]}
+    </span>
+  );
+}
+
+/** Código (mono) e status em uma linha de apoio. */
+export function CodigoStatusImovel({ imovel, className }: { imovel: Imovel; className?: string }) {
+  return (
+    <p className={cn("text-xs text-text-muted", className)}>
+      <span className="font-mono">{imovel.codigo}</span>
+      <span aria-hidden="true"> · </span>
+      <span>{STATUS_IMOVEL_UI[imovel.status].rotulo}</span>
+    </p>
+  );
+}
+
+/** Status (pílula), finalidade e código em uma linha. */
 export function SelosImovel({ imovel }: { imovel: Imovel }) {
   const status = STATUS_IMOVEL_UI[imovel.status];
   return (
@@ -125,7 +159,7 @@ export function BotaoFavorito({
       onClick={() => onAlternarFavorito?.(imovel.id)}
       className={cn(
         alvo,
-        "relative z-10 rounded-full border-transparent bg-surface/90 shadow-1 transition-colors duration-(--dur-fast) ease-standard",
+        "relative z-10 rounded-full border-transparent bg-surface/90 transition-colors duration-(--dur-fast) ease-standard",
         imovel.favorito && "text-danger [&_svg]:fill-current",
         className,
       )}
@@ -150,7 +184,7 @@ export function MenuAcoesImovel({
           variant="secondary"
           icon={MoreHorizontal}
           aria-label={`Mais ações do imóvel ${imovel.codigo}`}
-          className={cn(alvo, "relative z-10 rounded-full border-transparent bg-surface/90 shadow-1", className)}
+          className={cn(alvo, "relative z-10 rounded-full border-transparent bg-surface/90", className)}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -203,14 +237,12 @@ export function ResponsavelImovel({ corretor }: { corretor?: Pick<Corretor, "nom
   );
 }
 
-/** Cartão de imóvel para a grade (RF-20, RF-28). */
+/** Cartão de imóvel para a grade (RF-20, RF-28): o ladrilho é o objeto, sem caixa em volta. */
 export function PropertyCard({ imovel, corretor, href, acoes = [], onAlternarFavorito, className }: PropertyItemProps) {
-  const status = STATUS_IMOVEL_UI[imovel.status];
   return (
-    // Sem caixa: a foto é a protagonista e o texto respira abaixo dela (nem tudo é card).
     <article
       aria-label={`${imovel.codigo}: ${imovel.titulo}`}
-      className={cn("group relative flex h-full min-w-0 flex-col gap-3", className)}
+      className={cn("group relative flex h-full min-w-0 flex-col gap-4", className)}
     >
       <div className="relative overflow-hidden rounded-lg">
         <PropertyImage
@@ -219,28 +251,18 @@ export function PropertyCard({ imovel, corretor, href, acoes = [], onAlternarFav
           decorativa
           className="transition-transform duration-(--dur-slow) ease-standard group-hover:scale-102 motion-reduce:group-hover:scale-100"
         />
-        <span aria-hidden="true" className="absolute inset-0 rounded-lg ring-1 ring-text/5 ring-inset" />
-        <div className="absolute top-2 left-2">
-          <Badge tone={status.tom} size="sm" dot className="shadow-1">
-            {status.rotulo}
-          </Badge>
-        </div>
+        <PilulaFinalidade imovel={imovel} className="absolute top-3 left-3" />
         <div className="absolute top-2 right-2 flex gap-1.5">
           <BotaoFavorito imovel={imovel} onAlternarFavorito={onAlternarFavorito} />
           <MenuAcoesImovel imovel={imovel} acoes={acoes} />
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <PrecoImovel imovel={imovel} className="text-lg" />
-          <span className="shrink-0 font-mono text-xs text-text-muted">{imovel.codigo}</span>
-        </div>
-        <TituloImovel imovel={imovel} href={href} className="text-sm" />
-        <LocalImovel imovel={imovel} />
-        <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-          <SpecsImovel imovel={imovel} className="text-xs text-text" />
-          <span className="shrink-0 text-xs text-text-muted">{FINALIDADE_ROTULO[imovel.finalidade]}</span>
-        </div>
+        <CodigoStatusImovel imovel={imovel} />
+        <TituloImovel imovel={imovel} href={href} />
+        <p className="truncate text-caption text-text-muted">{imovel.endereco.bairro}</p>
+        <PrecoImovel imovel={imovel} className="mt-2" />
+        <SpecsImovel imovel={imovel} className="mt-auto pt-2 text-xs text-text-2" />
         <ResponsavelImovel corretor={corretor} />
       </div>
     </article>
@@ -253,11 +275,10 @@ export function PropertyCardSkeleton({ className }: { className?: string }) {
     <div role="status" aria-busy="true" aria-label="Carregando imóvel" className={cn("flex flex-col gap-3", className)}>
       <Skeleton shape="rect" className="aspect-4/3 h-auto rounded-lg" />
       <div className="flex flex-col gap-2">
-        <Skeleton className="h-5 w-1/2" />
-        <Skeleton className="h-6 w-2/3" />
-        <Skeleton className="w-full" />
-        <Skeleton className="w-3/4" />
+        <Skeleton className="w-1/3" />
+        <Skeleton className="h-5 w-3/4" />
         <Skeleton className="w-1/2" />
+        <Skeleton className="h-7 w-2/3" />
       </div>
     </div>
   );

@@ -5,23 +5,30 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
-export const badgeVariants = cva("inline-flex shrink-0 items-center gap-1 rounded-full font-medium whitespace-nowrap", {
-  variants: {
-    tone: {
-      neutral: "bg-surface-muted text-text",
-      primary: "bg-primary-subtle text-primary",
-      success: "bg-success-bg text-success",
-      warning: "bg-warning-bg text-warning",
-      danger: "bg-danger-bg text-danger",
-      info: "bg-info-bg text-info",
+/**
+ * Pílula só com contorno (DESIGN_SYSTEM §5): nada de chip cheio colorido. O status se lê pelo texto;
+ * a cor entra no ponto de 6 px e, em risco/atraso, no texto e no fio.
+ */
+export const badgeVariants = cva(
+  "inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-transparent font-regular whitespace-nowrap",
+  {
+    variants: {
+      tone: {
+        neutral: "border-line-strong text-text-2 [--ponto:var(--stone-2)]",
+        primary: "border-line-strong text-text [--ponto:var(--accent)]",
+        success: "border-line-strong text-text-2 [--ponto:var(--success)]",
+        warning: "border-line-strong text-warning [--ponto:var(--warning)]",
+        danger: "border-danger-line text-danger [--ponto:var(--danger)]",
+        info: "border-line-strong text-text-2 [--ponto:var(--text-muted)]",
+      },
+      size: {
+        sm: "h-5 px-2 text-2xs",
+        md: "h-6 px-2.5 text-xs",
+      },
     },
-    size: {
-      sm: "h-5 px-1.5 text-xs",
-      md: "h-6 px-2.5 text-xs",
-    },
+    defaultVariants: { tone: "neutral", size: "md" },
   },
-  defaultVariants: { tone: "neutral", size: "md" },
-});
+);
 
 export type BadgeProps = ComponentProps<"span"> &
   VariantProps<typeof badgeVariants> & {
@@ -34,8 +41,8 @@ export type BadgeProps = ComponentProps<"span"> &
 export function Badge({ tone, size, dot, icon, className, children, ...props }: BadgeProps) {
   return (
     <span className={cn(badgeVariants({ tone, size }), className)} {...props}>
-      {dot ? <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" /> : null}
-      {icon ? <Icon icon={icon} size={16} /> : null}
+      {dot ? <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-(--ponto)" /> : null}
+      {icon ? <Icon icon={icon} size={14} /> : null}
       {children}
     </span>
   );
@@ -59,7 +66,7 @@ export function Tag({ onRemove, removeLabel, children, className, ...props }: Ta
           type="button"
           onClick={onRemove}
           aria-label={label}
-          className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full transition duration-(--dur-fast) ease-standard hover:bg-text/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full transition duration-(--dur-fast) ease-standard hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <Icon icon={X} size={16} />
         </button>

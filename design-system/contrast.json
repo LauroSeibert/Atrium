@@ -350,18 +350,6 @@
       "use": "Gráfico: série 1 (barra, linha, fatia) sobre tooltip"
     },
     {
-      "fg": "chart-2",
-      "bg": "surface",
-      "min": 3,
-      "use": "Gráfico: série 2 (barra, linha, fatia) sobre card"
-    },
-    {
-      "fg": "chart-2",
-      "bg": "surface-raised",
-      "min": 3,
-      "use": "Gráfico: série 2 (barra, linha, fatia) sobre tooltip"
-    },
-    {
       "fg": "chart-3",
       "bg": "surface",
       "min": 3,
@@ -372,18 +360,6 @@
       "bg": "surface-raised",
       "min": 3,
       "use": "Gráfico: série 3 (barra, linha, fatia) sobre tooltip"
-    },
-    {
-      "fg": "chart-4",
-      "bg": "surface",
-      "min": 3,
-      "use": "Gráfico: série 4 (barra, linha, fatia) sobre card"
-    },
-    {
-      "fg": "chart-4",
-      "bg": "surface-raised",
-      "min": 3,
-      "use": "Gráfico: série 4 (barra, linha, fatia) sobre tooltip"
     },
     {
       "fg": "chart-5",
@@ -408,12 +384,142 @@
       "bg": "primary-subtle",
       "min": 4.5,
       "use": "Texto em linha selecionada"
+    },
+    {
+      "fg": "text-2",
+      "bg": "bg",
+      "min": 4.5,
+      "use": "Texto de apoio e unidades sobre o fundo"
+    },
+    {
+      "fg": "text-2",
+      "bg": "surface",
+      "min": 4.5,
+      "use": "Texto de apoio em cards"
+    },
+    {
+      "fg": "text-2",
+      "bg": "surface-muted",
+      "min": 4.5,
+      "use": "Segmento não selecionado"
+    },
+    {
+      "fg": "placeholder",
+      "bg": "surface",
+      "min": 4.5,
+      "use": "Placeholder de inputs"
+    },
+    {
+      "fg": "text",
+      "bg": "surface-sunken",
+      "min": 4.5,
+      "use": "Texto sobre ladrilho/trilho da semana"
+    },
+    {
+      "fg": "accent",
+      "bg": "surface",
+      "min": 3,
+      "use": "Preenchimento de progresso, barra do período atual"
+    },
+    {
+      "fg": "accent",
+      "bg": "bg",
+      "min": 3,
+      "use": "Ponto de notificação, marca do período atual"
+    },
+    {
+      "fg": "accent",
+      "bg": "ink-track",
+      "min": 3,
+      "use": "Progresso sobre painel em tinta"
+    },
+    {
+      "fg": "danger",
+      "bg": "bg",
+      "min": 4.5,
+      "use": "Valores em atraso sobre o fundo"
+    },
+    {
+      "fg": "success",
+      "bg": "bg",
+      "min": 4.5,
+      "use": "Variação positiva sobre o fundo"
+    },
+    {
+      "fg": "on-ink",
+      "bg": "sidebar",
+      "min": 4.5,
+      "use": "Texto na sidebar (hover)"
+    },
+    {
+      "fg": "on-ink-strong",
+      "bg": "sidebar-active",
+      "min": 4.5,
+      "use": "Item ativo da sidebar"
+    },
+    {
+      "fg": "on-ink",
+      "bg": "sidebar-hover",
+      "min": 4.5,
+      "use": "Item em hover na sidebar"
+    },
+    {
+      "fg": "on-ink-muted",
+      "bg": "sidebar",
+      "min": 4.5,
+      "use": "Item da sidebar em repouso"
+    },
+    {
+      "fg": "on-ink-faint",
+      "bg": "sidebar",
+      "min": 4.5,
+      "use": "Títulos de grupo na sidebar"
+    },
+    {
+      "fg": "on-ink",
+      "bg": "ink-track",
+      "min": 4.5,
+      "use": "Contadores na sidebar"
+    },
+    {
+      "fg": "on-ink",
+      "bg": "ink-panel",
+      "min": 4.5,
+      "use": "Texto em painel de destaque"
+    },
+    {
+      "fg": "on-ink-muted",
+      "bg": "ink-panel",
+      "min": 4.5,
+      "use": "Texto secundário em painel de destaque"
+    },
+    {
+      "fg": "on-ink",
+      "bg": "sidebar",
+      "min": 3,
+      "use": "Anel de foco na sidebar"
+    },
+    {
+      "fg": "warning",
+      "bg": "bg",
+      "min": 4.5,
+      "use": "Pílula de alerta sobre o fundo"
+    },
+    {
+      "fg": "text-2",
+      "bg": "bg-subtle",
+      "min": 4.5,
+      "use": "Segmento não selecionado no trilho"
     }
   ],
   "decorative": {
     "border": "Divisórias decorativas: isentas do 3:1 (WCAG 1.4.11 só exige 3:1 para limites que identificam um controle). Para inputs e controles use border-strong.",
     "surface-muted": "Proibido como fundo de controles (border-strong fica < 3:1) e de texto de status (success/warning ficam < 4,5:1). Chips de status usam o próprio *-bg.",
     "ring-offset": "O anel de foco sempre usa outline-offset: 2px (assenta sobre o fundo, não sobre o primário). ring × primary < 3:1, então offset 0 é proibido.",
-    "illus-accent": "Acento ocre das ilustrações é só decorativo (sol, luminária, planta): nunca carrega informação. A silhueta legível vem de illus-wall/roof/wall-alt sobre illus-sky (≥ 3:1)."
+    "illus-accent": "Acento latão das ilustrações é só decorativo (sol, luminária, planta): nunca carrega informação. A silhueta legível vem de illus-wall/roof/wall-alt sobre illus-sky (≥ 3:1).",
+    "chart-stone": "chart-2 (locações, stone-2) e chart-4 (períodos não atuais, stone) ficam abaixo de 3:1 por decisão de design (DESIGN.md: só o período atual ganha cor). Nunca carregam informação sozinhos: todo gráfico tem resumo em aria-label, rótulo no período atual, legenda e a alternativa Tabela com os valores.",
+    "line-strong": "Contorno de pílulas e do botão fantasma: decorativo, porque o texto do próprio controle o identifica. Inputs usam border-strong.",
+    "danger-line": "Contorno da pílula de atraso: decorativo; o texto em --danger (≥ 4,5:1) carrega o sinal.",
+    "surface-sunken": "Ladrilho de imagem: texto secundário (text-muted) não vai sobre ele (4,3:1); legendas ficam abaixo do ladrilho e rótulos sobre ele usam text."
   }
 }

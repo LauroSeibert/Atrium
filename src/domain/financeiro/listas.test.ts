@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agendaDoPeriodo } from "../agenda/agenda";
+import { agendaDoPeriodo, resumoAgenda } from "../agenda/agenda";
 import { calcularRelatorios } from "../metricas/relatorios";
 import { baseMinima, contrato, contratoLocacao, corretor, despesa, imovel, negociacao, visita } from "../teste/fabrica";
 import { linhasComissao, linhasReceita, linhasRepasse } from "./listas";
@@ -102,6 +102,26 @@ describe("agenda (RF-73)", () => {
         d.itens.every((i) => i.tipo === "vencimento"),
       ),
     ).toBe(true);
+  });
+});
+
+describe("resumo da agenda (RF-73)", () => {
+  it("conta só visitas agendadas ou realizadas e soma os vencimentos em aberto", () => {
+    const comCancelada = {
+      ...base,
+      visitas: [
+        ...base.visitas,
+        visita({ id: "vis_d", status: "cancelada", dataHora: "2026-03-17T13:00:00.000Z" }),
+        visita({ id: "vis_e", status: "naoCompareceu", dataHora: "2026-03-18T13:00:00.000Z" }),
+      ],
+    };
+    const dias = agendaDoPeriodo(comCancelada, HOJE);
+    const r = resumoAgenda(dias);
+    expect(r.visitas).toBe(1);
+    expect(r.porCorretor).toEqual([{ corretorId: "cor_a", visitas: 1 }]);
+    const vencimentos = dias.flatMap((d) => d.itens).filter((i) => i.tipo === "vencimento");
+    expect(r.vencimentos).toBe(vencimentos.length);
+    expect(r.aReceber).toBe(vencimentos.reduce((s, i) => s + (i.tipo === "vencimento" ? i.parcela.valor : 0), 0));
   });
 });
 

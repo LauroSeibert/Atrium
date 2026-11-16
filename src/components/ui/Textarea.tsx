@@ -40,7 +40,7 @@ export function Textarea({
           onChange?.(event);
         }}
         className={cn(
-          "w-full resize-y rounded-md border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted",
+          "w-full resize-y rounded-md border bg-surface px-3 py-2 text-sm text-text placeholder:text-placeholder",
           "transition duration-(--dur-fast) ease-standard",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           "disabled:cursor-not-allowed disabled:opacity-50",

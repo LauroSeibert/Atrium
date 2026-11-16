@@ -39,10 +39,43 @@ export function raioBarra(): number {
   return Number.isFinite(px) ? px / 2 : 0;
 }
 
-export const TICK = { fill: "var(--text-muted)", fontSize: 12 } as const;
-export const EIXO = { stroke: "var(--border)" } as const;
-export const GRADE = { stroke: "var(--border)" } as const;
-export const CURSOR = { fill: "var(--bg-subtle)" } as const;
+/** Tick do eixo X que destaca o período atual (último) em tinta; os demais em text-muted. */
+export function TickPeriodo({
+  x,
+  y,
+  payload,
+  atual,
+  formatar,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+  atual: string;
+  formatar: (v: string) => string;
+}) {
+  if (x === undefined || y === undefined || !payload) return null;
+  const ehAtual = payload.value === atual;
+  return (
+    <text
+      x={x}
+      y={y + 14}
+      textAnchor="middle"
+      fontSize={TICK.fontSize}
+      fontFamily={TICK.fontFamily}
+      fill={ehAtual ? "var(--text)" : TICK.fill}
+    >
+      {formatar(payload.value)}
+    </text>
+  );
+}
+
+/** Eixos em Geist Mono 11 px (text-muted); linha de base em tinta; grade tracejada no fio claro. */
+export const TICK = { fill: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-family-mono)" } as const;
+export const EIXO = { stroke: "var(--text)" } as const;
+export const GRADE = { stroke: "var(--border)", strokeDasharray: "3 4" } as const;
+export const CURSOR = { fill: "var(--surface-muted)" } as const;
+/** Largura máxima das barras (DESIGN_SYSTEM §5: 30–40 px). */
+export const BARRA_MAX = 36;
 
 const MESES = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "UTC" });
 const MES_LONGO = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
@@ -80,11 +113,11 @@ export function TooltipBox({
               <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: l.cor }} />
               {l.rotulo}
             </span>
-            <span className="tnum font-medium">{l.valor}</span>
+            <span className="num">{l.valor}</span>
           </li>
         ))}
       </ul>
-      {rodape ? <p className="tnum mt-2 border-t border-border pt-2 font-medium">{rodape}</p> : null}
+      {rodape ? <p className="num mt-2 border-t border-border pt-2">{rodape}</p> : null}
     </div>
   );
 }
@@ -94,12 +127,12 @@ export type ItemLegenda = { rotulo: string; cor: string; detalhe?: ReactNode };
 /** Legenda em HTML (rótulo + detalhe opcional), alinhada ao tema. */
 export function Legenda({ itens, className }: { itens: ItemLegenda[]; className?: string }) {
   return (
-    <ul className={cn("flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted", className)}>
+    <ul className={cn("flex flex-wrap gap-x-4 gap-y-1 text-caption text-text-2", className)}>
       {itens.map((i) => (
         <li key={i.rotulo} className="flex min-w-0 items-center gap-2">
-          <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: i.cor }} />
+          <span aria-hidden="true" className="size-2.5 shrink-0 rounded-xs" style={{ background: i.cor }} />
           <span className="min-w-0 break-words">{i.rotulo}</span>
-          {i.detalhe ? <span className="tnum text-text">{i.detalhe}</span> : null}
+          {i.detalhe ? <span className="num text-text">{i.detalhe}</span> : null}
         </li>
       ))}
     </ul>

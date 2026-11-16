@@ -1,10 +1,11 @@
 "use client";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MetricaMensal } from "@/domain";
 import { formatMoeda } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
 import { ChartCard, type TabelaGrafico } from "./ChartCard";
 import {
+  BARRA_MAX,
   CURSOR,
   EIXO,
   GRADE,
@@ -12,14 +13,42 @@ import {
   raioBarra,
   rotuloMes,
   TICK,
+  TickPeriodo,
   TooltipBox,
   useMovimentoReduzido,
 } from "./ChartParts";
 
 /** Receita 12 meses, vendas × locações (RF-11; alternativa textual: RNF-17). Valores em centavos. */
 
+/** Só o período atual ganha o acento; os demais meses ficam em pedra (DESIGN_SYSTEM §5, Gráficos). */
 const VENDAS = "var(--chart-1)";
+const VENDAS_PASSADO = "var(--chart-4)";
 const LOCACOES = "var(--chart-2)";
+
+/** Rótulo do período atual: valor compacto num chip acima da barra (só nele; nada em toda barra). */
+function RotuloAtual(props: { x?: number | string; y?: number | string; width?: number | string; value?: unknown }) {
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const largura = Number(props.width ?? 0);
+  if (typeof props.value !== "number") return null;
+  const texto = formatMoeda(props.value, { compacto: true });
+  const w = texto.length * 6.6 + 14;
+  return (
+    <g aria-hidden="true">
+      <rect x={x + largura / 2 - w / 2} y={y - 28} width={w} height={20} rx={6} fill="var(--surface-muted)" />
+      <text
+        x={x + largura / 2}
+        y={y - 14}
+        textAnchor="middle"
+        fontSize={TICK.fontSize}
+        fontFamily={TICK.fontFamily}
+        fill="var(--text)"
+      >
+        {texto}
+      </text>
+    </g>
+  );
+}
 
 export const receitaTotal = (m: MetricaMensal) => m.receitaVendas + m.receitaLocacoes;
 export const receitaVazia = (dados: MetricaMensal[]) => dados.every((m) => receitaTotal(m) === 0);
@@ -62,20 +91,22 @@ type PayloadItem = { payload?: MetricaMensal };
 export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
   const reduzido = useMovimentoReduzido();
   const raio = raioBarra();
+  const ultimo = dados.length - 1;
+  const atual = dados[ultimo]?.mes ?? "";
+  const comTotal = dados.map((m, i) => ({ ...m, rotuloAtual: i === ultimo ? receitaTotal(m) : undefined }));
   return (
-    <div className="flex flex-col gap-3">
-      <div className="h-56 w-full min-w-0 sm:h-64 xl:h-80">
+    <div className="flex flex-col gap-4">
+      <div className="h-60 w-full min-w-0 sm:h-64 xl:h-100">
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height: 288 }}>
-          <BarChart data={dados} margin={{ top: 8, right: 0, bottom: 0, left: 0 }} barCategoryGap="24%">
+          <BarChart data={comTotal} margin={{ top: 32, right: 24, bottom: 0, left: 0 }} barCategoryGap="22%">
             <CartesianGrid vertical={false} {...GRADE} />
             <XAxis
               dataKey="mes"
-              tickFormatter={(v: string) => rotuloMes(v)}
-              tick={TICK}
+              tick={<TickPeriodo atual={atual} formatar={(v) => rotuloMes(v).split("/")[0]!} />}
               tickLine={false}
               axisLine={EIXO}
               interval="preserveStartEnd"
-              minTickGap={8}
+              minTickGap={4}
             />
             <YAxis
               tickFormatter={(v: number) => formatMoeda(v, { compacto: true })}
@@ -83,7 +114,7 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
               tickLine={false}
               axisLine={false}
               tickCount={4}
-              width={64}
+              width={56}
             />
             <Tooltip
               cursor={CURSOR}
@@ -107,15 +138,28 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
                 );
               }}
             />
-            <Bar dataKey="receitaVendas" name="Vendas" stackId="receita" fill={VENDAS} isAnimationActive={!reduzido} />
+            <Bar
+              dataKey="receitaVendas"
+              name="Vendas"
+              stackId="receita"
+              maxBarSize={BARRA_MAX}
+              isAnimationActive={!reduzido}
+            >
+              {comTotal.map((m, i) => (
+                <Cell key={m.mes} fill={i === ultimo ? VENDAS : VENDAS_PASSADO} />
+              ))}
+            </Bar>
             <Bar
               dataKey="receitaLocacoes"
               name="Locações"
               stackId="receita"
               fill={LOCACOES}
+              maxBarSize={BARRA_MAX}
               radius={[raio, raio, 0, 0]}
               isAnimationActive={!reduzido}
-            />
+            >
+              <LabelList dataKey="rotuloAtual" content={<RotuloAtual />} />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

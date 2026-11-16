@@ -203,7 +203,7 @@ export function TelaConfiguracoes() {
 
   return (
     <>
-      <PageHeader titulo="Configurações" />
+      <PageHeader eyebrow="Conta · preferências" titulo="Configurações" />
       {/* Mesma largura das outras telas: índice das seções à esquerda (desktop) e seções ocupando o resto. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
         <FormSectionIndex
@@ -222,7 +222,7 @@ export function TelaConfiguracoes() {
 
           <FormSection id="aparencia" titulo="Aparência">
             <div className="flex flex-col gap-2">
-              <span aria-hidden="true" className="text-sm font-medium text-text">
+              <span aria-hidden="true" className="text-caption font-medium text-text">
                 Tema
               </span>
               <SegmentedControl<Tema>
@@ -237,7 +237,7 @@ export function TelaConfiguracoes() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <span aria-hidden="true" className="text-sm font-medium text-text">
+              <span aria-hidden="true" className="text-caption font-medium text-text">
                 Densidade das tabelas
               </span>
               <SegmentedControl<TableDensity>
@@ -291,7 +291,7 @@ export function TelaConfiguracoes() {
               />
             </Field>
             <div className={LARGURA_TOTAL}>
-              <Button variant="destructive" onClick={() => setConfirmando(true)} className="max-md:h-11">
+              <Button variant="secondary" onClick={() => setConfirmando(true)} className="max-md:h-11">
                 Restaurar dados mock
               </Button>
             </div>

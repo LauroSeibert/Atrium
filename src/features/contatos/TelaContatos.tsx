@@ -11,6 +11,7 @@ import type { DataTableColuna } from "@/components/patterns/DataTable";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { PAPEL_CONTATO_ROTULO } from "@/components/patterns/rotulos";
+import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -69,7 +70,7 @@ export function TelaContatos() {
   const abrirEdicao = (c: Contato) => setEdicao(c);
   const botaoEditar = (c: Contato) => (
     <Button
-      variant="secondary"
+      variant="ghost"
       leadingIcon={Pencil}
       onClick={() => abrirEdicao(c)}
       aria-label={`Editar ${c.nome}`}
@@ -84,7 +85,12 @@ export function TelaContatos() {
       id: "nome",
       cabecalho: "Nome",
       className: "min-w-40 max-w-64",
-      celula: (c) => <span className="line-clamp-2 font-medium break-words">{c.nome}</span>,
+      celula: (c) => (
+        <span className="flex items-center gap-3">
+          <Avatar name={c.nome} size={32} aria-hidden className="border border-border" />
+          <span className="line-clamp-2 text-md font-medium break-words">{c.nome}</span>
+        </span>
+      ),
     },
     { id: "papel", cabecalho: "Papel", celula: (c) => <Badge tone="neutral">{PAPEL_CONTATO_ROTULO[c.papel]}</Badge> },
     {
@@ -92,7 +98,7 @@ export function TelaContatos() {
       cabecalho: "Telefone",
       celula: (c) =>
         c.telefone ? (
-          <span className="tnum whitespace-nowrap">{formatTelefone(c.telefone)}</span>
+          <span className="num whitespace-nowrap text-caption">{formatTelefone(c.telefone)}</span>
         ) : (
           <span className="text-text-muted">—</span>
         ),
@@ -100,15 +106,15 @@ export function TelaContatos() {
     {
       id: "email",
       cabecalho: "E-mail",
-      className: "min-w-40 max-w-60",
+      className: "min-w-56 max-w-72",
       celula: (c) =>
-        c.email ? <span className="break-all">{c.email}</span> : <span className="text-text-muted">—</span>,
+        c.email ? <span className="break-words">{c.email}</span> : <span className="text-text-muted">—</span>,
     },
     {
       id: "vinculos",
       cabecalho: "Vínculos",
       celula: (c) => (
-        <span className="tnum whitespace-nowrap text-text-muted">
+        <span className="num whitespace-nowrap text-caption text-text-muted">
           {c.imovelIds.length} imóv. · {c.contratoIds.length} contr.
         </span>
       ),
@@ -146,6 +152,7 @@ export function TelaContatos() {
   return (
     <>
       <PageHeader
+        eyebrow="Comercial · pessoas"
         titulo="Contatos"
         acaoPrimaria={
           <Button size="touch" leadingIcon={Plus} onClick={() => setEdicao("novo")}>

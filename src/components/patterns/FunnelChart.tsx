@@ -9,7 +9,7 @@ import { ETAPA_UI } from "./rotulos";
 
 /** Funil de leads por etapa, com quantidade, perdidos e conversão (RF-12; alternativa textual: RNF-17). */
 
-const NA_ETAPA = "var(--chart-1)";
+const NA_ETAPA = "var(--chart-5)";
 const PERDIDOS = "var(--chart-2)";
 
 type Linha = Funil[number];
