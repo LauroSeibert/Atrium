@@ -93,7 +93,6 @@ export function TelaDashboard() {
           </div>
         }
       />
-      <h2 className="sr-only">Indicadores</h2>
       <StatGroup aria-label="Indicadores" className="mb-6 xl:mb-8">
         <StatCard
           variante="celula"
@@ -111,7 +110,7 @@ export function TelaDashboard() {
         />
         <StatCard
           variante="celula"
-          rotulo="Visitas em 7 dias"
+          rotulo="Visitas nos próximos 7 dias"
           estado={mapear(d, (x) => x.kpis.visitasProximas)}
           comparacao="vs. 7 dias anteriores"
           onTentarNovamente={recarregar}

@@ -28,10 +28,10 @@ export function MobileNav({
   return (
     <Drawer open={aberto} onOpenChange={onAbertoChange}>
       <DrawerContent side="left" size="sm" className="bg-bg-subtle">
-        <div className="flex h-16 shrink-0 items-center px-4 pr-14">
+        <div className="flex h-14 shrink-0 items-center px-4 pr-14">
           <DrawerTitle className="sr-only">Menu</DrawerTitle>
           <DrawerDescription className="sr-only">Navegação entre os módulos do Atrium.</DrawerDescription>
-          <AtriumLogo aria-hidden="true" className="h-8 w-auto" />
+          <AtriumLogo aria-hidden="true" className="h-7 w-auto" />
         </div>
         <nav aria-label="Módulos" className="flex-1 overflow-y-auto px-3 py-2">
           <NavegacaoPrincipal
@@ -42,7 +42,7 @@ export function MobileNav({
             tamanho="toque"
           />
         </nav>
-        <nav aria-label="Preferências" className="border-t border-border px-3 py-3">
+        <nav aria-label="Preferências" className="px-3 py-3">
           <NavegacaoPrincipal itens={rodape} pathname={pathname} onNavegar={fechar} tamanho="toque" />
         </nav>
       </DrawerContent>

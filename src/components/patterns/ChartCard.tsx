@@ -166,8 +166,8 @@ export function ChartCard<T>(props: ChartCardProps<T>) {
             onValueChange={setVisao}
             size="sm"
             options={[
-              { value: "grafico", label: "Gráfico", icon: ChartColumn, hideLabel: true, disabled: !alternavel },
-              { value: "tabela", label: "Tabela", icon: Table2, hideLabel: true, disabled: !alternavel },
+              { value: "grafico", label: "Gráfico", icon: ChartColumn, disabled: !alternavel },
+              { value: "tabela", label: "Tabela", icon: Table2, disabled: !alternavel },
             ]}
           />
         </div>

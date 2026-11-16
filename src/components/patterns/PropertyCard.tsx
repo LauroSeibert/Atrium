@@ -92,7 +92,7 @@ export function SelosImovel({ imovel }: { imovel: Imovel }) {
         {status.rotulo}
       </Badge>
       <Badge size="sm">{FINALIDADE_ROTULO[imovel.finalidade]}</Badge>
-      <span className="tnum text-xs text-text-muted">{imovel.codigo}</span>
+      <span className="font-mono text-xs text-text-muted">{imovel.codigo}</span>
     </div>
   );
 }
@@ -197,6 +197,7 @@ export function ResponsavelImovel({ corretor }: { corretor?: Pick<Corretor, "nom
   return (
     <p className="flex items-center gap-2 text-xs text-text-muted">
       <Avatar name={corretor.nome} size={24} />
+      <span className="sr-only">Responsável: </span>
       <span className="truncate">{corretor.nome}</span>
     </p>
   );
@@ -240,12 +241,7 @@ export function PropertyCard({ imovel, corretor, href, acoes = [], onAlternarFav
           <SpecsImovel imovel={imovel} className="text-xs text-text" />
           <span className="shrink-0 text-xs text-text-muted">{FINALIDADE_ROTULO[imovel.finalidade]}</span>
         </div>
-        {corretor ? (
-          <p className="truncate text-xs text-text-muted">
-            <span className="sr-only">Responsável: </span>
-            {corretor.nome}
-          </p>
-        ) : null}
+        <ResponsavelImovel corretor={corretor} />
       </div>
     </article>
   );

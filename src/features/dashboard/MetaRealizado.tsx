@@ -45,8 +45,7 @@ function Linha({ rotulo, m }: { rotulo: string; m: MetaCorretor }) {
     <li className="flex flex-col gap-1">
       <Progress value={f * 100} label={rotulo} tone={f >= 1 ? "success" : "primary"} className="gap-1.5" />
       <p className="tnum text-xs text-text-muted">
-        {compacto(m.receita)} de {compacto(m.meta)}
-        <span className="sr-only">, {contratos(m.contratos)}</span>
+        {compacto(m.receita)} de {compacto(m.meta)} · {contratos(m.contratos)}
       </p>
     </li>
   );
@@ -107,7 +106,7 @@ export function MetaRealizado({
                   aria-expanded={todos}
                   aria-controls={idLista}
                   onClick={() => setTodos(!todos)}
-                  className="-ml-3 self-start text-text-muted"
+                  className="-ml-3 self-start text-text-muted max-sm:h-11"
                 >
                   {todos ? "Mostrar menos" : `Mostrar todos (${lista.length})`}
                 </Button>

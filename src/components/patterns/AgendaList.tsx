@@ -70,7 +70,7 @@ export function AgendaListSkeleton() {
 
 function Item({ item }: { item: ItemAgenda }) {
   const ui = TIPO_UI[item.tipo];
-  const classeTitulo = "block truncate text-sm font-medium text-text";
+  const classeTitulo = "line-clamp-2 text-sm font-medium wrap-anywhere text-text";
   return (
     <li className="group relative flex items-start gap-3 py-2.5">
       <span className="tnum w-11 shrink-0 pt-px text-sm text-text-muted">
@@ -86,7 +86,7 @@ function Item({ item }: { item: ItemAgenda }) {
             href={item.href}
             className={cn(
               classeTitulo,
-              "rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+              "rounded-sm underline-offset-4 group-hover:underline after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             )}
           >
             {item.titulo}

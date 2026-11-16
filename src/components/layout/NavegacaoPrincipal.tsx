@@ -75,7 +75,7 @@ export function NavegacaoPrincipal({
                 "transition-colors duration-(--dur-fast) ease-standard",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                 recolhida && "w-10 justify-center px-0",
-                ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
+                ativo ? "font-semibold text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
               )}
             >
               {ativo ? (
@@ -97,7 +97,11 @@ export function NavegacaoPrincipal({
                   className={cn(
                     "tnum relative inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
                     TOM_CONTADOR[item.contador.tom],
-                    recolhida && "absolute -top-1 -right-1 bg-surface-muted ring-2 ring-bg-subtle",
+                    recolhida && "absolute -top-1 -right-1 ring-2 ring-bg-subtle",
+                    recolhida &&
+                      item.contador.tom !== "danger" &&
+                      item.contador.tom !== "warning" &&
+                      "bg-surface-muted",
                   )}
                 >
                   {formatarContador(n)}

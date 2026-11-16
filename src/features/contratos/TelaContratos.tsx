@@ -160,7 +160,7 @@ export function TelaContratos() {
   const colunas: DataTableColuna<LinhaContrato>[] = [
     {
       id: "numero",
-      cabecalho: "Contrato",
+      cabecalho: "Contrato e vigência",
       celula: (l) => (
         <div className="flex flex-col gap-0.5">
           <Link
@@ -169,8 +169,12 @@ export function TelaContratos() {
           >
             {l.contrato.numero}
           </Link>
-          <span className="tnum text-xs whitespace-nowrap text-text-muted">
-            {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} · {formatData(l.contrato.inicio)} a {formatData(l.contrato.fim)}
+          <span className="tnum text-xs text-text-muted">
+            {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} ·{" "}
+            <span className="whitespace-nowrap">
+              <span className="sr-only">Vigência: </span>
+              {formatData(l.contrato.inicio)} a {formatData(l.contrato.fim)}
+            </span>
           </span>
         </div>
       ),
@@ -181,7 +185,7 @@ export function TelaContratos() {
       className: "min-w-44 max-w-60",
       celula: (l) => (
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate">{(l.imovel ?? semImovel).titulo}</span>
+          <span className="line-clamp-2">{(l.imovel ?? semImovel).titulo}</span>
           <span className="font-mono text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
         </div>
       ),
@@ -209,7 +213,7 @@ export function TelaContratos() {
     },
     {
       id: "proximoVencimento",
-      cabecalho: "Vencimento",
+      cabecalho: "Próximo vencimento",
       celula: (l) =>
         l.proximoVencimento ? (
           <span className="tnum flex flex-col whitespace-nowrap">

@@ -268,15 +268,15 @@ function Corpo({
         <p
           className={cn(
             "tnum min-w-0 leading-heading font-semibold tracking-tight [overflow-wrap:anywhere]",
-            formato === "moedaCompleta" ? "text-lg sm:text-xl" : "text-xl sm:text-2xl",
+            formato === "moedaCompleta" ? "text-lg sm:text-2xl" : "text-xl sm:text-2xl",
             kpi.tom === "alerta" ? "text-danger" : "text-text",
           )}
         >
           {formatar(kpi.valor)}
         </p>
         {leitura !== null && !vazio && tendencia && serie.length > 1 ? (
-          <div className="mb-1 hidden w-16 shrink-0 sm:block sm:w-20">
-            <Sparkline valores={serie} className="h-6" />
+          <div className="mb-1 shrink-0 sm:w-20">
+            <Sparkline valores={serie} className="hidden h-6 sm:block" />
             <span className="sr-only">{resumoTendencia(serie, formatar)}</span>
           </div>
         ) : null}

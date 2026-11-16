@@ -37,7 +37,7 @@ describe("TelaDashboard (RF-10…16)", () => {
     render(<TelaDashboard />);
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
 
-    for (const rotulo of ["Imóveis ativos", "Leads novos", "Visitas em 7 dias", "Receita"])
+    for (const rotulo of ["Imóveis ativos", "Leads novos", "Visitas nos próximos 7 dias", "Receita"])
       expect(await screen.findByRole("group", { name: rotulo })).toBeInTheDocument();
 
     expect(await screen.findByRole("heading", { name: "Receita dos últimos 12 meses" })).toBeInTheDocument();
