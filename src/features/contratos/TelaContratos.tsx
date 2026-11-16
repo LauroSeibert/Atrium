@@ -186,7 +186,7 @@ export function TelaContratos() {
           >
             {l.contrato.numero}
           </Link>
-          <span className="num text-xs text-text-muted">
+          <span className="text-xs text-text-muted tabular-nums">
             {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} ·{" "}
             <span className="whitespace-nowrap">
               <span className="sr-only">Vigência: </span>
@@ -199,7 +199,7 @@ export function TelaContratos() {
     {
       id: "imovel",
       cabecalho: "Imóvel",
-      className: "min-w-44 max-w-60",
+      className: "min-w-40 max-w-52",
       celula: (l) => (
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="line-clamp-2 text-md">{(l.imovel ?? semImovel).titulo}</span>
@@ -210,7 +210,7 @@ export function TelaContratos() {
     {
       id: "partes",
       cabecalho: "Cliente",
-      className: "min-w-40 max-w-56",
+      className: "min-w-36 max-w-48",
       celula: (l) => <span className="break-words text-text-2">{resumoPartes(l)}</span>,
     },
     {
