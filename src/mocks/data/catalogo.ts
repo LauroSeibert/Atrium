@@ -131,12 +131,11 @@ export const SOBRENOMES = [
   "Zanetti",
 ] as const;
 
-export const NOME_LONGO_CORRETOR =
-  "Maria Aparecida Fernanda de Albuquerque Cavalcanti Montenegro Bittencourt dos Santos";
-export const NOME_LONGO_LEAD =
-  "Antônio Carlos Henrique de Vasconcelos Albuquerque e Silva Pereira Nogueira da Fonseca Neto Filho";
+/** Nomes mais longos da demo, ainda realistas: no máximo 3 palavras (pedido do Lauro, 2026-11-16). */
+export const NOME_LONGO_CORRETOR = "Marina Albuquerque Montenegro";
+export const NOME_LONGO_LEAD = "Antônio Vasconcelos Albuquerque";
 
-/** Corretores fixos (papel, nome); o nome longo entra como um dos corretores. */
+/** Corretores fixos (papel, nome); o nome mais longo entra como um dos corretores. */
 export const EQUIPE: readonly { nome: string; papel: "gestor" | "corretor" | "financeiro" }[] = [
   { nome: "Helena Vasconcelos Duarte", papel: "gestor" },
   { nome: "Rafael Monteiro Lopes", papel: "corretor" },
@@ -466,9 +465,9 @@ export const OUTROS_CONTATOS: readonly (readonly [
   ["Dra. Lívia Montenegro", "advogado", "Revisa minutas de compra e venda."],
   ["Dr. Otávio Bragança", "advogado", undefined],
   ["Dra. Cecília Arantes", "advogado", "Especialista em locação comercial."],
-  ["Tabelionato Exemplo de Notas — Centro", "cartorio", "Escrituras: agendar com 5 dias úteis."],
-  ["Cartório Exemplo de Registro de Imóveis", "cartorio", undefined],
-  ["Ofício Exemplo de Títulos e Documentos", "cartorio", undefined],
+  ["Tabelionato de Notas", "cartorio", "Escrituras: agendar com 5 dias úteis."],
+  ["Registro de Imóveis", "cartorio", undefined],
+  ["Títulos e Documentos", "cartorio", undefined],
   ["Despachante Rápido Exemplo", "despachante", "Certidões em até 3 dias."],
   ["Wagner Despachos (exemplo)", "despachante", undefined],
   ["Vistorias Exemplo Ltda.", "outro", "Vistoria de entrada e saída de locação."],

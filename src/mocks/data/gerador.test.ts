@@ -240,9 +240,16 @@ describe("casos de borda obrigatórios (MODELO §4)", () => {
   const c = CASOS_DE_BORDA;
   const hojeData = dataLocal(HOJE);
 
-  it("nome de corretor e de lead muito longos", () => {
-    expect(por(base.corretores, c.corretorNomeLongo).nome.length).toBeGreaterThan(60);
-    expect(por(base.leads, c.leadNomeLongo).nome.length).toBeGreaterThan(60);
+  it("nomes longos, mas realistas: ninguém passa de 3 palavras", () => {
+    expect(por(base.corretores, c.corretorNomeLongo).nome.split(" ")).toHaveLength(3);
+    expect(por(base.leads, c.leadNomeLongo).nome.split(" ")).toHaveLength(3);
+    const pessoas = [
+      ...base.corretores.map((p) => p.nome),
+      ...base.leads.map((p) => p.nome),
+      ...base.contatos.map((p) => p.nome),
+      ...base.contratos.flatMap((k) => k.partes.map((p) => p.nome)),
+    ];
+    expect(pessoas.filter((n) => n.trim().split(/\s+/).length > 3)).toEqual([]);
   });
   it("título de imóvel com mais de 100 caracteres", () => {
     expect(por(base.imoveis, c.imovelTituloLongo).titulo.length).toBeGreaterThan(100);
