@@ -152,13 +152,17 @@ test.describe("shell no mobile", () => {
   });
 });
 
-test("tema escolhido no menu da topbar aplica e persiste (RF-03)", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "light" });
+test("tema segue o sistema e alterna com um clique na topbar, persistindo (RF-03)", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
-  await page.getByRole("button", { name: /^Tema/ }).click();
-  await page.getByRole("menuitemradio", { name: "Escuro" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  const alternar = page.getByRole("switch", { name: "Tema escuro" });
+  await alternar.click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(alternar).toHaveAttribute("aria-checked", "true");
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);
 });

@@ -97,8 +97,8 @@ export function CommandPalette({
           Digite para buscar. Use as setas para navegar, Enter para escolher e Esc para fechar.
         </DialogDescription>
         <Command label="Buscar" filter={filtrar} shouldFilter={!onBuscaChange} loop>
-          <div className="flex items-center gap-2 border-b border-border px-3">
-            <Icon icon={Search} size={20} className="text-text-muted" />
+          <div className="flex items-center gap-2 border-b border-border px-4">
+            <Icon icon={Search} size={16} className="shrink-0 text-text-muted" />
             <Command.Input
               value={busca}
               onValueChange={(v) => {
@@ -106,7 +106,7 @@ export function CommandPalette({
                 onBuscaChange?.(v);
               }}
               placeholder={placeholder}
-              className="h-12 w-full bg-transparent text-base text-text placeholder:text-text-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+              className="h-12 w-full bg-transparent text-base text-text outline-none placeholder:text-text-muted"
             />
           </div>
           <Command.List className="max-h-80 overflow-y-auto p-2">

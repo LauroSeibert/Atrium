@@ -3,6 +3,7 @@
  * Detalhe do lead (RF-33, RF-34, RF-37, RF-65). Conteúdo reutilizado em página cheia (acesso direto) e no
  * drawer da rota interceptada (`modo`). Mudanças de etapa passam pelo mesmo `useMoverLead` do quadro.
  */
+import { rotaDoImovel } from "@/components/layout/navegacao";
 import { CalendarPlus, ChevronDown, Mail, Phone, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -215,7 +216,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
                   {imoveisVistos.map((im) => (
                     <li key={im.id} className="text-sm break-words">
                       <Button asChild variant="link" className="text-left whitespace-normal">
-                        <Link href={`/imoveis/${im.id}`}>
+                        <Link href={rotaDoImovel(im)}>
                           {im.codigo} · {im.titulo}
                         </Link>
                       </Button>

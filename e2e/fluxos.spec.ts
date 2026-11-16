@@ -37,9 +37,9 @@ test("filtrar imóveis e abrir o detalhe (RF-21, RF-22, RF-24, RF-06)", async ({
     .first();
   await busca.fill("AT-00");
   await expect(page).toHaveURL(/[?&]q=AT-00/);
-  const primeiro = page.locator('a[href^="/imoveis/imv_"]').first();
+  const primeiro = page.locator('a[href^="/imoveis/AT-"]').first();
   await primeiro.click();
-  await expect(page).toHaveURL(/\/imoveis\/imv_/);
+  await expect(page).toHaveURL(/\/imoveis\/AT-\d{4}$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("region", { name: /galeria|cômodos/i }).first()).toBeVisible();
 });
@@ -92,13 +92,13 @@ for (const tema of ["light", "dark"] as const) {
 
 test("detalhes: imóvel, lead e contrato sem violações do axe (RNF-02)", async ({ page }) => {
   for (const [lista, padrao] of [
-    ["/imoveis?corretor=todos", /\/imoveis\/imv_/],
+    ["/imoveis?corretor=todos", /\/imoveis\/AT-\d{4}$/],
     ["/contratos", /\/contratos\/ctr_/],
   ] as const) {
     await page.goto(lista);
     await aguardar(page);
     const link = page
-      .locator(`a[href^="${lista.split("?")[0]}/${lista.startsWith("/imoveis") ? "imv_" : "ctr_"}"]`)
+      .locator(`a[href^="${lista.split("?")[0]}/${lista.startsWith("/imoveis") ? "AT-" : "ctr_"}"]`)
       .first();
     await page.goto((await link.getAttribute("href"))!);
     await expect(page).toHaveURL(padrao);

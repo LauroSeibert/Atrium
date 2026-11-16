@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
+import { DateInput } from "@/components/ui/DateInput";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import type { TableDensity } from "@/components/ui/Table";
@@ -141,7 +141,12 @@ export function TelaContratos() {
       (todos) => {
         const escolhidos = todos.itens.filter((l) => ids.includes(l.contrato.id));
         baixarCsv("contratos-selecionados.csv", gerarCsv(escolhidos));
-        toast({ tone: "success", title: "CSV gerado", description: `${escolhidos.length} contratos selecionados.` });
+        toast({
+          tone: "success",
+          title: "CSV gerado",
+          description:
+            escolhidos.length === 1 ? "1 contrato selecionado." : `${escolhidos.length} contratos selecionados.`,
+        });
       },
       () => toast({ tone: "error", title: "Não foi possível gerar o CSV", description: "Tente de novo." }),
     );
@@ -262,10 +267,10 @@ export function TelaContratos() {
         ))}
       </fieldset>
       <Field label="Vencimento a partir de">
-        {(c) => <Input {...c} type="date" value={de ?? ""} onChange={(e) => url.definir({ de: e.target.value })} />}
+        {(c) => <DateInput {...c} value={de ?? ""} onValueChange={(v) => url.definir({ de: v })} />}
       </Field>
       <Field label="Vencimento até">
-        {(c) => <Input {...c} type="date" value={ate ?? ""} onChange={(e) => url.definir({ ate: e.target.value })} />}
+        {(c) => <DateInput {...c} value={ate ?? ""} onValueChange={(v) => url.definir({ ate: v })} />}
       </Field>
     </>
   );

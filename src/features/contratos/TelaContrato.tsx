@@ -4,6 +4,7 @@
  * O que é permitido (registrar pagamento, assinar, encerrar, cancelar) vem do domínio:
  * `podeRegistrarPagamento` e `transicoes` do `fakeApi.getContrato`. A tela só pergunta e emite a intenção.
  */
+import { rotaDoImovel } from "@/components/layout/navegacao";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
@@ -202,7 +203,7 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
               <span className="text-text-muted">Imóvel</span>
               {imovel ? (
                 <Button asChild variant="link" className="justify-start text-left whitespace-normal">
-                  <Link href={`/imoveis/${imovel.id}`}>
+                  <Link href={rotaDoImovel(imovel)}>
                     {imovel.titulo} ({imovel.codigo})
                   </Link>
                 </Button>

@@ -25,7 +25,7 @@ import { PageHeader } from "./PageHeader";
 import { PageSkeleton } from "./PageSkeleton";
 import { SearchTrigger } from "./SearchTrigger";
 import { Sidebar } from "./Sidebar";
-import { ThemeMenu, type Tema } from "./ThemeMenu";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { Topbar } from "./Topbar";
 import { UserMenu } from "./UserMenu";
 
@@ -48,7 +48,7 @@ function PainelDemonstracao({
   const [menuAberto, setMenuAberto] = useState(menuAbertoInicial);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>(NOTIFICACOES);
-  const [tema, setTema] = useState<Tema>("light");
+  const [tema, setTema] = useState<"light" | "dark">("light");
 
   const trilha = trilhaDaRota(pathname);
   const tela = trilha[trilha.length - 1]!.rotulo;
@@ -85,7 +85,7 @@ function PainelDemonstracao({
                 onMarcarTodas={() => setNotificacoes((l) => l.map((n) => ({ ...n, lida: true })))}
               />
             }
-            tema={<ThemeMenu tema={tema} temaResolvido={tema === "dark" ? "dark" : "light"} onTemaChange={setTema} />}
+            tema={<ThemeSwitch temaResolvido={tema} onAlternar={() => setTema(tema === "dark" ? "light" : "dark")} />}
             usuario={
               <UserMenu usuario={{ fase: "success", dados: GESTOR }} personas={PESSOAS} onTrocarPersona={fn()} />
             }

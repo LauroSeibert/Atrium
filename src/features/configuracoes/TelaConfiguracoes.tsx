@@ -15,6 +15,7 @@ import {
   AlertaServidor,
   FormSection,
   FormSectionSkeleton,
+  FormSectionIndex,
   LARGURA_TOTAL,
   type EnvioFormulario,
 } from "@/components/patterns/FormSection";
@@ -130,6 +131,13 @@ function SecaoPerfil({ perfil }: { perfil: Corretor }) {
 
 /* ---------- Tela ---------- */
 
+const SECOES = [
+  { id: "perfil", titulo: "Perfil" },
+  { id: "aparencia", titulo: "Aparência" },
+  { id: "usuario", titulo: "Usuário atual" },
+  { id: "demonstracao", titulo: "Demonstração" },
+];
+
 export function TelaConfiguracoes() {
   const perfil = useConsulta(useCallback(() => fakeApi.getPerfil(), []));
   const corretores = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
@@ -196,92 +204,99 @@ export function TelaConfiguracoes() {
   return (
     <>
       <PageHeader titulo="Configurações" />
-      <div className="flex max-w-3xl flex-col gap-6">
-        <EstadoRecurso
-          estado={perfil.estado}
-          carregando={<FormSectionSkeleton campos={3} />}
-          erro={{ titulo: "Não foi possível carregar o perfil" }}
-          onTentarNovamente={perfil.recarregar}
-        >
-          {(p) => <SecaoPerfil key={p.id} perfil={p} />}
-        </EstadoRecurso>
-
-        <FormSection id="aparencia" titulo="Aparência">
-          <div className="flex flex-col gap-2">
-            <span aria-hidden="true" className="text-sm font-medium text-text">
-              Tema
-            </span>
-            <SegmentedControl<Tema>
-              aria-label="Tema"
-              value={tema}
-              onValueChange={setTheme}
-              options={[
-                { value: "light", label: "Claro", icon: Sun },
-                { value: "dark", label: "Escuro", icon: Moon },
-                { value: "system", label: "Sistema", icon: Monitor },
-              ]}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <span aria-hidden="true" className="text-sm font-medium text-text">
-              Densidade das tabelas
-            </span>
-            <SegmentedControl<TableDensity>
-              aria-label="Densidade das tabelas"
-              value={densidade}
-              onValueChange={setDensidade}
-              options={[
-                { value: "comfortable", label: "Confortável" },
-                { value: "compact", label: "Compacta" },
-              ]}
-            />
-          </div>
-        </FormSection>
-
-        <FormSection id="usuario" titulo="Usuário atual">
+      {/* Mesma largura das outras telas: índice das seções à esquerda (desktop) e seções ocupando o resto. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+        <FormSectionIndex
+          secoes={SECOES}
+          className="hidden lg:sticky lg:top-20 lg:col-span-3 lg:block lg:self-start xl:col-span-2"
+        />
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-9 xl:col-span-10">
           <EstadoRecurso
-            estado={persona}
-            carregando={<Skeleton shape="rect" className="h-10" />}
-            erro={{ titulo: "Não foi possível carregar os usuários" }}
-            onTentarNovamente={recarregarPersona}
+            estado={perfil.estado}
+            carregando={<FormSectionSkeleton campos={3} />}
+            erro={{ titulo: "Não foi possível carregar o perfil" }}
+            onTentarNovamente={perfil.recarregar}
           >
-            {(p) => (
-              <Field label="Entrar como">
-                <Select options={p.opcoes} value={p.atualId} onValueChange={(id) => void trocarPersona(id)} />
-              </Field>
-            )}
+            {(p) => <SecaoPerfil key={p.id} perfil={p} />}
           </EstadoRecurso>
-        </FormSection>
 
-        <FormSection id="demonstracao" titulo="Demonstração">
-          <Field label="Latência">
-            <Slider
-              thumbLabels={["Latência em milissegundos"]}
-              min={0}
-              max={2000}
-              step={100}
-              value={[config.latencia[1]]}
-              onValueChange={([v]) => atualizarConfig({ latencia: [v ?? 0, v ?? 0] })}
-              formatValue={(v) => `${v} ms`}
-            />
-          </Field>
-          <Field label="Taxa de erro">
-            <Slider
-              thumbLabels={["Taxa de erro em porcentagem"]}
-              min={0}
-              max={50}
-              step={5}
-              value={[Math.round(config.taxaErro * 100)]}
-              onValueChange={([v]) => atualizarConfig({ taxaErro: (v ?? 0) / 100 })}
-              formatValue={(v) => `${v}%`}
-            />
-          </Field>
-          <div className={LARGURA_TOTAL}>
-            <Button variant="destructive" onClick={() => setConfirmando(true)} className="max-md:h-11">
-              Restaurar dados mock
-            </Button>
-          </div>
-        </FormSection>
+          <FormSection id="aparencia" titulo="Aparência">
+            <div className="flex flex-col gap-2">
+              <span aria-hidden="true" className="text-sm font-medium text-text">
+                Tema
+              </span>
+              <SegmentedControl<Tema>
+                aria-label="Tema"
+                value={tema}
+                onValueChange={setTheme}
+                options={[
+                  { value: "light", label: "Claro", icon: Sun },
+                  { value: "dark", label: "Escuro", icon: Moon },
+                  { value: "system", label: "Sistema", icon: Monitor },
+                ]}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span aria-hidden="true" className="text-sm font-medium text-text">
+                Densidade das tabelas
+              </span>
+              <SegmentedControl<TableDensity>
+                aria-label="Densidade das tabelas"
+                value={densidade}
+                onValueChange={setDensidade}
+                options={[
+                  { value: "comfortable", label: "Confortável" },
+                  { value: "compact", label: "Compacta" },
+                ]}
+              />
+            </div>
+          </FormSection>
+
+          <FormSection id="usuario" titulo="Usuário atual">
+            <EstadoRecurso
+              estado={persona}
+              carregando={<Skeleton shape="rect" className="h-10" />}
+              erro={{ titulo: "Não foi possível carregar os usuários" }}
+              onTentarNovamente={recarregarPersona}
+            >
+              {(p) => (
+                <Field label="Entrar como">
+                  <Select options={p.opcoes} value={p.atualId} onValueChange={(id) => void trocarPersona(id)} />
+                </Field>
+              )}
+            </EstadoRecurso>
+          </FormSection>
+
+          <FormSection id="demonstracao" titulo="Demonstração">
+            <Field label="Latência">
+              <Slider
+                thumbLabels={["Latência em milissegundos"]}
+                min={0}
+                max={2000}
+                step={100}
+                value={[config.latencia[1]]}
+                onValueChange={([v]) => atualizarConfig({ latencia: [v ?? 0, v ?? 0] })}
+                formatValue={(v) => `${v} ms`}
+              />
+            </Field>
+            <Field label="Taxa de erro">
+              <Slider
+                thumbLabels={["Taxa de erro em porcentagem"]}
+                min={0}
+                max={50}
+                step={5}
+                value={[Math.round(config.taxaErro * 100)]}
+                onValueChange={([v]) => atualizarConfig({ taxaErro: (v ?? 0) / 100 })}
+                formatValue={(v) => `${v}%`}
+              />
+            </Field>
+            <div className={LARGURA_TOTAL}>
+              <Button variant="destructive" onClick={() => setConfirmando(true)} className="max-md:h-11">
+                Restaurar dados mock
+              </Button>
+            </div>
+          </FormSection>
+        </div>
       </div>
 
       <ConfirmDestructive

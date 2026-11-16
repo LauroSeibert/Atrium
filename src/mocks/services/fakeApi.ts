@@ -274,9 +274,15 @@ export const fakeApi = {
   /** Bairros existentes (opções do filtro RF-21). */
   listBairros: () =>
     ler((b) => [...new Set(b.imoveis.map((i) => i.endereco.bairro))].sort((a, z) => a.localeCompare(z, "pt-BR"))),
-  getImovel: (id: string) =>
+  /** Aceita o código visível (`AT-0042`, usado nas URLs) ou o id interno. */
+  getImovel: (idOuCodigo: string) =>
     ler((b) => {
-      const imovel = exigir(buscar(b, "imoveis", id), "Imóvel");
+      const codigo = idOuCodigo.toUpperCase();
+      const imovel = exigir(
+        buscar(b, "imoveis", idOuCodigo) ?? b.imoveis.find((i) => i.codigo === codigo),
+        "Imóvel",
+      );
+      const id = imovel.id;
       return {
         imovel,
         corretor: buscar(b, "corretores", imovel.corretorId) ?? null,

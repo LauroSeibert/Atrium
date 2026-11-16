@@ -3,6 +3,7 @@
  * Imóveis (RF-20…23, RF-28, RF-49, RF-06, RF-08). Contêiner: filtros, ordem, página e visualização na URL;
  * seleção em lote só na lista (tabela). Mudança de status e a lista de destinos vêm do domínio.
  */
+import { rotaDoImovel } from "@/components/layout/navegacao";
 import Link from "next/link";
 import { Download, LayoutGrid, List, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -237,7 +238,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
       celula: (i) => (
         <div className="flex min-w-0 flex-col">
           <Button asChild variant="link" className="justify-start text-left font-medium whitespace-normal">
-            <Link href={`/imoveis/${i.id}`} title={i.titulo} className="line-clamp-2">
+            <Link href={rotaDoImovel(i)} title={i.titulo} className="line-clamp-2">
               {i.titulo}
             </Link>
           </Button>
@@ -427,7 +428,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                     const props = {
                       imovel: i,
                       corretor: listaCorretores.find((c) => c.id === i.corretorId),
-                      href: `/imoveis/${i.id}`,
+                      href: rotaDoImovel(i),
                       acoes: acoesDoImovel(i),
                       onAlternarFavorito: alternarFavorito,
                     };

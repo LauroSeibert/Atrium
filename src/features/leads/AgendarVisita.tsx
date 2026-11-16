@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
+import { DateInput, TimeInput } from "@/components/ui/DateInput";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { useEscrita } from "@/features/dados/escrita";
@@ -90,10 +90,10 @@ export function AgendarVisita({ leadId, aberto, onAbertoChange }: Props) {
           </Field>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Data" requirement="required" error={tentou && !data ? "Informe a data." : undefined}>
-              <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+              <DateInput value={data} onValueChange={setData} />
             </Field>
             <Field label="Hora" requirement="required" error={tentou && !hora ? "Informe a hora." : undefined}>
-              <Input type="time" value={hora} onChange={(e) => setHora(e.target.value)} />
+              <TimeInput value={hora} onValueChange={setHora} />
             </Field>
           </div>
           {estado.fase === "erro" ? (

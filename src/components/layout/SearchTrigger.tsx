@@ -22,7 +22,7 @@ export function SearchTrigger({ onAbrir, className }: { onAbrir: () => void; cla
         "transition-colors duration-(--dur-fast) ease-standard",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         "w-11 justify-center hover:bg-bg-subtle hover:text-text lg:w-10",
-        "md:w-48 md:justify-start md:border md:border-border-strong md:bg-surface md:px-3 md:hover:bg-surface xl:w-64",
+        "md:w-48 md:shrink-0 md:justify-start md:border md:border-border md:bg-bg-subtle md:px-3 md:hover:border-border-strong md:hover:bg-bg-subtle xl:w-64",
         className,
       )}
     >

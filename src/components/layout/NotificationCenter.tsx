@@ -113,12 +113,12 @@ export function NotificationCenter({
           <Button variant="ghost" icon={Bell} aria-label={rotulo} className="max-lg:size-11" />
         </PopoverTrigger>
         {pendentes > 0 ? (
+          // Ponto discreto em vez de número: não cobre o sino; a contagem está no rótulo acessível.
           <span
             aria-hidden="true"
-            className="tnum pointer-events-none absolute top-1 right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold text-on-danger ring-2 ring-bg"
-          >
-            {pendentes > 9 ? "9+" : pendentes}
-          </span>
+            data-testid="notificacoes-ponto"
+            className="pointer-events-none absolute top-2 right-2 size-2 rounded-full bg-danger ring-2 ring-bg max-lg:top-2.5 max-lg:right-2.5"
+          />
         ) : null}
       </span>
       <PopoverContent

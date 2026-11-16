@@ -132,6 +132,8 @@
     background: var(--bg);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
+    /* Reserva o espaço da barra de rolagem: abrir menus/modais (que travam a rolagem) não desloca a página. */
+    scrollbar-gutter: stable;
   }
   body {
     font-size: var(--font-size-sm);

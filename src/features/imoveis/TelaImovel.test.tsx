@@ -42,7 +42,7 @@ describe("TelaImovel (RF-24…26, RF-29, RF-65)", () => {
     expect(screen.getByRole("heading", { name: "Histórico de alterações" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Editar" })[0]).toHaveAttribute(
       "href",
-      `/imoveis/${d.imovel.id}/editar`,
+      `/imoveis/${d.imovel.codigo}/editar`,
     );
     if (d.leadsInteressados > 0)
       expect(screen.getByRole("link", { name: /lead/ })).toHaveAttribute("href", `/leads?imovel=${d.imovel.id}`);

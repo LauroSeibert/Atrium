@@ -4,7 +4,7 @@ Leia antes: `CLAUDE.md`, `design-system/DESIGN_SYSTEM.md` (§4 e §10), `docs/BR
 
 ## O que existe
 
-- `src/components/layout/` (componentes do shell, **só props**): `AppShell`, `Sidebar` (prop `tom: "clara" | "marca"`), `NavegacaoPrincipal`, `MobileNav` (drawer à esquerda), `Topbar` (slots `busca`, `notificacoes`, `tema`, `usuario`), `SearchTrigger`, `NotificationCenter` (`estado: Recurso<Notificacao[]>`), `ThemeMenu`, `UserMenu` (`usuario: Recurso<Pessoa>`), `PageHeader` (+ `MobileActionBar` por portal abaixo de 768 px), `PageSkeleton`, `SkipLink`, `TransicaoDeRota`, `navegacao.ts` (`NAV_PRINCIPAL`, `NAV_RODAPE`, `rotaAtiva`, `trilhaDaRota`, `rotaDaEntidade`).
+- `src/components/layout/` (componentes do shell, **só props**): `AppShell`, `Sidebar` (prop `tom: "clara" | "marca"`), `NavegacaoPrincipal`, `MobileNav` (drawer à esquerda), `Topbar` (slots `busca`, `notificacoes`, `tema`, `usuario`), `SearchTrigger`, `NotificationCenter` (`estado: Recurso<Notificacao[]>`), `ThemeSwitch` (um clique alterna claro/escuro; padrão segue o sistema), `UserMenu` (`usuario: Recurso<Pessoa>`), `PageHeader` (+ `MobileActionBar` por portal abaixo de 768 px), `PageSkeleton`, `SkipLink`, `TransicaoDeRota`, `navegacao.ts` (`NAV_PRINCIPAL`, `NAV_RODAPE`, `rotaAtiva`, `trilhaDaRota`, `rotaDaEntidade`).
 - `src/features/shell/PainelShell.tsx`: contêiner que liga tudo a `usePathname`, next-themes, `usePreferencia` (`src/lib/preferencias.ts`) e `fakeApi`.
 - Domínio: `src/domain/notificacoes/notificacoes.ts` (`listarNotificacoes`, `contadoresNavegacao`, `nomeDaEntidade`, `naoLidas`).
 - `src/lib/motion.ts` (`segundos`, `bezier`, `transicaoDeTokens`, `useTransicaoToken`).

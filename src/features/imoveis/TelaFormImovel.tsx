@@ -1,5 +1,6 @@
 "use client";
 /** Criar e editar imóvel (RF-27). O PropertyForm valida com o schema do domínio; aqui só se grava e navega. */
+import { rotaDoImovel } from "@/components/layout/navegacao";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -47,7 +48,8 @@ export function TelaFormImovel({ id }: { id?: string }) {
   const corretores = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
   const [envio, setEnvio] = useState<EnvioFormulario>({ fase: "idle" });
 
-  const destinoCancelar = editando ? `/imoveis/${id}` : "/imoveis";
+  const atual = "dados" in imovel.estado ? imovel.estado.dados?.imovel : undefined;
+  const destinoCancelar = editando ? (atual ? rotaDoImovel(atual) : `/imoveis/${id}`) : "/imoveis";
   const voltar = (
     <Button asChild variant="secondary">
       <Link href="/imoveis">Voltar para imóveis</Link>
@@ -56,13 +58,13 @@ export function TelaFormImovel({ id }: { id?: string }) {
 
   async function salvar(dados: DadosImovel) {
     setEnvio({ fase: "salvando" });
-    const r = await executarEscrita(() => fakeApi.saveImovel(editando ? { ...dados, id } : dados), {
+    const r = await executarEscrita(() => fakeApi.saveImovel(editando ? { ...dados, id: atual?.id ?? id } : dados), {
       sucesso: editando ? "Imóvel salvo" : "Imóvel criado",
       silenciarErro: true,
     });
     if (r.fase === "ok") {
       setEnvio({ fase: "salvo" });
-      router.push(`/imoveis/${r.resultado.id}`);
+      router.push(rotaDoImovel(r.resultado));
     } else {
       setEnvio({ fase: "erro", mensagem: r.erro.message });
     }

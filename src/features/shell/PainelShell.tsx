@@ -17,11 +17,12 @@ import {
   NAV_RODAPE,
   rotaDaNotificacao,
   trilhaDaRota,
+  rotaDoImovel,
 } from "@/components/layout/navegacao";
 import { NotificationCenter } from "@/components/layout/NotificationCenter";
 import { SearchTrigger } from "@/components/layout/SearchTrigger";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { ThemeMenu, type Tema } from "@/components/layout/ThemeMenu";
+import { proximoTema, temaDoSistema, ThemeSwitch } from "@/components/layout/ThemeSwitch";
 import { Topbar } from "@/components/layout/Topbar";
 import { UserMenu } from "@/components/layout/UserMenu";
 import {
@@ -95,13 +96,17 @@ export function PainelShell({
   const [busca, setBusca] = useState("");
 
   // Tema (RF-03): next-themes persiste; só é conhecido depois de montar.
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const montado = useSyncExternalStore(
     assinarNada,
     () => true,
     () => false,
   );
-  const tema = montado ? (theme as Tema | undefined) : undefined;
+  // Um clique alterna claro/escuro; se o novo tema for o do sistema, volta a seguir o sistema.
+  const alternarTema = useCallback(
+    () => trocarComTransicao(() => setTheme(proximoTema(resolvedTheme === "dark" ? "dark" : "light", temaDoSistema()))),
+    [resolvedTheme, setTheme],
+  );
 
   // Dados do shell
   // Dados do shell: buscados uma vez ao montar e relidos após cada escrita das telas (invalidarDados).
@@ -134,7 +139,7 @@ export function PainelShell({
             id: "tema",
             rotulo: resolvedTheme === "dark" ? "Usar tema claro" : "Usar tema escuro",
             icone: resolvedTheme === "dark" ? Sun : Moon,
-            onSelect: () => trocarComTransicao(() => setTheme(resolvedTheme === "dark" ? "light" : "dark")),
+            onSelect: alternarTema,
           },
           {
             id: "menu",
@@ -164,7 +169,7 @@ export function PainelShell({
           rotulo: i.titulo,
           descricao: i.codigo,
           icone: House,
-          onSelect: () => ir(`/imoveis/${i.id}`),
+          onSelect: () => ir(rotaDoImovel(i)),
         })),
       },
       {
@@ -184,7 +189,7 @@ export function PainelShell({
       },
     ].filter((g) => g.itens.length > 0);
     return [...remotos, ...fixos];
-  }, [busca, resultados.estado, ir, resolvedTheme, setTheme, recolhida, setRecolhida]);
+  }, [busca, resultados.estado, ir, resolvedTheme, alternarTema, recolhida, setRecolhida]);
 
   const estadoBusca: Recurso<unknown> | undefined = normalizar(busca).length >= 2 ? resultados.estado : undefined;
 
@@ -228,10 +233,9 @@ export function PainelShell({
               />
             }
             tema={
-              <ThemeMenu
-                tema={tema}
+              <ThemeSwitch
                 temaResolvido={montado ? (resolvedTheme as "light" | "dark") : undefined}
-                onTemaChange={(t) => trocarComTransicao(() => setTheme(t))}
+                onAlternar={alternarTema}
               />
             }
             usuario={

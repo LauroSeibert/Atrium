@@ -3,9 +3,11 @@
  * Detalhe do imóvel (RF-24…26, RF-29, RF-65). Contêiner: dados do fakeApi; as trocas de status
  * oferecidas são exatamente as `transicoes` que o domínio devolveu em `getImovel`.
  */
+import { rotaDoImovel } from "@/components/layout/navegacao";
 import Link from "next/link";
 import { ChevronDown, Pencil } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ActivityFeed } from "@/components/patterns/ActivityFeed";
 import { ChangeLog } from "@/components/patterns/ChangeLog";
@@ -64,7 +66,14 @@ export function TelaImovel({ id }: { id: string }) {
   const { estado } = consulta;
   const dados = "dados" in estado ? estado.dados : undefined;
 
-  if (dados) return <Detalhe id={id} dados={dados} />;
+  // Link antigo pelo id interno (ex.: notificação): troca a URL pelo código visível, sem nova entrada no histórico.
+  const router = useRouter();
+  const codigo = dados?.imovel.codigo;
+  useEffect(() => {
+    if (codigo && id !== codigo) router.replace(rotaDoImovel({ codigo }), { scroll: false });
+  }, [codigo, id, router]);
+
+  if (dados) return <Detalhe id={dados.imovel.id} dados={dados} />;
 
   if (estado.fase === "error") {
     const naoEncontrado = paraErroApi(estado.erro).tipo === "naoEncontrado";
@@ -142,7 +151,7 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
           </>
         }
         acaoPrimaria={
-          <AcaoLink href={`/imoveis/${id}/editar`} icone={Pencil}>
+          <AcaoLink href={`${rotaDoImovel(dados.imovel)}/editar`} icone={Pencil}>
             Editar
           </AcaoLink>
         }

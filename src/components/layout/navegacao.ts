@@ -122,6 +122,11 @@ export function rotaDaNotificacao(n: Notificacao): string {
   return n.tipo === "atividade" ? rotaDaEntidade(n.atividade.alvo) : `/contratos/${n.contratoId}`;
 }
 
+/** Rota do detalhe do imóvel: usa o código visível (`/imoveis/AT-0042`), não o id interno. */
+export function rotaDoImovel(imovel: { codigo: string }): string {
+  return `/imoveis/${imovel.codigo}`;
+}
+
 /** Rota de uma entidade referenciada (notificações, busca, atividades). */
 export function rotaDaEntidade(ref: RefEntidade): string {
   switch (ref.tipo) {

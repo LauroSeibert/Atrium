@@ -79,8 +79,8 @@ describe("TelaLead (RF-33, RF-34, RF-37, RF-65)", () => {
     expect(within(dialogo).getByText("Escolha o imóvel.")).toBeInTheDocument();
     await user.click(within(dialogo).getByRole("combobox", { name: /Imóvel/ }));
     await user.click((await screen.findAllByRole("option"))[0]!);
-    await user.type(within(dialogo).getByLabelText(/Data/), "2026-12-01");
-    await user.type(within(dialogo).getByLabelText(/Hora/), "10:30");
+    await user.type(within(dialogo).getByLabelText(/Data/), "01122026");
+    await user.type(within(dialogo).getByLabelText(/Hora/), "1030");
     await user.click(within(dialogo).getByRole("button", { name: "Agendar visita" }));
     expect(await screen.findByText("Visita agendada")).toBeInTheDocument();
     expect((await fakeApi.getLead(lead!.id)).visitas.length).toBeGreaterThan(0);

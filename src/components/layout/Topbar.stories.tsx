@@ -13,7 +13,7 @@ import {
 } from "./historias-shell";
 import { NotificationCenter } from "./NotificationCenter";
 import { SearchTrigger } from "./SearchTrigger";
-import { ThemeMenu } from "./ThemeMenu";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { Topbar } from "./Topbar";
 import { UserMenu } from "./UserMenu";
 
@@ -29,7 +29,7 @@ const slots = {
       onMarcarTodas={fn()}
     />
   ),
-  tema: <ThemeMenu tema="light" temaResolvido="light" onTemaChange={fn()} />,
+  tema: <ThemeSwitch temaResolvido="light" onAlternar={fn()} />,
   usuario: <UserMenu usuario={{ fase: "success", dados: GESTOR }} personas={PESSOAS} onTrocarPersona={fn()} />,
 };
 

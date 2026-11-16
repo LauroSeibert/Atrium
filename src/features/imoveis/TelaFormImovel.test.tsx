@@ -30,7 +30,7 @@ describe("TelaFormImovel (RF-27)", () => {
     await user.type(titulo, "Título editado no teste");
     await user.click(screen.getByRole("button", { name: "Salvar imóvel" }));
     expect(await screen.findByText("Imóvel salvo")).toBeInTheDocument();
-    await waitFor(() => expect(navegacao.url()).toBe(`/imoveis/${imovel.id}`));
+    await waitFor(() => expect(navegacao.url()).toBe(`/imoveis/${imovel.codigo}`));
     expect((await fakeApi.getImovel(imovel.id)).imovel.titulo).toBe("Título editado no teste");
   });
 
