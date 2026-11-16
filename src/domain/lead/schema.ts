@@ -2,16 +2,10 @@ import { z } from "zod";
 import { centavos, corretorId, imovelId, isoDataHora, leadId } from "../comum/tipos";
 import { finalidade, tipoImovel } from "../imovel/schema";
 
-export const ETAPAS = ["novo", "contato", "visita", "proposta", "fechado", "perdido"] as const;
 export const ORIGENS = ["site", "portal", "indicacao", "whatsapp", "placa", "redes"] as const;
-export const MOTIVOS_PERDA = ["preco", "localizacao", "desistencia", "concorrencia", "outro"] as const;
 
-export const etapa = z.enum(ETAPAS);
 export const origem = z.enum(ORIGENS);
-export const motivoPerda = z.enum(MOTIVOS_PERDA);
-export type Etapa = z.infer<typeof etapa>;
 export type Origem = z.infer<typeof origem>;
-export type MotivoPerda = z.infer<typeof motivoPerda>;
 
 export const contatoSchema = z.object({
   telefone: z
@@ -28,7 +22,7 @@ export const interesseSchema = z.object({
   quartosMin: z.int().positive().optional(),
 });
 
-/** Criação rápida (RF-35): nome + contato + origem; o resto tem padrão. */
+/** Criação rápida (RF-35): nome + contato + origem (+ imóvel opcional da 1ª negociação); o resto tem padrão. */
 export const novoLeadSchema = z.object({
   nome: z.string().trim().min(2).max(120),
   contato: contatoSchema,
@@ -36,29 +30,24 @@ export const novoLeadSchema = z.object({
   interesse: interesseSchema.optional(),
   orcamento: centavos.nullable().optional(),
   responsavelId: corretorId,
+  /** Imóvel da primeira negociação (RF-35, RF-71); ausente/`null` = sem imóvel. */
+  imovelId: imovelId.nullable().optional(),
 });
 export type NovoLead = z.infer<typeof novoLeadSchema>;
 
-export const leadSchema = z
-  .object({
-    id: leadId,
-    nome: z.string().min(1),
-    contato: contatoSchema,
-    origem,
-    etapa,
-    motivoPerda: motivoPerda.nullable(),
-    interesse: interesseSchema,
-    orcamento: centavos.nullable(),
-    imoveisVistos: z.array(imovelId),
-    responsavelId: corretorId,
-    ordem: z.int().nonnegative(),
-    criadoEm: isoDataHora,
-    atualizadoEm: isoDataHora,
-  })
-  .superRefine((l, ctx) => {
-    if ((l.etapa === "perdido") !== (l.motivoPerda !== null))
-      ctx.addIssue({ code: "custom", path: ["motivoPerda"], message: "motivoPerda só (e sempre) quando perdido" });
-  });
+/** A pessoa (RF-33). Etapa, motivo de perda e ordem no kanban ficam na Negociação (RF-70). */
+export const leadSchema = z.object({
+  id: leadId,
+  nome: z.string().min(1),
+  contato: contatoSchema,
+  origem,
+  interesse: interesseSchema,
+  orcamento: centavos.nullable(),
+  imoveisVistos: z.array(imovelId),
+  responsavelId: corretorId,
+  criadoEm: isoDataHora,
+  atualizadoEm: isoDataHora,
+});
 export type Lead = z.infer<typeof leadSchema>;
 
-export const CAMPOS_MONITORADOS_LEAD = ["etapa", "orcamento"] as const;
+export const CAMPOS_MONITORADOS_LEAD = ["orcamento"] as const;

@@ -8,63 +8,104 @@
  *   `{ resultado, desfazer }` (RF-04).
  */
 import {
+  adicionarDocumento,
   adicionarNota,
+  agendaDoPeriodo,
   agendarVisita as agendarVisitaDominio,
+  alertaAnuncio,
   alternarFavorito,
   alterarOrcamento,
   buscar,
   calcularDashboard,
   calcularFinanceiro,
+  calcularRelatorios,
   contadoresNavegacao,
   listarNotificacoes,
+  criarAnuncio as criarAnuncioDominio,
   criarLead,
-  contratosVinculaveis,
-  destinosLead,
+  criarNegociacao as criarNegociacaoDominio,
+  contratosVinculaveis as contratosVinculaveisDominio,
+  definirImovelNegociacao as definirImovelNegociacaoDominio,
+  destinosNegociacao,
   diasDeAtraso,
+  estaAberta,
+  linhasComissao,
+  linhasReceita,
+  linhasRepasse,
+  negociacoesDoLead,
   permissoesDeSoltar,
+  podeAgendarVisita,
+  podeDefinirImovel as podeDefinirImovelDominio,
+  podeEditarDespesa,
+  podePagarDespesa,
   repassesDoContrato,
   resumoCronograma,
   ETAPAS,
   estaInadimplente,
   proximoVencimento,
   registrarPagamento as registrarPagamentoDominio,
+  registrarPagamentoComissao,
+  registrarPagamentoDespesa,
+  removerDocumento as removerDocumentoDominio,
+  salvarContato,
+  salvarDespesa,
   salvarImovel as salvarImovelDominio,
   salvarPerfil as salvarPerfilDominio,
+  statusDespesa,
   statusExibicao,
   statusParcela,
+  transicionarAnuncio as transicionarAnuncioDominio,
   transicionarContrato,
   transicionarImoveis,
   transicionarImovel,
-  transicionarLead,
+  transicionarNegociacao,
   transicionarVisita,
+  transicoesPermitidasAnuncio,
   transicoesPermitidasContrato,
   transicoesPermitidasImovel,
-  transicoesPermitidasLead,
+  transicoesPermitidasNegociacao,
+  validarArquivoDocumento,
+  valorNegociacao,
   vincularContrato as vincularContratoDominio,
   type Base,
+  type CanalAnuncio,
+  type CategoriaDespesa,
+  type Contato,
   type Contexto,
   type Contrato,
   type Corretor,
+  type DadosContato,
+  type DadosDespesa,
   type DadosImovel,
   type Etapa,
+  type FiltrosAgenda,
+  type FiltrosRelatorios,
   type Finalidade,
   type Imovel,
   type Lead,
   type MotivoPerda,
   type Mudanca,
+  type Negociacao,
   type NovaVisita,
   type NovoLead,
   type Origem,
+  type PapelContato,
   type Periodo,
   type RefEntidade,
   type RegistroAlteracao,
+  type StatusAnuncio,
+  type StatusComissao,
+  type StatusDespesa,
   type StatusExibicaoContrato,
   type StatusImovel,
+  type StatusParcela,
   type StatusVisita,
   type TipoContrato,
+  type TipoDocumento,
   type TipoImovel,
 } from "@/domain";
 import { gerarBase } from "@/mocks/data/gerador";
+import * as arquivos from "./arquivos";
 import { ErroApi, paraErroApi } from "./erros";
 import * as persistencia from "./persistencia";
 
@@ -131,6 +172,11 @@ export type Escrita<T> = { resultado: T; desfazer: () => Promise<void> };
 
 async function escrever<T>(op: (base: Base, c: Contexto) => Mudanca<T>): Promise<Escrita<T>> {
   await esperar();
+  return aplicar(op);
+}
+
+/** `escrever` sem a latência (quando a chamada já esperou, ex.: depois de salvar um arquivo). */
+function aplicar<T>(op: (base: Base, c: Contexto) => Mudanca<T>): Escrita<T> {
   let m: Mudanca<T>;
   try {
     m = op(obterEstado().base, ctx());
@@ -156,25 +202,47 @@ function exigir<T>(v: T | undefined, oque: string): T {
   return v;
 }
 
+/** Resumos que as listas anexam (a tela não precisa buscar a coleção inteira). */
+const resumoImovel = (i: Imovel | undefined) =>
+  i
+    ? { id: i.id, codigo: i.codigo, titulo: i.titulo, preco: i.preco, status: i.status, finalidade: i.finalidade }
+    : null;
+export type ResumoImovel = NonNullable<ReturnType<typeof resumoImovel>>;
+const resumoLead = (l: Lead) => ({
+  id: l.id,
+  nome: l.nome,
+  origem: l.origem,
+  interesse: l.interesse,
+  orcamento: l.orcamento,
+});
+const resumoContrato = (c: Contrato | undefined) => (c ? { id: c.id, numero: c.numero, tipo: c.tipo } : null);
+const nomeCorretor = (b: Base, id: string) => buscar(b, "corretores", id)?.nome ?? null;
+
+/** Negociação + o que a UI mostra e pode fazer com ela (RF-30, RF-31, RF-32). */
+function negociacaoComDerivados(b: Base, n: Negociacao) {
+  const lead = buscar(b, "leads", n.leadId);
+  const imovel = n.imovelId ? buscar(b, "imoveis", n.imovelId) : undefined;
+  return {
+    ...n,
+    lead: lead ? resumoLead(lead) : null,
+    imovel: resumoImovel(imovel),
+    valor: valorNegociacao(n, imovel, lead),
+    destinos: destinosNegociacao(b, n),
+    permissoesDeSoltar: permissoesDeSoltar(b, n),
+  };
+}
+export type NegociacaoComDerivados = ReturnType<typeof negociacaoComDerivados>;
+
+const DIA_MS = 86_400_000;
+const desdeDias = (dias: number | undefined) =>
+  dias === undefined ? undefined : new Date(relogio().getTime() - dias * DIA_MS).toISOString();
+
 // ---------------------------------------------------------------------------
 // Tipos de consulta
 // ---------------------------------------------------------------------------
 
-import type { Pagina, Paginacao } from "@/lib/paginacao";
+import { paginar, type Pagina, type Paginacao } from "@/lib/paginacao";
 export type { Pagina, Paginacao };
-
-function paginar<T>(lista: T[], p: Paginacao = { pagina: 1, porPagina: 12 }): Pagina<T> {
-  const porPagina = Math.max(1, p.porPagina);
-  const totalPaginas = Math.max(1, Math.ceil(lista.length / porPagina));
-  const pagina = Math.min(Math.max(1, p.pagina), totalPaginas);
-  return {
-    itens: lista.slice((pagina - 1) * porPagina, pagina * porPagina),
-    total: lista.length,
-    pagina,
-    porPagina,
-    totalPaginas,
-  };
-}
 
 const normalizar = (s: string) =>
   s
@@ -199,9 +267,44 @@ export type FiltrosImoveis = {
 };
 export type OrdemImoveis = "recentes" | "precoAsc" | "precoDesc" | "area";
 
+export type FiltrosNegociacoes = {
+  busca?: string;
+  responsavelId?: string;
+  origens?: Origem[];
+  etapas?: Etapa[];
+  imovelId?: string;
+  leadId?: string;
+  /** Criadas entre (ISO, inclusive). */
+  de?: string;
+  ate?: string;
+  /** Criadas nos últimos N dias (relógio do mock). */
+  ultimosDias?: number;
+};
+export type FiltrosLeads = Omit<FiltrosNegociacoes, "leadId">;
+export type FiltrosReceitas = {
+  busca?: string;
+  status?: StatusParcela[];
+  tipo?: TipoContrato;
+  contratoId?: string;
+  vencimentoDe?: string;
+  vencimentoAte?: string;
+};
+export type FiltrosDespesas = {
+  busca?: string;
+  categorias?: CategoriaDespesa[];
+  status?: StatusDespesa[];
+  /** `null` = só as avulsas. */
+  contratoId?: string | null;
+  vencimentoDe?: string;
+  vencimentoAte?: string;
+};
+
 // ---------------------------------------------------------------------------
 // API
 // ---------------------------------------------------------------------------
+
+const ORDEM_RECEITA: Record<StatusParcela, number> = { atrasado: 0, aVencer: 1, pago: 2, cancelada: 3 };
+const ORDEM_ANUNCIO: Record<StatusAnuncio, number> = { publicado: 0, pausado: 1, rascunho: 2, encerrado: 3 };
 
 export const fakeApi = {
   // --- Demonstração (RF-51) -------------------------------------------------
@@ -213,6 +316,7 @@ export const fakeApi = {
   async resetMock() {
     await esperar();
     persistencia.apagar();
+    await arquivos.limparArquivos();
     gravar(novoEstado());
   },
 
@@ -230,7 +334,17 @@ export const fakeApi = {
         contratos: Object.fromEntries(b.contratos.map((c) => [c.id, c.numero])),
       },
     })),
+  /** RF-81: também traz `despesas` e `resultado`. */
   getFinanceiro: (periodo: Periodo = "mesAtual") => ler((b) => calcularFinanceiro(b, periodo, agoraIso())),
+  /** RF-82: os 5 relatórios do domínio, com nomes de corretores e imóveis citados. */
+  getRelatorios: (filtros: FiltrosRelatorios) =>
+    ler((b) => ({
+      ...calcularRelatorios(b, filtros, agoraIso()),
+      nomes: {
+        corretores: Object.fromEntries(b.corretores.map((c) => [c.id, c.nome])),
+        imoveis: Object.fromEntries(b.imoveis.map((i) => [i.id, `${i.titulo} (${i.codigo})`])),
+      },
+    })),
 
   // --- Corretores e perfil (RF-08, RF-50) -----------------------------------
   listCorretores: () => ler((b) => b.corretores.filter((c) => c.ativo)),
@@ -278,10 +392,7 @@ export const fakeApi = {
   getImovel: (idOuCodigo: string) =>
     ler((b) => {
       const codigo = idOuCodigo.toUpperCase();
-      const imovel = exigir(
-        buscar(b, "imoveis", idOuCodigo) ?? b.imoveis.find((i) => i.codigo === codigo),
-        "Imóvel",
-      );
+      const imovel = exigir(buscar(b, "imoveis", idOuCodigo) ?? b.imoveis.find((i) => i.codigo === codigo), "Imóvel");
       const id = imovel.id;
       return {
         imovel,
@@ -291,7 +402,23 @@ export const fakeApi = {
         contratos: b.contratos
           .filter((c) => c.imovelId === id)
           .map((c) => ({ id: c.id, numero: c.numero, status: statusExibicao(c, agoraIso()) })),
-        leadsInteressados: b.leads.filter((l) => l.imoveisVistos.includes(id)).length,
+        /** RF-29, RF-72: negociações deste imóvel (lead, etapa, responsável). */
+        negociacoes: b.negociacoes
+          .filter((n) => n.imovelId === id)
+          .sort(
+            (a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || z.atualizadoEm.localeCompare(a.atualizadoEm),
+          )
+          .map((n) => {
+            const lead = buscar(b, "leads", n.leadId);
+            return {
+              id: n.id,
+              etapa: n.etapa,
+              motivoPerda: n.motivoPerda,
+              atualizadoEm: n.atualizadoEm,
+              lead: lead ? { id: lead.id, nome: lead.nome } : null,
+              responsavel: { id: n.responsavelId, nome: nomeCorretor(b, n.responsavelId) },
+            };
+          }),
       };
     }),
   saveImovel: (dados: DadosImovel & { id?: string }) => escrever((b, c) => salvarImovelDominio(b, dados, c)),
@@ -317,75 +444,331 @@ export const fakeApi = {
         .filter((r) => r.entidade.tipo === entidade.tipo && r.entidade.id === entidade.id)
         .sort((a, z) => z.em.localeCompare(a.em)),
     ),
-
-  // --- Leads (RF-29…39) ------------------------------------------------------
-  listLeads: (
-    filtros: {
-      busca?: string;
-      responsavelId?: string;
-      origens?: Origem[];
-      etapas?: Etapa[];
-      imovelId?: string;
-      /** Criados entre (ISO, inclusive). */
-      de?: string;
-      ate?: string;
-      /** Criados nos últimos N dias (relógio do mock). */
-      ultimosDias?: number;
-    } = {},
-  ) =>
-    ler((b) => {
-      const desde =
-        filtros.ultimosDias === undefined
-          ? undefined
-          : new Date(relogio().getTime() - filtros.ultimosDias * 86_400_000).toISOString();
-      return (
-        b.leads
-          .filter(
-            (l) =>
-              (!filtros.busca || contem(l.nome, filtros.busca)) &&
-              (!filtros.responsavelId || l.responsavelId === filtros.responsavelId) &&
-              (!filtros.origens?.length || filtros.origens.includes(l.origem)) &&
-              (!filtros.etapas?.length || filtros.etapas.includes(l.etapa)) &&
-              (!filtros.imovelId || l.imoveisVistos.includes(filtros.imovelId)) &&
-              (!filtros.de || l.criadoEm >= filtros.de) &&
-              (!filtros.ate || l.criadoEm <= filtros.ate) &&
-              (!desde || l.criadoEm >= desde),
-          )
-          .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem)
-          // Destinos e colunas aceitas de cada lead (RF-31/32), decididos pelo domínio.
-          .map((l) => ({ ...l, destinos: destinosLead(b, l), soltar: permissoesDeSoltar(b, l) }))
-      );
+  /** Histórico do lead (orçamento) + o de todas as negociações dele (etapa), numa chamada só (RF-34). */
+  listAlteracoesDoLead: (leadId: string) =>
+    ler((b): RegistroAlteracao[] => {
+      const negs = new Set(b.negociacoes.filter((n) => n.leadId === leadId).map((n) => n.id));
+      return b.alteracoes
+        .filter(
+          (r) =>
+            (r.entidade.tipo === "lead" && r.entidade.id === leadId) ||
+            (r.entidade.tipo === "negociacao" && negs.has(r.entidade.id)),
+        )
+        .sort((a, z) => z.em.localeCompare(a.em));
     }),
-  /** RF-39: contratos existentes que o domínio aceita vincular ao lead. */
-  listContratosVinculaveis: (leadId: string) =>
+
+  // --- Negociações (RF-30…32, RF-36, RF-38, RF-39, RF-70, RF-71) ----------
+  listNegociacoes: (filtros: FiltrosNegociacoes = {}) =>
     ler((b) => {
-      const lead = exigir(buscar(b, "leads", leadId), "Lead");
-      return contratosVinculaveis(b, lead).map((c) => ({
+      const f = filtros;
+      const desde = desdeDias(f.ultimosDias);
+      return b.negociacoes
+        .map((n) => negociacaoComDerivados(b, n))
+        .filter(
+          (n) =>
+            (!f.busca ||
+              (n.lead && contem(n.lead.nome, f.busca)) ||
+              (n.imovel && (contem(n.imovel.codigo, f.busca) || contem(n.imovel.titulo, f.busca)))) &&
+            (!f.responsavelId || n.responsavelId === f.responsavelId) &&
+            (!f.origens?.length || (n.lead && f.origens.includes(n.lead.origem))) &&
+            (!f.etapas?.length || f.etapas.includes(n.etapa)) &&
+            (!f.imovelId || n.imovelId === f.imovelId) &&
+            (!f.leadId || n.leadId === f.leadId) &&
+            (!f.de || n.criadoEm >= f.de) &&
+            (!f.ate || n.criadoEm <= f.ate) &&
+            (!desde || n.criadoEm >= desde),
+        )
+        .sort((a, z) => ETAPAS.indexOf(a.etapa) - ETAPAS.indexOf(z.etapa) || a.ordem - z.ordem);
+    }),
+  moverNegociacao: (id: string, etapa: Etapa, ordem?: number, motivo?: MotivoPerda) =>
+    escrever((b, c) => transicionarNegociacao(b, { negociacaoId: id, para: etapa, ordem, motivo }, c)),
+  criarNegociacao: (leadId: string, imovelId: string | null) =>
+    escrever((b, c) => criarNegociacaoDominio(b, { leadId, imovelId }, c)),
+  definirImovelNegociacao: (id: string, imovelId: string) =>
+    escrever((b, c) => definirImovelNegociacaoDominio(b, id, imovelId, c)),
+  /** RF-39: contratos existentes que o domínio aceita vincular à negociação. */
+  contratosVinculaveis: (negociacaoId: string) =>
+    ler((b) => {
+      const n = exigir(buscar(b, "negociacoes", negociacaoId), "Negociação");
+      return contratosVinculaveisDominio(b, n).map((c) => ({
         id: c.id,
         numero: c.numero,
-        imovel: buscar(b, "imoveis", c.imovelId) ?? null,
+        imovel: resumoImovel(buscar(b, "imoveis", c.imovelId)),
       }));
+    }),
+  vincularContrato: (negociacaoId: string, contratoId: string) =>
+    escrever((b, c) => vincularContratoDominio(b, negociacaoId, contratoId, c)),
+
+  // --- Leads = pessoas (RF-33, RF-35, RF-72) --------------------------------
+  listLeads: (filtros: FiltrosLeads = {}) =>
+    ler((b) => {
+      const f = filtros;
+      const desde = desdeDias(f.ultimosDias);
+      const porLead = new Map<string, Negociacao[]>();
+      for (const n of b.negociacoes) porLead.set(n.leadId, [...(porLead.get(n.leadId) ?? []), n]);
+      return b.leads
+        .map((l) => {
+          const negs = porLead.get(l.id) ?? [];
+          return { ...l, qtdNegociacoes: negs.length, qtdAbertas: negs.filter(estaAberta).length, negs };
+        })
+        .filter(
+          (l) =>
+            (!f.busca || contem(l.nome, f.busca)) &&
+            (!f.responsavelId || l.responsavelId === f.responsavelId) &&
+            (!f.origens?.length || f.origens.includes(l.origem)) &&
+            (!f.etapas?.length || l.negs.some((n) => f.etapas!.includes(n.etapa))) &&
+            (!f.imovelId || l.negs.some((n) => n.imovelId === f.imovelId)) &&
+            (!f.de || l.criadoEm >= f.de) &&
+            (!f.ate || l.criadoEm <= f.ate) &&
+            (!desde || l.criadoEm >= desde),
+        )
+        .sort((a, z) => z.criadoEm.localeCompare(a.criadoEm))
+        .map((l) => {
+          const { negs, ...resto } = l;
+          void negs;
+          return resto;
+        });
     }),
   getLead: (id: string) =>
     ler((b) => {
       const lead = exigir(buscar(b, "leads", id), "Lead");
+      const negociacoes = negociacoesDoLead(b, id).map((n) => ({
+        ...negociacaoComDerivados(b, n),
+        transicoes: transicoesPermitidasNegociacao(b, n),
+        contrato: resumoContrato(b.contratos.find((c) => c.negociacaoId === n.id)),
+        /** RF-39: "Vincular contrato" só quando o domínio aceita algum contrato. */
+        podeVincular: contratosVinculaveisDominio(b, n).length > 0,
+        /** RF-71: "Definir imóvel" (regra do domínio). */
+        podeDefinirImovel: podeDefinirImovelDominio(b, n),
+      }));
+      const ids = new Set(negociacoes.map((n) => n.id));
       return {
         lead,
         responsavel: buscar(b, "corretores", lead.responsavelId) ?? null,
         imoveisVistos: lead.imoveisVistos.map((i) => buscar(b, "imoveis", i)).filter((i): i is Imovel => !!i),
         visitas: b.visitas.filter((v) => v.leadId === id).sort((a, z) => z.dataHora.localeCompare(a.dataHora)),
-        contrato: b.contratos.find((c) => c.leadId === id) ?? null,
-        transicoes: transicoesPermitidasLead(b, lead),
+        negociacoes,
+        /** Contratos vinculados às negociações do lead. */
+        contratos: b.contratos
+          .filter((c) => c.negociacaoId && ids.has(c.negociacaoId))
+          .map((c) => ({
+            ...resumoContrato(c)!,
+            negociacaoId: c.negociacaoId!,
+            status: statusExibicao(c, agoraIso()),
+          })),
+        /** RF-37: agendar exige alguma negociação não perdida (regra do domínio, `podeAgendarVisita`). */
+        podeAgendarVisita: podeAgendarVisita(b, id),
       };
     }),
-  moveLead: (id: string, etapa: Etapa, ordem?: number, motivo?: MotivoPerda) =>
-    escrever((b, c) => transicionarLead(b, { leadId: id, para: etapa, ordem, motivo }, c)),
+  /** Cria o lead e a 1ª negociação (`imovelId` opcional, RF-35). */
   createLead: (dados: Omit<NovoLead, "responsavelId"> & { responsavelId?: string }) =>
     escrever((b, c) => criarLead(b, { ...dados, responsavelId: dados.responsavelId ?? c.autorId }, c)),
   setOrcamento: (id: string, orcamento: number | null) => escrever((b, c) => alterarOrcamento(b, id, orcamento, c)),
   addNota: (leadId: string, texto: string) => escrever((b, c) => adicionarNota(b, leadId, texto, c)),
-  vincularContrato: (leadId: string, contratoId: string) =>
-    escrever((b, c) => vincularContratoDominio(b, leadId, contratoId, c)),
+
+  // --- Agenda (RF-73) --------------------------------------------------------
+  getAgenda: (filtros: FiltrosAgenda = {}) =>
+    ler((b) => ({
+      agora: agoraIso(),
+      dias: agendaDoPeriodo(b, agoraIso(), filtros),
+      nomes: {
+        imoveis: Object.fromEntries(b.imoveis.map((i) => [i.id, `${i.titulo} (${i.codigo})`])),
+        leads: Object.fromEntries(b.leads.map((l) => [l.id, l.nome])),
+        corretores: Object.fromEntries(b.corretores.map((c) => [c.id, c.nome])),
+      },
+    })),
+
+  // --- Contatos (RF-74) -------------------------------------------------------
+  listContatos: (filtros: { busca?: string; papeis?: PapelContato[] } = {}) =>
+    ler((b) =>
+      b.contatos
+        .filter(
+          (c) =>
+            (!filtros.busca ||
+              contem(c.nome, filtros.busca) ||
+              (!!c.email && contem(c.email, filtros.busca)) ||
+              (!!c.telefone && c.telefone.includes(filtros.busca.replace(/\D/g, "") || "\u0000"))) &&
+            (!filtros.papeis?.length || filtros.papeis.includes(c.papel)),
+        )
+        .sort((a, z) => a.nome.localeCompare(z.nome, "pt-BR")),
+    ),
+  getContato: (id: string) =>
+    ler((b) => {
+      const contato = exigir(buscar(b, "contatos", id), "Contato");
+      return {
+        contato,
+        imoveis: contato.imovelIds.flatMap((i) => resumoImovel(buscar(b, "imoveis", i)) ?? []),
+        contratos: contato.contratoIds.flatMap((k) => resumoContrato(buscar(b, "contratos", k)) ?? []),
+      };
+    }),
+  saveContato: (dados: DadosContato & { id?: string }) => escrever((b, c) => salvarContato(b, dados, c)),
+
+  // --- Anúncios (RF-75) -------------------------------------------------------
+  listAnuncios: (filtros: { busca?: string; canais?: CanalAnuncio[]; status?: StatusAnuncio[] } = {}) =>
+    ler((b) =>
+      b.anuncios
+        .map((a) => ({
+          ...a,
+          imovel: resumoImovel(buscar(b, "imoveis", a.imovelId)),
+          transicoes: transicoesPermitidasAnuncio(b, a),
+          alerta: alertaAnuncio(b, a),
+        }))
+        .filter(
+          (a) =>
+            (!filtros.busca ||
+              (a.imovel && (contem(a.imovel.codigo, filtros.busca) || contem(a.imovel.titulo, filtros.busca)))) &&
+            (!filtros.canais?.length || filtros.canais.includes(a.canal)) &&
+            (!filtros.status?.length || filtros.status.includes(a.status)),
+        )
+        .sort(
+          (a, z) => ORDEM_ANUNCIO[a.status] - ORDEM_ANUNCIO[z.status] || z.atualizadoEm.localeCompare(a.atualizadoEm),
+        ),
+    ),
+  criarAnuncio: (imovelId: string, canal: CanalAnuncio) =>
+    escrever((b, c) => criarAnuncioDominio(b, imovelId, canal, c)),
+  transicionarAnuncio: (id: string, status: StatusAnuncio) =>
+    escrever((b, c) => transicionarAnuncioDominio(b, id, status, c)),
+
+  // --- Documentos do contrato (RF-76) -----------------------------------------
+  listDocumentos: (contratoId: string) =>
+    ler((b) => {
+      exigir(buscar(b, "contratos", contratoId), "Contrato");
+      return b.documentos
+        .filter((d) => d.contratoId === contratoId)
+        .sort((a, z) => z.enviadoEm.localeCompare(a.enviadoEm))
+        .map((d) => ({ ...d, enviadoPor: nomeCorretor(b, d.enviadoPorId) }));
+    }),
+  /**
+   * Valida no domínio (erro `validacao`), salva o arquivo no IndexedDB e depois os metadados.
+   * Devolve `{ resultado, desfazer, soNestaSessao }`; `soNestaSessao: true` = caiu no fallback em memória.
+   */
+  async enviarDocumento(contratoId: string, arquivo: File, tipo: TipoDocumento) {
+    await esperar();
+    try {
+      exigir(buscar(obterEstado().base, "contratos", contratoId), "Contrato");
+      validarArquivoDocumento({ nome: arquivo.name, tipo: arquivo.type, tamanho: arquivo.size });
+    } catch (e) {
+      throw paraErroApi(e);
+    }
+    const arquivoId = arquivos.novoArquivoId();
+    const { persistido } = await arquivos.salvarArquivo(arquivoId, arquivo);
+    try {
+      const escrita = aplicar((b, c) =>
+        adicionarDocumento(
+          b,
+          { contratoId, tipo, nome: arquivo.name, mime: arquivo.type, tamanho: arquivo.size, arquivoId },
+          c,
+        ),
+      );
+      /** Sem IndexedDB o arquivo fica só na memória desta aba: a UI deve avisar (some ao recarregar). */
+      return { ...escrita, soNestaSessao: !persistido };
+    } catch (e) {
+      await arquivos.apagarArquivo(arquivoId);
+      throw e;
+    }
+  },
+  /** O arquivo salvo; documento de exemplo (`arquivoId: null`) baixa um PDF de demonstração. */
+  async baixarDocumento(id: string): Promise<Blob> {
+    await esperar();
+    const doc = buscar(obterEstado().base, "documentos", id);
+    if (!doc) throw new ErroApi("naoEncontrado", "Documento não encontrado.");
+    if (doc.arquivoId === null) return arquivos.pdfDemonstracao(doc.nome);
+    const blob = await arquivos.lerArquivo(doc.arquivoId);
+    if (!blob) throw new ErroApi("naoEncontrado", "Arquivo não encontrado neste navegador.");
+    return blob;
+  },
+  /** Remove os metadados; o arquivo fica guardado para o Desfazer (RF-04). */
+  removerDocumento: (id: string) => escrever((b, c) => removerDocumentoDominio(b, id, c)),
+
+  // --- Financeiro: receitas, despesas, comissões, repasses (RF-77…80) --------
+  listReceitas: (filtros: FiltrosReceitas = {}, paginacao?: Paginacao) =>
+    ler((b) => {
+      const f = filtros;
+      const lista = linhasReceita(b, agoraIso())
+        .map((l) => ({ ...l, imovel: resumoImovel(buscar(b, "imoveis", l.imovelId)) }))
+        .filter(
+          (l) =>
+            (!f.busca ||
+              contem(l.numeroContrato, f.busca) ||
+              (l.imovel && (contem(l.imovel.codigo, f.busca) || contem(l.imovel.titulo, f.busca)))) &&
+            (!f.status?.length || f.status.includes(l.status)) &&
+            (!f.tipo || l.tipo === f.tipo) &&
+            (!f.contratoId || l.contratoId === f.contratoId) &&
+            (!f.vencimentoDe || l.vencimento >= f.vencimentoDe) &&
+            (!f.vencimentoAte || l.vencimento <= f.vencimentoAte),
+        )
+        // O que pede ação primeiro: atrasadas (mais antigas), depois a vencer (mais próximas), pagas e canceladas.
+        .sort(
+          (a, z) =>
+            ORDEM_RECEITA[a.status] - ORDEM_RECEITA[z.status] ||
+            (a.status === "pago"
+              ? z.vencimento.localeCompare(a.vencimento)
+              : a.vencimento.localeCompare(z.vencimento)) ||
+            a.numeroContrato.localeCompare(z.numeroContrato),
+        );
+      return paginar(lista, paginacao);
+    }),
+  listDespesas: (filtros: FiltrosDespesas = {}, paginacao?: Paginacao) =>
+    ler((b) => {
+      const f = filtros;
+      const hoje = agoraIso();
+      const lista = b.despesas
+        .map((d) => ({
+          ...d,
+          status: statusDespesa(d, hoje),
+          podeEditar: podeEditarDespesa(d),
+          podePagar: podePagarDespesa(d),
+          contrato: d.contratoId ? resumoContrato(buscar(b, "contratos", d.contratoId)) : null,
+        }))
+        .filter(
+          (d) =>
+            (!f.busca || contem(d.descricao, f.busca) || (!!d.contrato && contem(d.contrato.numero, f.busca))) &&
+            (!f.categorias?.length || f.categorias.includes(d.categoria)) &&
+            (!f.status?.length || f.status.includes(d.status)) &&
+            (f.contratoId === undefined || d.contratoId === f.contratoId) &&
+            (!f.vencimentoDe || d.vencimento >= f.vencimentoDe) &&
+            (!f.vencimentoAte || d.vencimento <= f.vencimentoAte),
+        )
+        .sort((a, z) => z.vencimento.localeCompare(a.vencimento) || a.id.localeCompare(z.id));
+      return paginar(lista, paginacao);
+    }),
+  /** Lança (sem `id`) ou edita uma despesa ainda não paga. */
+  saveDespesa: (dados: DadosDespesa & { id?: string }) => escrever((b, c) => salvarDespesa(b, dados, c)),
+  pagarDespesa: (id: string) => escrever((b, c) => registrarPagamentoDespesa(b, id, c)),
+  listComissoes: (filtros: { competencia?: string; corretorId?: string; status?: StatusComissao } = {}) =>
+    ler((b) =>
+      linhasComissao(b)
+        .filter(
+          (m) =>
+            (!filtros.competencia || m.competencia === filtros.competencia) &&
+            (!filtros.corretorId || m.corretorId === filtros.corretorId) &&
+            (!filtros.status || m.status === filtros.status),
+        )
+        .map((m) => ({
+          ...m,
+          corretor: nomeCorretor(b, m.corretorId),
+          imovel: resumoImovel(buscar(b, "imoveis", m.imovelId)),
+        }))
+        .sort((a, z) => z.competencia.localeCompare(a.competencia) || a.numeroContrato.localeCompare(z.numeroContrato)),
+    ),
+  /** Competências (`AAAA-MM`) com comissão, da mais recente para a mais antiga (opções do filtro). */
+  listCompetenciasComissao: () =>
+    ler((b) => [...new Set(linhasComissao(b).map((m) => m.competencia))].sort().reverse()),
+  /** `indice` = posição em `contrato.comissoes` (vem em cada linha de `listComissoes`). */
+  pagarComissao: (contratoId: string, indice: number) =>
+    escrever((b, c) => registrarPagamentoComissao(b, contratoId, indice, c)),
+  listRepasses: (filtros: { mes?: string; contratoId?: string } = {}) =>
+    ler((b) =>
+      linhasRepasse(b)
+        .filter(
+          (r) =>
+            (!filtros.mes || r.mes === filtros.mes) && (!filtros.contratoId || r.contratoId === filtros.contratoId),
+        )
+        .map((r) => ({ ...r, imovel: resumoImovel(buscar(b, "imoveis", r.imovelId)) }))
+        .sort((a, z) => z.pagoEm.localeCompare(a.pagoEm)),
+    ),
+  /** Meses (`AAAA-MM`) com repasse, do mais recente para o mais antigo (opções do filtro). */
+  listMesesRepasse: () => ler((b) => [...new Set(linhasRepasse(b).map((r) => r.mes))].sort().reverse()),
 
   // --- Visitas (RF-14, RF-37) -----------------------------------------------
   agendarVisita: (dados: Omit<NovaVisita, "corretorId"> & { corretorId?: string }) =>
@@ -440,7 +823,12 @@ export const fakeApi = {
       return {
         contrato,
         imovel: buscar(b, "imoveis", contrato.imovelId) ?? null,
-        lead: contrato.leadId ? (buscar(b, "leads", contrato.leadId) ?? null) : null,
+        /** RF-39: negociação vinculada e o lead dela. */
+        negociacao: contrato.negociacaoId ? (buscar(b, "negociacoes", contrato.negociacaoId) ?? null) : null,
+        lead: (() => {
+          const n = contrato.negociacaoId ? buscar(b, "negociacoes", contrato.negociacaoId) : undefined;
+          return n ? (buscar(b, "leads", n.leadId) ?? null) : null;
+        })(),
         statusExibicao: statusExibicao(contrato, hoje),
         inadimplente: estaInadimplente(contrato, hoje),
         parcelas: contrato.parcelas.map((p) => ({
@@ -474,13 +862,15 @@ export const fakeApi = {
   },
 
   // --- Busca global (RF-02) --------------------------------------------------
+  /** RF-02. `contatos` é opcional no tipo só para quem monta o resultado vazio sem ele (sempre vem preenchido). */
   search: (termo: string) =>
-    ler((b) => {
-      if (normalizar(termo).length < 2) return { imoveis: [], leads: [], contratos: [] };
+    ler((b): { imoveis: Imovel[]; leads: Lead[]; contratos: Contrato[]; contatos?: Contato[] } => {
+      if (normalizar(termo).length < 2) return { imoveis: [], leads: [], contratos: [], contatos: [] };
       return {
         imoveis: b.imoveis.filter((i) => contem(i.codigo, termo) || contem(i.titulo, termo)).slice(0, 5),
         leads: b.leads.filter((l: Lead) => contem(l.nome, termo)).slice(0, 5),
         contratos: b.contratos.filter((c) => contem(c.numero, termo)).slice(0, 5),
+        contatos: b.contatos.filter((c) => contem(c.nome, termo)).slice(0, 5),
       };
     }),
 };

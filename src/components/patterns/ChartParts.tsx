@@ -29,6 +29,16 @@ export const corSerie = (indice: number) => `var(--chart-${(indice % 5) + 1})`;
 export const classeCorSerie = (indice: number) =>
   (["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5"] as const)[indice % 5]!;
 
+/**
+ * Raio da ponta das barras (Recharts só aceita número): lido do token `--corner-sm` (em px);
+ * sem DOM (servidor) devolve 0 e o gráfico, que só desenha no cliente, usa o valor do token.
+ */
+export function raioBarra(): number {
+  if (typeof document === "undefined") return 0;
+  const px = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--corner-sm"));
+  return Number.isFinite(px) ? px / 2 : 0;
+}
+
 export const TICK = { fill: "var(--text-muted)", fontSize: 12 } as const;
 export const EIXO = { stroke: "var(--border)" } as const;
 export const GRADE = { stroke: "var(--border)" } as const;

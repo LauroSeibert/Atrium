@@ -20,4 +20,13 @@ type Story = StoryObj<typeof meta>;
 /** Drawer à esquerda (< 1024 px), em viewport de 360 px. */
 export const Aberto: Story = {};
 export const ComBadges: Story = { args: { contadores: CONTADORES } };
+/** Grupo da rota atual aberto; os demais recolhidos, alvos de 44 px. */
+export const RotaDentroDoFinanceiro: Story = {
+  name: "Rota dentro do Financeiro",
+  args: { pathname: "/financeiro/despesas", contadores: CONTADORES },
+};
+export const RotaEmOperacao: Story = {
+  name: "Rota em Operação",
+  args: { pathname: "/imoveis/AT-0042", contadores: CONTADORES },
+};
 export const Fechado: Story = { args: { aberto: false } };

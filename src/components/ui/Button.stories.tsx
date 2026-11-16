@@ -8,7 +8,7 @@ const meta = {
   args: { children: "Salvar imóvel" },
   argTypes: {
     variant: { control: "inline-radio", options: ["primary", "secondary", "ghost", "destructive", "link"] },
-    size: { control: "inline-radio", options: ["sm", "md", "lg"] },
+    size: { control: "inline-radio", options: ["sm", "md", "lg", "touch"] },
   },
 } satisfies Meta<typeof Button>;
 
@@ -27,6 +27,7 @@ export const Tamanhos: Story = {
       <Button size="sm">Pequeno 32</Button>
       <Button size="md">Médio 40</Button>
       <Button size="lg">Grande 44</Button>
+      <Button size="touch">Toque 44 (mobile)</Button>
     </div>
   ),
 };

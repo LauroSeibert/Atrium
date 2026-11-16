@@ -4,7 +4,17 @@ import type { MetricaMensal } from "@/domain";
 import { formatMoeda } from "@/lib/format";
 import type { Recurso } from "@/lib/recurso";
 import { ChartCard, type TabelaGrafico } from "./ChartCard";
-import { CURSOR, EIXO, GRADE, Legenda, rotuloMes, TICK, TooltipBox, useMovimentoReduzido } from "./ChartParts";
+import {
+  CURSOR,
+  EIXO,
+  GRADE,
+  Legenda,
+  raioBarra,
+  rotuloMes,
+  TICK,
+  TooltipBox,
+  useMovimentoReduzido,
+} from "./ChartParts";
 
 /** Receita 12 meses, vendas × locações (RF-11; alternativa textual: RNF-17). Valores em centavos. */
 
@@ -51,6 +61,7 @@ type PayloadItem = { payload?: MetricaMensal };
 /** Barras empilhadas por mês. Decorativo para leitores de tela: o ChartCard fornece resumo e tabela. */
 export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
   const reduzido = useMovimentoReduzido();
+  const raio = raioBarra();
   return (
     <div className="flex flex-col gap-3">
       <div className="h-56 w-full min-w-0 sm:h-64 xl:h-80">
@@ -102,7 +113,7 @@ export function RevenueChart({ dados }: { dados: MetricaMensal[] }) {
               name="Locações"
               stackId="receita"
               fill={LOCACOES}
-              radius={[3, 3, 0, 0]}
+              radius={[raio, raio, 0, 0]}
               isAnimationActive={!reduzido}
             />
           </BarChart>

@@ -86,4 +86,21 @@ describe("FilterBar (RF-21)", () => {
     expect(mais).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Filtro extra")).toBeVisible();
   });
+
+  it("modo à vista: sem busca, controles na barra, Limpar filtros e contador", async () => {
+    const onLimparTudo = vi.fn();
+    render(
+      <FilterBar
+        aVista={<select aria-label="Mês" />}
+        onLimparTudo={onLimparTudo}
+        total={3}
+        rotuloItem={["repasse", "repasses"]}
+      />,
+    );
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Mês" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("3 repasses");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Limpar filtros" }));
+    expect(onLimparTudo).toHaveBeenCalledTimes(1);
+  });
 });

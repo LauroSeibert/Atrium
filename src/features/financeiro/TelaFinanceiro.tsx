@@ -82,7 +82,7 @@ export function TelaFinanceiro() {
       />
       <div className="flex min-w-0 flex-col gap-6">
         <h2 className="sr-only">Indicadores</h2>
-        <StatGroup aria-label="Indicadores">
+        <StatGroup aria-label="Indicadores" colunas={3}>
           <StatCard
             variante="celula"
             rotulo="Receita recebida"
@@ -109,6 +109,20 @@ export function TelaFinanceiro() {
             rotulo="Comissões"
             formato="moedaCompleta"
             estado={valor((d) => d.fin.comissoes)}
+            onTentarNovamente={recarregar}
+          />
+          <StatCard
+            variante="celula"
+            rotulo="Despesas pagas"
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.despesas.pagas)}
+            onTentarNovamente={recarregar}
+          />
+          <StatCard
+            variante="celula"
+            rotulo="Resultado"
+            formato="moedaCompleta"
+            estado={valor((d) => d.fin.resultado)}
             onTentarNovamente={recarregar}
           />
         </StatGroup>

@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { baseMinima, contrato, contratoLocacao, corretor, imovel, lead, visita } from "../teste/fabrica";
+import {
+  baseMinima,
+  contrato,
+  contratoLocacao,
+  corretor,
+  despesa,
+  imovel,
+  lead,
+  negociacao,
+  visita,
+} from "../teste/fabrica";
 import {
   calcularDashboard,
   calcularFinanceiro,
-  funilDeLeads,
+  etapaDaPerda,
+  funilDeNegociacoes,
   mesesDoPeriodo,
   metaRealizado,
   metricaDoMes,
@@ -26,10 +37,22 @@ const base = baseMinima({
     imovel({ id: "imv_b", codigo: "AT-0002", status: "vendido" }),
   ],
   leads: [
-    lead({ id: "lead_a", etapa: "novo", criadoEm: "2026-03-02T12:00:00.000Z" }),
-    lead({ id: "lead_b", etapa: "visita", ordem: 0, criadoEm: "2026-02-10T12:00:00.000Z" }),
-    lead({ id: "lead_c", etapa: "fechado", ordem: 0, criadoEm: "2026-01-10T12:00:00.000Z" }),
-    lead({ id: "lead_d", etapa: "perdido", motivoPerda: "preco", ordem: 0 }),
+    lead({ id: "lead_a", criadoEm: "2026-03-02T12:00:00.000Z" }),
+    lead({ id: "lead_b", criadoEm: "2026-02-10T12:00:00.000Z" }),
+    lead({ id: "lead_c", criadoEm: "2026-01-10T12:00:00.000Z" }),
+    lead({ id: "lead_d" }),
+  ],
+  negociacoes: [
+    negociacao({ id: "neg_a", leadId: "lead_a" }),
+    negociacao({ id: "neg_b", leadId: "lead_b", etapa: "visita" }),
+    negociacao({ id: "neg_c", leadId: "lead_c", etapa: "fechado", imovelId: "imv_b" }),
+    negociacao({ id: "neg_d", leadId: "lead_d", etapa: "perdido", motivoPerda: "preco" }),
+  ],
+  despesas: [
+    despesa({ id: "dsp_a", valor: 100_000, vencimento: "2026-03-05", pagaEm: "2026-03-05T15:00:00.000Z" }),
+    despesa({ id: "dsp_b", valor: 50_000, vencimento: "2026-03-10" }), // atrasada
+    despesa({ id: "dsp_c", valor: 20_000, vencimento: "2026-03-28" }), // a pagar no mês
+    despesa({ id: "dsp_d", valor: 70_000, vencimento: "2026-02-01", pagaEm: "2026-02-01T15:00:00.000Z" }),
   ],
   visitas: [
     visita({ id: "vis_a", status: "realizada", dataHora: "2026-03-05T13:00:00.000Z" }),
@@ -100,12 +123,28 @@ describe("métricas derivadas", () => {
     expect(mesesDoPeriodo("ultimos3", HOJE).anterior).toEqual(["2025-10", "2025-11", "2025-12"]);
   });
 
-  it("funil: conversão acumulada, sem divisão por zero", () => {
-    const f = funilDeLeads(base);
-    // lead_d perdido sem registro conta como perdido em "novo": 2 de 4 avançaram.
+  it("funil de negociações: conversão acumulada, sem divisão por zero", () => {
+    const f = funilDeNegociacoes(base);
+    // neg_d perdida sem registro conta como perdida em "novo": 2 de 4 avançaram.
     expect(f.find((x) => x.etapa === "novo")).toEqual({ etapa: "novo", quantidade: 1, perdidos: 1, conversao: 2 / 4 });
     expect(f.find((x) => x.etapa === "fechado")!.conversao).toBeNull();
-    expect(funilDeLeads(baseMinima({ leads: [] })).every((x) => x.conversao === null)).toBe(true);
+    expect(funilDeNegociacoes(baseMinima({ negociacoes: [] })).every((x) => x.conversao === null)).toBe(true);
+    // universo restrito e por responsável
+    const so = funilDeNegociacoes(base, { negociacoes: base.negociacoes.slice(0, 1) });
+    expect(so.find((x) => x.etapa === "novo")!.quantidade).toBe(1);
+    expect(funilDeNegociacoes(base, { responsavelId: "cor_b" }).every((x) => x.quantidade === 0)).toBe(true);
+  });
+
+  it("KPI leads novos conta leads criados, não negociações", () => {
+    expect(
+      metricaDoMes(
+        {
+          ...base,
+          negociacoes: [...base.negociacoes, negociacao({ id: "neg_z", criadoEm: "2026-03-03T12:00:00.000Z" })],
+        },
+        "2026-03",
+      ).leadsNovos,
+    ).toBe(1);
   });
 
   it("compromissos dos próximos 7 dias: visita agendada e parcela a vencer", () => {
@@ -128,6 +167,12 @@ describe("métricas derivadas", () => {
     expect(f.repasses.find((r) => r.mes === "2026-02")).toEqual({ mes: "2026-02", aluguel: 300_000, repasse: 270_000 });
   });
 
+  it("financeiro (RF-81): despesas do período e resultado = recebido − despesas pagas", () => {
+    const f = calcularFinanceiro(base, "mesAtual", HOJE);
+    expect(f.despesas).toEqual({ pagas: 100_000, aPagar: 70_000, atrasadas: { quantidade: 1, valor: 50_000 } });
+    expect(f.resultado).toBe(30_000_000 - 100_000);
+  });
+
   it("dashboard monta KPIs com anterior e tendência", () => {
     const d = calcularDashboard(base, "mesAtual", HOJE);
     expect(d.kpis.receita).toMatchObject({ valor: 30_000_000, anterior: 300_000 });
@@ -136,18 +181,18 @@ describe("métricas derivadas", () => {
     expect(d.kpis.leadsNovos).toMatchObject({ valor: 1, anterior: 1 });
   });
 
-  it("funil: perdido conta na etapa em que estava (registro de alteração)", () => {
+  it("funil: perdida conta na etapa em que estava (registro de alteração da negociação)", () => {
     const b = baseMinima({
-      leads: [
-        lead({ id: "lead_a", etapa: "visita", ordem: 0 }),
-        lead({ id: "lead_b", etapa: "perdido", motivoPerda: "preco", ordem: 0 }),
+      negociacoes: [
+        negociacao({ id: "neg_a", etapa: "visita" }),
+        negociacao({ id: "lead_b", etapa: "perdido", motivoPerda: "preco", imovelId: null }),
       ],
       alteracoes: [
         {
           id: "alt_1",
           em: "2026-03-01T12:00:00.000Z",
           autorId: "cor_a",
-          entidade: { tipo: "lead", id: "lead_b" },
+          entidade: { tipo: "negociacao", id: "lead_b" },
           campo: "etapa",
           de: "novo",
           para: "visita",
@@ -156,14 +201,16 @@ describe("métricas derivadas", () => {
           id: "alt_2",
           em: "2026-03-02T12:00:00.000Z",
           autorId: "cor_a",
-          entidade: { tipo: "lead", id: "lead_b" },
+          entidade: { tipo: "negociacao", id: "lead_b" },
           campo: "etapa",
           de: "visita",
           para: "perdido",
         },
       ],
     });
-    const f = funilDeLeads(b);
+    const f = funilDeNegociacoes(b);
+    expect(etapaDaPerda(b, b.negociacoes[1]!)).toBe("visita");
+    expect(etapaDaPerda(b, b.negociacoes[0]!)).toBeNull();
     expect(f.find((x) => x.etapa === "visita")).toEqual({ etapa: "visita", quantidade: 1, perdidos: 1, conversao: 0 });
     expect(f.find((x) => x.etapa === "contato")!.conversao).toBe(1);
     expect(f.find((x) => x.etapa === "perdido")!.perdidos).toBe(1);

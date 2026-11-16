@@ -43,18 +43,31 @@ export type Notificacao =
  */
 /** Nome legível de uma entidade referenciada; `undefined` se não existe mais. */
 export function nomeDaEntidade(
-  base: Pick<Base, "imoveis" | "leads" | "contratos">,
+  base: Pick<Base, "imoveis" | "leads" | "contratos"> & Partial<Pick<Base, "negociacoes" | "anuncios" | "despesas">>,
   ref: RefEntidade,
 ): string | undefined {
+  const imovel = (id: string | null | undefined) => base.imoveis.find((x) => x.id === id);
   switch (ref.tipo) {
     case "imovel": {
-      const i = base.imoveis.find((x) => x.id === ref.id);
+      const i = imovel(ref.id);
       return i ? `${i.codigo} · ${i.titulo}` : undefined;
     }
     case "lead":
       return base.leads.find((x) => x.id === ref.id)?.nome;
     case "contrato":
       return base.contratos.find((x) => x.id === ref.id)?.numero;
+    case "negociacao": {
+      const n = base.negociacoes?.find((x) => x.id === ref.id);
+      if (!n) return undefined;
+      const lead = base.leads.find((x) => x.id === n.leadId)?.nome ?? "Lead";
+      return `${lead} · ${imovel(n.imovelId)?.codigo ?? "Sem imóvel"}`;
+    }
+    case "anuncio": {
+      const a = base.anuncios?.find((x) => x.id === ref.id);
+      return a ? `${imovel(a.imovelId)?.codigo ?? "Imóvel"} · ${a.canal}` : undefined;
+    }
+    case "despesa":
+      return base.despesas?.find((x) => x.id === ref.id)?.descricao;
   }
 }
 
@@ -99,15 +112,18 @@ export function listarNotificacoes(
 
 /** Badges da navegação (RF-62). */
 export type ContadoresNavegacao = {
-  /** Leads na etapa "novo" (ainda sem contato). */
+  /**
+   * Negociações na etapa "novo" (ainda sem contato), badge do item Leads (BRIEF-MENU).
+   * O nome ficou `leadsNovos` para não quebrar o shell; conta negociações desde 2026-11-16.
+   */
   leadsNovos: number;
   /** Parcelas atrasadas de contratos ativos (mesma regra do status "inadimplente"). */
   parcelasAtrasadas: number;
 };
 
-export function contadoresNavegacao(base: Pick<Base, "leads" | "contratos">, agora: string): ContadoresNavegacao {
+export function contadoresNavegacao(base: Pick<Base, "negociacoes" | "contratos">, agora: string): ContadoresNavegacao {
   return {
-    leadsNovos: base.leads.filter((l) => l.etapa === "novo").length,
+    leadsNovos: base.negociacoes.filter((n) => n.etapa === "novo").length,
     parcelasAtrasadas: base.contratos
       .filter((c) => c.status === "ativo")
       .reduce((n, c) => n + parcelasAtrasadas(c, agora).length, 0),

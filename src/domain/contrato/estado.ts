@@ -191,3 +191,40 @@ export function registrarPagamento(base: Base, contratoId: string, numero: numbe
     return salvo;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Comissão (ESTADOS §3.10, RF-79)
+// ---------------------------------------------------------------------------
+
+/** `indice` é a posição da comissão em `contrato.comissoes` (0…n-1); o registro usa `comissao.N` (N = indice + 1). */
+export function podeRegistrarPagamentoComissao(contrato: Contrato, indice: number): Permissao {
+  if (contrato.status !== "ativo" && contrato.status !== "encerrado")
+    return negar("Só contratos ativos ou encerrados pagam comissão.");
+  const m = contrato.comissoes[indice];
+  if (!m) return negar("Comissão não encontrada.");
+  if (m.pagaEm) return negar("Comissão já paga.");
+  return PERMITIDO;
+}
+
+export const statusComissao = (m: Pick<Comissao, "pagaEm">): "paga" | "pendente" => (m.pagaEm ? "paga" : "pendente");
+
+/** RF-79. Grava `pagaEm`; registro `comissao.N.pagaEm` (via transação); Atividade `comissaoPaga` no contrato. */
+export function registrarPagamentoComissao(base: Base, contratoId: string, indice: number, ctx: Contexto) {
+  return transacao(base, ctx, (t) => {
+    const c = t.get("contratos", contratoId);
+    const p = podeRegistrarPagamentoComissao(c, indice);
+    if (!p.ok) throw new OperacaoInvalida(p.motivo);
+    const m = c.comissoes[indice]!;
+    const salvo = t.put("contratos", {
+      ...c,
+      comissoes: c.comissoes.map((x, i) => (i === indice ? { ...x, pagaEm: ctx.agora } : x)),
+    });
+    t.atividade({
+      tipo: "comissaoPaga",
+      alvo: { tipo: "contrato", id: c.id },
+      relacionados: [{ tipo: "imovel", id: c.imovelId }],
+      dados: { indice, corretorId: m.corretorId, valor: m.valor },
+    });
+    return salvo;
+  });
+}

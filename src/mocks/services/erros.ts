@@ -1,4 +1,4 @@
-import { OperacaoInvalida, TransicaoInvalida } from "@/domain";
+import { DadosInvalidos, OperacaoInvalida, TransicaoInvalida } from "@/domain";
 
 /** Erros que o fakeApi devolve. `tipo` decide a mensagem e se "Tentar de novo" faz sentido. */
 export type TipoErroApi = "rede" | "naoEncontrado" | "regra" | "validacao";
@@ -24,6 +24,7 @@ export function paraErroApi(e: unknown): ErroApi {
     const tipo = /não encontrad/i.test(e.message) ? "naoEncontrado" : "regra";
     return new ErroApi(tipo, e.message, e);
   }
+  if (e instanceof DadosInvalidos) return new ErroApi("validacao", e.message, e);
   if (e && typeof e === "object" && "issues" in e) return new ErroApi("validacao", "Dados inválidos.", e);
   return new ErroApi("rede", "Algo deu errado. Tente de novo.", e);
 }

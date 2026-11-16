@@ -18,3 +18,19 @@ export function salvarPerfil(base: Base, corretorId: string, dados: unknown, ctx
 export function recortePadrao(usuario: Pick<Corretor, "id" | "papel">): string | undefined {
   return usuario.papel === "corretor" ? usuario.id : undefined;
 }
+
+/**
+ * Responsável a filtrar dada a escolha explícita da URL ("meus" | "todos"); sem escolha vale o recorte da persona.
+ */
+export function recorteResponsavel(
+  usuario: Pick<Corretor, "id" | "papel">,
+  escolha: "meus" | "todos" | undefined,
+): string | undefined {
+  if (escolha === undefined) return recortePadrao(usuario);
+  return escolha === "meus" ? usuario.id : undefined;
+}
+
+/** Quem pode ser responsável por negócio (opções de filtro por corretor). */
+export function vendedores<C extends Pick<Corretor, "papel">>(corretores: readonly C[]): C[] {
+  return corretores.filter((c) => c.papel === "corretor");
+}

@@ -8,17 +8,15 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContractCard, ContractCardSkeleton } from "@/components/patterns/ContractCard";
-import { DataTable, type DataTableAcaoEmLote, type DataTableColuna } from "@/components/patterns/DataTable";
-import { EmptyState } from "@/components/patterns/EmptyState";
-import { EstadoRecurso } from "@/components/patterns/EstadoRecurso";
+import type { DataTableAcaoEmLote, DataTableColuna } from "@/components/patterns/DataTable";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
+import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { DateInput } from "@/components/ui/DateInput";
-import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
@@ -308,82 +306,44 @@ export function TelaContratos() {
           }
         />
 
-        {telaLarga ? (
-          <div className="min-w-0">
-            <DataTable
-              aria-label="Contratos"
-              colunas={colunas}
-              idLinha={(l) => l.contrato.id}
-              estado={estado}
-              onTentarNovamente={recarregar}
-              densidade={densidade}
-              selecionados={selecionados}
-              onSelecaoChange={setSelecionados}
-              rotuloSelecao={(l) => `Selecionar ${l.contrato.numero}`}
-              acoesEmLote={acoesEmLote}
-              onPaginaChange={(p) => url.definir({ pagina: String(p) })}
-              vazio={vazio}
-            />
-          </div>
-        ) : (
-          // Abaixo de 768 px: cartões (a tabela rola na horizontal e perde o contexto).
-          <div>
-            <EstadoRecurso
-              estado={estado}
-              carregando={
-                <div className="flex flex-col gap-3">
-                  {[0, 1, 2].map((i) => (
-                    <ContractCardSkeleton key={i} />
-                  ))}
-                </div>
+        <ListaResponsiva
+          rotulo="Contratos"
+          telaLarga={telaLarga}
+          densidade={densidade}
+          colunas={colunas}
+          idLinha={(l) => l.contrato.id}
+          estado={estado}
+          onTentarNovamente={recarregar}
+          onPaginaChange={(p) => url.definir({ pagina: String(p) })}
+          vazio={vazio}
+          tabela={{
+            selecionados,
+            onSelecaoChange: setSelecionados,
+            rotuloSelecao: (l) => `Selecionar ${l.contrato.numero}`,
+            acoesEmLote,
+          }}
+          cartaoCarregando={<ContractCardSkeleton />}
+          cartao={(l) => (
+            <ContractCard
+              numero={l.contrato.numero}
+              tipo={l.contrato.tipo}
+              imovel={l.imovel ?? semImovel}
+              partes={l.contrato.partes}
+              valor={l.contrato.valor}
+              inicio={l.contrato.inicio}
+              fim={l.contrato.fim}
+              statusExibicao={l.statusExibicao}
+              proximoVencimento={l.proximoVencimento}
+              acao={
+                <Button asChild variant="secondary" size="touch">
+                  <Link href={`/contratos/${l.contrato.id}`} aria-label={`Abrir contrato ${l.contrato.numero}`}>
+                    Abrir contrato
+                  </Link>
+                </Button>
               }
-              estaVazio={(d) => d.itens.length === 0}
-              vazio={<EmptyState tamanho="compacto" titulo={vazio.titulo} acao={vazio.acao} />}
-              erro={{ titulo: "Não foi possível carregar a lista" }}
-              onTentarNovamente={recarregar}
-            >
-              {(d) => (
-                <div className="flex animate-fade-in flex-col gap-4">
-                  <ul aria-label="Contratos em cartões" className="flex flex-col gap-3">
-                    {d.itens.map((l) => (
-                      <li key={l.contrato.id}>
-                        <ContractCard
-                          numero={l.contrato.numero}
-                          tipo={l.contrato.tipo}
-                          imovel={l.imovel ?? semImovel}
-                          partes={l.contrato.partes}
-                          valor={l.contrato.valor}
-                          inicio={l.contrato.inicio}
-                          fim={l.contrato.fim}
-                          statusExibicao={l.statusExibicao}
-                          proximoVencimento={l.proximoVencimento}
-                          acao={
-                            <Button asChild variant="secondary" className="max-md:h-11">
-                              <Link
-                                href={`/contratos/${l.contrato.id}`}
-                                aria-label={`Abrir contrato ${l.contrato.numero}`}
-                              >
-                                Abrir contrato
-                              </Link>
-                            </Button>
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                  <Pagination
-                    page={d.pagina}
-                    pageCount={d.totalPaginas}
-                    pageSize={d.porPagina}
-                    total={d.total}
-                    onPageChange={(p) => url.definir({ pagina: String(p) })}
-                    className="justify-center [&_ul]:flex-wrap [&_ul]:justify-center"
-                  />
-                </div>
-              )}
-            </EstadoRecurso>
-          </div>
-        )}
+            />
+          )}
+        />
       </div>
     </>
   );

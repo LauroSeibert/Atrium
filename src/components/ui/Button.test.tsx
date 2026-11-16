@@ -63,4 +63,9 @@ describe("Button", () => {
     );
     expect(screen.getByRole("link", { name: "Ver imóveis" })).toHaveClass("bg-primary");
   });
+
+  it("size touch tem alvo de 44 px no mobile e 40 px a partir de md", () => {
+    render(<Button size="touch">Enviar</Button>);
+    expect(screen.getByRole("button", { name: "Enviar" })).toHaveClass("h-11", "md:h-10");
+  });
 });

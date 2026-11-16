@@ -58,6 +58,22 @@ export const ComparacaoDeTom: Story = {
     </div>
   ),
 };
+export const RotaDentroDoFinanceiro: Story = {
+  name: "Rota dentro do Financeiro",
+  args: { pathname: "/financeiro/receitas", contadores: CONTADORES },
+};
+export const VisaoGeralDoFinanceiro: Story = {
+  name: "Visão geral (ativa só na rota exata)",
+  args: { pathname: "/financeiro", contadores: CONTADORES },
+};
+export const RecolhidaNoFinanceiro: Story = {
+  name: "Recolhida, rota no Financeiro",
+  args: { recolhida: true, pathname: "/financeiro/comissoes", contadores: CONTADORES },
+};
+export const TrilhoTablet: Story = {
+  name: "Trilho do tablet",
+  args: { recolhida: true, fixa: true, pathname: "/agenda", contadores: CONTADORES },
+};
 export const ItemAtivoEmSubrota: Story = {
   name: "Item ativo em sub-rota",
   args: { pathname: "/imoveis/abc", contadores: CONTADORES },

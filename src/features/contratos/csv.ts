@@ -3,7 +3,7 @@
  * Vírgula decimal (Excel pt-BR).
  */
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
-import { montarCsv } from "@/lib/csv";
+import { montarCsv, reais } from "@/lib/csv";
 import { formatData } from "@/lib/format";
 import type { LinhaContrato } from "./tipos";
 
@@ -18,8 +18,6 @@ const CABECALHO = [
   "Status",
   "Próximo vencimento",
 ] as const;
-
-const reais = (centavos: number) => (centavos / 100).toFixed(2).replace(".", ",");
 
 export function gerarCsv(linhas: LinhaContrato[]): string {
   return montarCsv(

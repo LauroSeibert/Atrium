@@ -44,8 +44,13 @@ describe("TelaImovel (RF-24…26, RF-29, RF-65)", () => {
       "href",
       `/imoveis/${d.imovel.codigo}/editar`,
     );
-    if (d.leadsInteressados > 0)
-      expect(screen.getByRole("link", { name: /lead/ })).toHaveAttribute("href", `/leads?imovel=${d.imovel.id}`);
+    if (d.negociacoes.length > 0) {
+      expect(screen.getByRole("list", { name: "Negociações do imóvel" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Ver no quadro de leads" })).toHaveAttribute(
+        "href",
+        `/leads?imovel=${d.imovel.id}`,
+      );
+    }
   });
 
   it("trocar status pede confirmação, grava e mostra toast", async () => {

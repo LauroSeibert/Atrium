@@ -7,14 +7,23 @@ import { expect, test, type Page } from "@playwright/test";
  */
 const RESTRICOES_WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-const MODULOS = [
+/** Itens folha do menu (BRIEF-MENU). `submenu`: precisa expandir o Financeiro antes. */
+const MODULOS: readonly { rotulo: string; rota: string; h1: string; submenu?: string }[] = [
   { rotulo: "Dashboard", rota: "/", h1: "Dashboard" },
-  { rotulo: "Imóveis", rota: "/imoveis", h1: "Imóveis" },
   { rotulo: "Leads", rota: "/leads", h1: "Leads" },
+  { rotulo: "Agenda", rota: "/agenda", h1: "Agenda" },
+  { rotulo: "Contatos", rota: "/contatos", h1: "Contatos" },
+  { rotulo: "Imóveis", rota: "/imoveis", h1: "Imóveis" },
+  { rotulo: "Anúncios", rota: "/anuncios", h1: "Anúncios" },
   { rotulo: "Contratos", rota: "/contratos", h1: "Contratos" },
-  { rotulo: "Financeiro", rota: "/financeiro", h1: "Financeiro" },
+  { rotulo: "Visão geral", rota: "/financeiro", h1: "Financeiro", submenu: "Financeiro" },
+  { rotulo: "Receitas", rota: "/financeiro/receitas", h1: "Receitas", submenu: "Financeiro" },
+  { rotulo: "Despesas", rota: "/financeiro/despesas", h1: "Despesas", submenu: "Financeiro" },
+  { rotulo: "Comissões", rota: "/financeiro/comissoes", h1: "Comissões", submenu: "Financeiro" },
+  { rotulo: "Repasses", rota: "/financeiro/repasses", h1: "Repasses", submenu: "Financeiro" },
+  { rotulo: "Relatórios", rota: "/relatorios", h1: "Relatórios" },
   { rotulo: "Configurações", rota: "/configuracoes", h1: "Configurações" },
-] as const;
+];
 
 /** O nome do link pode ganhar o contador ("Leads, 3 leads novos"): casa pelo início. */
 const nomeDoItem = (rotulo: string) => new RegExp(`^${rotulo}\\s*(,|$)`);
@@ -49,6 +58,10 @@ test.describe("shell no desktop", () => {
     await page.goto("/configuracoes");
     await expect(page.getByRole("heading", { level: 1, name: "Configurações" })).toBeVisible();
     for (const modulo of MODULOS) {
+      if (modulo.submenu) {
+        const pai = menuPrincipal(page).getByRole("button", { name: modulo.submenu });
+        if ((await pai.getAttribute("aria-expanded")) === "false") await pai.click();
+      }
       await menuPrincipal(page)
         .getByRole("link", { name: nomeDoItem(modulo.rotulo) })
         .click();
@@ -137,6 +150,8 @@ test.describe("shell no mobile", () => {
     await page.getByRole("button", { name: "Abrir menu" }).click();
     const drawer = page.getByRole("dialog");
     await expect(drawer).toBeVisible();
+    // Grupos recolhíveis no drawer: só o da rota atual começa aberto (RF-63).
+    await drawer.getByRole("button", { name: "Comercial" }).click();
     await drawer.getByRole("link", { name: nomeDoItem("Leads") }).click();
     await expect(page).toHaveURL(/\/leads$/);
     await expect(page.getByRole("heading", { level: 1, name: "Leads" })).toBeVisible();
@@ -227,6 +242,14 @@ test.describe("acessibilidade das rotas do shell", () => {
     "/contratos",
     "/contratos/abc",
     "/financeiro",
+    "/financeiro/receitas",
+    "/financeiro/despesas",
+    "/financeiro/comissoes",
+    "/financeiro/repasses",
+    "/agenda",
+    "/contatos",
+    "/anuncios",
+    "/relatorios",
     "/configuracoes",
     "/design-system/colors",
     "/design-system/illustrations",

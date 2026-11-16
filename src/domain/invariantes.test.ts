@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import type { Base } from "./comum/base";
 import { gerarParcelas } from "./contrato/estado";
 import { validarBase } from "./invariantes";
-import { baseMinima, contrato, imovel, lead } from "./teste/fabrica";
+import { anuncio, baseMinima, contato, contrato, despesa, documento, imovel, lead, negociacao } from "./teste/fabrica";
 
-/** Base válida com venda ativa: imóvel vendido, lead fechado vinculado, parcelas somando o valor. */
+/** Base válida com venda ativa: imóvel vendido, negociação fechada vinculada, parcelas somando o valor. */
 function baseComVenda(): Base {
-  const c = contrato({ status: "ativo", leadId: "lead_a", parcelas: gerarParcelas(contrato(), 3) });
+  const c = contrato({ status: "ativo", negociacaoId: "neg_a", parcelas: gerarParcelas(contrato(), 3) });
   return baseMinima({
     imoveis: [imovel({ status: "vendido" })],
-    leads: [lead({ etapa: "fechado" })],
+    negociacoes: [negociacao({ etapa: "fechado" })],
     contratos: [c],
   });
 }
@@ -42,15 +42,25 @@ describe("validarBase: cada invariante quebrada gera erro (MODELO §3)", () => {
     contem(validarBase(b), "tipo ≠ finalidade");
   });
 
-  it("leadId de lead não fechado", () => {
+  it("negociacaoId de negociação não fechada", () => {
     const b = baseComVenda();
-    const erros = validarBase({ ...b, leads: [lead({ etapa: "proposta" })] });
-    contem(erros, "lead vinculado não está fechado");
+    const erros = validarBase({ ...b, negociacoes: [negociacao({ etapa: "proposta" })] });
+    contem(erros, "negociação vinculada não está fechada");
   });
 
-  it("leadId inexistente", () => {
+  it("negociacaoId inexistente", () => {
     const b = baseComVenda();
-    contem(validarBase({ ...b, leads: [] }), "lead vinculado não está fechado");
+    contem(validarBase({ ...b, negociacoes: [] }), "negociação vinculada não está fechada");
+  });
+
+  it("negociação vinculada de outro imóvel", () => {
+    const b = baseComVenda();
+    const erros = validarBase({
+      ...b,
+      imoveis: [...b.imoveis, imovel({ id: "imv_b", codigo: "AT-0002" })],
+      negociacoes: [negociacao({ etapa: "fechado", imovelId: "imv_b" })],
+    });
+    contem(erros, "negociação vinculada é de outro imóvel");
   });
 
   it("parcelas de venda que não somam o valor", () => {
@@ -91,14 +101,49 @@ describe("validarBase: cada invariante quebrada gera erro (MODELO §3)", () => {
     contem(validarBase({ ...b, imoveis: [imovel({ status: "disponivel" })] }), "deveria estar vendido");
   });
 
-  it("motivoPerda fora de perdido", () => {
-    const b = baseMinima({ leads: [lead({ etapa: "novo", motivoPerda: "preco" })] });
-    contem(validarBase(b), /lead lead_a/);
+  it("motivoPerda fora de perdido (invariante 4)", () => {
+    const b = baseMinima({ negociacoes: [negociacao({ etapa: "novo", motivoPerda: "preco" })] });
+    contem(validarBase(b), /negociação neg_a/);
   });
 
-  it("perdido sem motivoPerda", () => {
-    const b = baseMinima({ leads: [lead({ etapa: "perdido", motivoPerda: null })] });
-    contem(validarBase(b), /lead lead_a/);
+  it("perdido sem motivoPerda (invariante 4)", () => {
+    const b = baseMinima({ negociacoes: [negociacao({ etapa: "perdido", motivoPerda: null })] });
+    contem(validarBase(b), /negociação neg_a/);
+  });
+
+  it("fechado sem imóvel", () => {
+    contem(validarBase(baseMinima({ negociacoes: [negociacao({ etapa: "fechado", imovelId: null })] })), /neg_a/);
+  });
+
+  it("lead sem negociação (invariante 5)", () => {
+    contem(validarBase(baseMinima({ negociacoes: [] })), "lead lead_a: sem negociação");
+  });
+
+  it("duas negociações abertas do mesmo lead × imóvel (invariante 5); fechada + aberta pode", () => {
+    const dup = baseMinima({ negociacoes: [negociacao(), negociacao({ id: "neg_b", etapa: "visita" })] });
+    contem(validarBase(dup), "outra negociação aberta");
+    const ok = baseMinima({
+      negociacoes: [negociacao(), negociacao({ id: "neg_b", etapa: "perdido", motivoPerda: "preco" })],
+    });
+    expect(validarBase(ok)).toEqual([]);
+    const semImovel = baseMinima({
+      negociacoes: [negociacao({ imovelId: null }), negociacao({ id: "neg_b", imovelId: null })],
+    });
+    expect(validarBase(semImovel)).toEqual([]);
+  });
+
+  it("dois anúncios não encerrados no mesmo imóvel × canal (invariante 6); publicado com imóvel vendido é aceito", () => {
+    const dup = baseMinima({ anuncios: [anuncio(), anuncio({ id: "anc_b" })] });
+    contem(validarBase(dup), "outro anúncio não encerrado");
+    const encerrado = baseMinima({ anuncios: [anuncio(), anuncio({ id: "anc_b", status: "encerrado" })] });
+    expect(validarBase(encerrado)).toEqual([]);
+    const b = baseComVenda();
+    const vendido = { ...b, anuncios: [anuncio({ status: "publicado", publicadoEm: "2026-01-11T12:00:00.000Z" })] };
+    expect(validarBase(vendido)).toEqual([]);
+  });
+
+  it("anúncio publicado sem publicadoEm", () => {
+    contem(validarBase(baseMinima({ anuncios: [anuncio({ status: "publicado" })] })), /anúncio anc_a/);
   });
 
   it("inativo sem motivoInativo", () => {
@@ -128,6 +173,34 @@ describe("validarBase: integridade referencial e IDs", () => {
 
   it("imóvel visto inexistente", () => {
     contem(validarBase(baseMinima({ leads: [lead({ imoveisVistos: ["imv_x"] })] })), "imóvel visto inexistente");
+  });
+
+  it("documento, despesa e contato com referências inexistentes (invariante 7)", () => {
+    const erros = validarBase(
+      baseMinima({
+        documentos: [documento({ contratoId: "ctr_x" })],
+        despesas: [despesa({ contratoId: "ctr_x" })],
+        contatos: [contato({ imovelIds: ["imv_x"], contratoIds: ["ctr_x"] })],
+      }),
+    );
+    contem(erros, "documento doc_a: contrato inexistente");
+    contem(erros, "despesa dsp_a: contrato inexistente");
+    contem(erros, "contato ctt_a: imóvel inexistente");
+    contem(erros, "contato ctt_a: contrato inexistente");
+  });
+
+  it("negociação com lead, imóvel ou responsável inexistente", () => {
+    const erros = validarBase(
+      baseMinima({
+        negociacoes: [
+          negociacao(),
+          negociacao({ id: "neg_b", leadId: "lead_x", imovelId: "imv_x", responsavelId: "cor_x" }),
+        ],
+      }),
+    );
+    contem(erros, "negociação neg_b: lead inexistente");
+    contem(erros, "negociação neg_b: imóvel inexistente");
+    contem(erros, "negociação neg_b: responsável inexistente");
   });
 
   it("contrato com imóvel inexistente", () => {

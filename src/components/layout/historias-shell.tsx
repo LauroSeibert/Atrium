@@ -22,8 +22,10 @@ export { rotaDaNotificacao as hrefDaNotificacao } from "./navegacao";
 /** Viewport de 360 px (o menor suportado, RNF-04). Use com `globals: { viewport: VIEWPORT_360 }`. */
 export const VIEWPORTS_SHELL = {
   m360: { name: "Mobile 360", styles: { width: "360px", height: "800px" }, type: "mobile" },
+  tablet: { name: "Tablet 768", styles: { width: "768px", height: "900px" }, type: "tablet" },
 } as const;
 export const VIEWPORT_360 = { value: "m360", isRotated: false } as const;
+export const VIEWPORT_TABLET = { value: "tablet", isRotated: false } as const;
 
 /** `Tooltip` exige o provider que, no app, fica no layout (PainelShell). */
 export const comTooltips: Decorator = (Story) => (

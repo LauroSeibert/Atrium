@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Atividade } from "../atividade/schema";
-import { AGORA, baseMinima, contrato, imovel, lead } from "../teste/fabrica";
+import { AGORA, anuncio, baseMinima, contrato, despesa, imovel, lead, negociacao } from "../teste/fabrica";
 import { contadoresNavegacao, listarNotificacoes, naoLidas, nomeDaEntidade, LIMITE_NOTIFICACOES } from "./notificacoes";
 
 /** RF-62 (badges) e RF-64 (notificações). */
@@ -146,15 +146,33 @@ describe("nomeDaEntidade", () => {
     expect(nomeDaEntidade(base, { tipo: "lead", id: "lead_a" })).toBe("Lead Teste");
     expect(nomeDaEntidade(base, { tipo: "contrato", id: "ctr_a" })).toBe("CT-2026-0001");
   });
+  it("negociação, anúncio e despesa", () => {
+    const b = {
+      ...base,
+      negociacoes: [negociacao(), negociacao({ id: "neg_s", imovelId: null })],
+      anuncios: [anuncio()],
+      despesas: [despesa()],
+    };
+    expect(nomeDaEntidade(b, { tipo: "negociacao", id: "neg_a" })).toBe("Lead Teste · AT-0001");
+    expect(nomeDaEntidade(b, { tipo: "negociacao", id: "neg_s" })).toBe("Lead Teste · Sem imóvel");
+    expect(nomeDaEntidade(b, { tipo: "anuncio", id: "anc_a" })).toBe("AT-0001 · site");
+    expect(nomeDaEntidade(b, { tipo: "despesa", id: "dsp_a" })).toBe("ITBI");
+    expect(nomeDaEntidade(b, { tipo: "negociacao", id: "neg_x" })).toBeUndefined();
+  });
+
   it("devolve undefined se não existe", () => {
     expect(nomeDaEntidade(base, { tipo: "contrato", id: "ctr_zzz" })).toBeUndefined();
   });
 });
 
 describe("contadoresNavegacao (RF-62)", () => {
-  it("conta leads na etapa novo", () => {
+  it("conta negociações na etapa novo", () => {
     const base = baseMinima({
-      leads: [lead({ id: "lead_a" }), lead({ id: "lead_b" }), lead({ id: "lead_c", etapa: "visita" })],
+      negociacoes: [
+        negociacao({ id: "neg_a" }),
+        negociacao({ id: "neg_b", imovelId: null }),
+        negociacao({ id: "neg_c", leadId: "lead_b", etapa: "visita" }),
+      ],
     });
     expect(contadoresNavegacao(base, AGORA).leadsNovos).toBe(2);
   });

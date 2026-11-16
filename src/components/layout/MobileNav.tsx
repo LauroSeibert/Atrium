@@ -3,7 +3,7 @@
 import type { ContadoresNavegacao } from "@/domain";
 import { AtriumLogo } from "../brand/AtriumLogo";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "../ui/Drawer";
-import { NAV_PRINCIPAL, NAV_RODAPE, type ItemNavegacao } from "./navegacao";
+import { NAV_PRINCIPAL, NAV_RODAPE, type EntradaNavegacao } from "./navegacao";
 import { NavegacaoPrincipal } from "./NavegacaoPrincipal";
 
 export type MobileNavProps = {
@@ -11,8 +11,8 @@ export type MobileNavProps = {
   onAbertoChange: (aberto: boolean) => void;
   pathname: string;
   contadores?: ContadoresNavegacao;
-  itens?: readonly ItemNavegacao[];
-  rodape?: readonly ItemNavegacao[];
+  itens?: readonly EntradaNavegacao[];
+  rodape?: readonly EntradaNavegacao[];
 };
 
 /** Navegação em drawer abaixo de 1024 px (RF-01, RF-63). Foco preso no painel, Esc fecha, escolher um item fecha. */
@@ -40,6 +40,7 @@ export function MobileNav({
             contadores={contadores}
             onNavegar={fechar}
             tamanho="toque"
+            gruposRecolhiveis
           />
         </nav>
         <nav aria-label="Preferências" className="px-3 py-3">

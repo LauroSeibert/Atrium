@@ -1,5 +1,8 @@
 /** CSV gerado no cliente (RF-47, RF-49): separador `;` e BOM para abrir direto no Excel pt-BR. */
 
+/** Centavos como "1234,56" (vírgula decimal, Excel pt-BR). */
+export const reais = (centavos: number) => (centavos / 100).toFixed(2).replace(".", ",");
+
 /** Aspas, separador e quebras escapados; células que iniciam fórmula ganham `'` (injeção de CSV). */
 export function celulaCsv(valor: string | number): string {
   let t = String(valor);

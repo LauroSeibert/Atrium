@@ -17,7 +17,7 @@ import { BotaoFavorito, PrecoImovel, SelosImovel } from "@/components/patterns/P
 import { PropertyGallery } from "@/components/patterns/PropertyGallery";
 import { SectionCard } from "@/components/patterns/SectionCard";
 import { SpecList } from "@/components/patterns/SpecList";
-import { STATUS_CONTRATO_UI, STATUS_IMOVEL_UI, TIPO_IMOVEL_ROTULO } from "@/components/patterns/rotulos";
+import { ETAPA_UI, STATUS_CONTRATO_UI, STATUS_IMOVEL_UI, TIPO_IMOVEL_ROTULO } from "@/components/patterns/rotulos";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -96,7 +96,7 @@ export function TelaImovel({ id }: { id: string }) {
 }
 
 function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
-  const { imovel, corretor, transicoes, contratos, leadsInteressados } = dados;
+  const { imovel, corretor, transicoes, contratos, negociacoes } = dados;
   const alvo = useMemo(() => ({ tipo: "imovel" as const, id }), [id]);
   const atividades = useConsulta(useCallback(() => fakeApi.listAtividades({ alvo }), [alvo]));
   const alteracoes = useConsulta(useCallback(() => fakeApi.listAlteracoes(alvo), [alvo]));
@@ -196,15 +196,35 @@ function Detalhe({ id, dados }: { id: string; dados: DadosImovel }) {
             ) : null}
           </SectionCard>
 
-          <SectionCard titulo="Leads e contratos">
-            {leadsInteressados > 0 ? (
-              <Button asChild variant="link" className="w-fit">
-                <Link href={`/leads?imovel=${id}`}>
-                  {leadsInteressados === 1 ? "1 lead interessado" : `${leadsInteressados} leads interessados`}
-                </Link>
-              </Button>
+          <SectionCard titulo="Negociações e contratos">
+            {/* RF-29, RF-72: negociações deste imóvel (lead, etapa, responsável). */}
+            {negociacoes.length > 0 ? (
+              <>
+                <ul aria-label="Negociações do imóvel" className="flex flex-col gap-2">
+                  {negociacoes.map((n) => (
+                    <li key={n.id} className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex min-w-0 flex-col">
+                        {n.lead ? (
+                          <Button asChild variant="link" className="w-fit text-left text-sm whitespace-normal">
+                            <Link href={`/leads/${n.lead.id}`}>{n.lead.nome}</Link>
+                          </Button>
+                        ) : (
+                          <Text tone="muted">Lead removido</Text>
+                        )}
+                        <span className="text-xs text-text-muted">{n.responsavel.nome ?? "Sem responsável"}</span>
+                      </span>
+                      <Badge tone={ETAPA_UI[n.etapa].tom} size="sm">
+                        {ETAPA_UI[n.etapa].rotulo}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild variant="link" className="w-fit">
+                  <Link href={`/leads?imovel=${id}`}>Ver no quadro de leads</Link>
+                </Button>
+              </>
             ) : (
-              <Text tone="muted">Nenhum lead interessado</Text>
+              <Text tone="muted">Nenhuma negociação</Text>
             )}
             {contratos.length > 0 ? (
               <ul aria-label="Contratos do imóvel" className="flex flex-col gap-2">

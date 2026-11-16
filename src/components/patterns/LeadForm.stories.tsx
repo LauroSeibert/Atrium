@@ -40,6 +40,13 @@ type Story = StoryObj<typeof meta>;
 /** Criação rápida (RF-35): só o essencial; "Mais detalhes" recolhido. */
 export const Rapido: Story = {};
 
+/** Criação rápida com o imóvel (opcional) da 1ª negociação (RF-70). */
+export const ComImovel: Story = {
+  args: {
+    imoveis: BASE_HISTORIAS.imoveis.slice(0, 12).map((i) => ({ value: i.id, label: `${i.codigo} · ${i.titulo}` })),
+  },
+};
+
 /** Edição com todos os detalhes abertos. */
 export const Completo: Story = { args: { valoresIniciais: completo } };
 

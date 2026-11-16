@@ -22,7 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ETAPAS, type Etapa, type Lead, type Permissao } from "@/domain";
+import { ETAPAS, type Etapa, type Permissao } from "@/domain";
 import { cn } from "@/lib/cn";
 import { paraCss, useTransicaoToken } from "@/lib/motion";
 import { formatMoeda } from "@/lib/format";
@@ -32,26 +32,26 @@ import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { EmptyState } from "./EmptyState";
 import { EstadoRecurso } from "./EstadoRecurso";
-import { LeadCard, LeadCardSkeleton, type DestinoLead } from "./LeadCard";
+import { LeadCard, LeadCardSkeleton, rotuloNegociacao, type DestinoLead, type NegociacaoCard } from "./LeadCard";
 import { ETAPA_UI } from "./rotulos";
 
 /**
- * Kanban de leads por etapa (RF-30, RF-31, RF-32, WCAG 2.5.7).
+ * Kanban de negociações por etapa (RF-30, RF-31, RF-32, RF-70, WCAG 2.5.7). Cada card é um lead × imóvel.
  * O quadro NÃO muda a lista nem decide transições: pergunta `podeSoltar`, `destinosDe` e emite
  * `onMover`. Mover para "perdido" exige motivo (RF-32): quem chama abre o diálogo e só então aplica
- * `transicionarLead`. Alternativas ao arrastar: teclado (dnd-kit) e o menu "Mover para…" do card.
+ * `transicionarNegociacao`. Alternativas ao arrastar: teclado (dnd-kit) e o menu "Mover para…" do card.
  */
-export type MoverLeadEvento = { leadId: string; para: Etapa; ordem: number };
+export type MoverNegociacaoEvento = { negociacaoId: string; para: Etapa; ordem: number };
 
 export type KanbanBoardProps = {
-  estado: Recurso<readonly Lead[]>;
+  estado: Recurso<readonly NegociacaoCard[]>;
   /** `id do corretor → nome`. */
   responsaveis: Record<string, string>;
-  /** Destinos do "Mover para…" de cada lead, já resolvidos pelo domínio. */
-  destinosDe: (lead: Lead) => readonly DestinoLead[];
-  /** O domínio responde se `leadId` pode ser solto em `para` (`podeTransicionarLead`). */
-  podeSoltar: (leadId: string, para: Etapa) => Permissao;
-  onMover: (evento: MoverLeadEvento) => void;
+  /** Destinos do "Mover para…" de cada negociação, já resolvidos pelo domínio. */
+  destinosDe: (negociacao: NegociacaoCard) => readonly DestinoLead[];
+  /** O domínio responde se a negociação pode ser solta em `para` (`podeTransicionarNegociacao`). */
+  podeSoltar: (negociacaoId: string, para: Etapa) => Permissao;
+  onMover: (evento: MoverNegociacaoEvento) => void;
   onAbrir: (leadId: string) => void;
   onTentarNovamente?: () => void;
   /** Colunas exibidas, em ordem (padrão: todas as etapas). */
@@ -65,7 +65,7 @@ const idColuna = (e: Etapa) => `${PREFIXO_COLUNA}${e}`;
 
 export const INSTRUCOES_KANBAN: ScreenReaderInstructions = {
   draggable:
-    "Para pegar o lead, pressione Espaço ou Enter. Use as setas para escolher a etapa e a posição, Espaço ou Enter para soltar, Esc para cancelar. Também é possível usar o menu Mover para…",
+    "Para pegar a negociação, pressione Espaço ou Enter. Use as setas para escolher a etapa e a posição, Espaço ou Enter para soltar, Esc para cancelar. Também é possível usar o menu Mover para…",
 };
 
 export type ContextoAnuncios = {
@@ -107,7 +107,7 @@ export function criarAnuncios(c: ContextoAnuncios): Announcements {
 }
 
 function CartaoArrastavel({
-  lead,
+  negociacao,
   responsavel,
   destinos,
   negado,
@@ -118,7 +118,7 @@ function CartaoArrastavel({
   chegando,
   onChegou,
 }: {
-  lead: Lead;
+  negociacao: NegociacaoCard;
   responsavel: string;
   destinos: readonly DestinoLead[];
   negado: boolean;
@@ -132,11 +132,11 @@ function CartaoArrastavel({
   onChegou: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
-    id: lead.id,
-    data: { etapa: lead.etapa },
+    id: negociacao.id,
+    data: { etapa: negociacao.etapa },
     disabled: { droppable: negado },
     transition: transicao,
-    attributes: { roleDescription: "lead arrastável" },
+    attributes: { roleDescription: "negociação arrastável" },
   });
   return (
     <li
@@ -146,7 +146,7 @@ function CartaoArrastavel({
       onAnimationEnd={chegando ? (e) => e.target === e.currentTarget && onChegou() : undefined}
     >
       <LeadCard
-        lead={lead}
+        negociacao={negociacao}
         responsavel={responsavel}
         destinos={destinos}
         onAbrir={onAbrir}
@@ -158,7 +158,7 @@ function CartaoArrastavel({
             variant="ghost"
             size="sm"
             icon={GripVertical}
-            aria-label={`Arrastar ${lead.nome}`}
+            aria-label={`Arrastar ${rotuloNegociacao(negociacao)}`}
             className="relative z-10 size-10 shrink-0 cursor-grab touch-none max-sm:size-11"
             {...attributes}
             {...listeners}
@@ -176,15 +176,15 @@ function Coluna({
   renderCartao,
 }: {
   etapa: Etapa;
-  leads: readonly Lead[];
+  leads: readonly NegociacaoCard[];
   /** `null` fora de um arraste. */
   permissaoDoArraste: Permissao | null;
-  renderCartao: (lead: Lead, negado: boolean) => React.ReactNode;
+  renderCartao: (negociacao: NegociacaoCard, negado: boolean) => React.ReactNode;
 }) {
   const negado = permissaoDoArraste !== null && !permissaoDoArraste.ok;
   const { setNodeRef, isOver } = useDroppable({ id: idColuna(etapa), data: { etapa }, disabled: negado });
   const titulo = useId();
-  const soma = leads.reduce((s, l) => s + (l.orcamento ?? 0), 0); // agregação de exibição (RF-30)
+  const soma = leads.reduce((s, l) => s + (l.valor ?? 0), 0); // agregação de exibição (RF-30)
   const info = ETAPA_UI[etapa];
   return (
     <section
@@ -201,13 +201,13 @@ function Coluna({
           <h2 id={titulo} className="flex items-center gap-2 text-base font-semibold text-text">
             <Badge tone={info.tom}>{info.rotulo}</Badge>
             <span className="font-normal text-sm text-text-muted">
-              {leads.length} {leads.length === 1 ? "lead" : "leads"}
+              {leads.length} {leads.length === 1 ? "negociação" : "negociações"}
             </span>
           </h2>
         </div>
         <p className="tnum text-sm text-text-muted">
-          <span className="sr-only">Orçamento somado: </span>
-          {soma > 0 ? formatMoeda(soma, { compacto: true }) : "Sem orçamento"}
+          <span className="sr-only">Valor somado: </span>
+          {soma > 0 ? formatMoeda(soma, { compacto: true }) : "Sem valor"}
         </p>
         {negado ? <p className="text-sm font-medium text-danger">Não permitido: {permissaoDoArraste.motivo}</p> : null}
       </header>
@@ -217,7 +217,7 @@ function Coluna({
         </ul>
       </SortableContext>
       {leads.length === 0 ? (
-        <EmptyState tamanho="compacto" ilustracao="semResultados" titulo="Nenhum lead nesta etapa" />
+        <EmptyState tamanho="compacto" ilustracao="semResultados" titulo="Nenhuma negociação nesta etapa" />
       ) : null}
     </section>
   );
@@ -233,7 +233,7 @@ function Quadro({
   etapas,
   agora,
 }: Omit<KanbanBoardProps, "estado" | "onTentarNovamente" | "className"> & {
-  leads: readonly Lead[];
+  leads: readonly NegociacaoCard[];
   etapas: readonly Etapa[];
 }) {
   const idContexto = useId();
@@ -261,12 +261,15 @@ function Quadro({
 
   const porId = useMemo(() => new Map(leads.map((l) => [l.id, l])), [leads]);
   const colunas = useMemo(() => {
-    const m = new Map<Etapa, Lead[]>(etapas.map((e) => [e, []]));
+    const m = new Map<Etapa, NegociacaoCard[]>(etapas.map((e) => [e, []]));
     for (const l of [...leads].sort((a, b) => a.ordem - b.ordem)) m.get(l.etapa)?.push(l);
     return m;
   }, [leads, etapas]);
 
-  const nome = (id: string) => porId.get(id)?.nome ?? "Lead";
+  const nome = (id: string) => {
+    const n = porId.get(id);
+    return n ? rotuloNegociacao(n) : "Negociação";
+  };
   const ativo = ativoId ? (porId.get(ativoId) ?? null) : null;
   /** Sempre pergunta ao domínio, inclusive para a própria coluna (reordenar). */
   const permissaoPara = (leadId: string, etapa: Etapa): Permissao => podeSoltar(leadId, etapa);
@@ -296,7 +299,7 @@ function Quadro({
       : coluna.findIndex((l) => l.id === overId);
     if (para === origem.etapa && ordem === coluna.findIndex((l) => l.id === leadId)) return; // não mudou
     marcarChegada(leadId, para);
-    onMover({ leadId, para, ordem });
+    onMover({ negociacaoId: leadId, para, ordem });
   }
 
   function moverPorMenu(leadId: string, para: Etapa) {
@@ -305,7 +308,7 @@ function Quadro({
     if (temporizador.current) clearTimeout(temporizador.current);
     temporizador.current = setTimeout(() => setAviso(""), 1500);
     marcarChegada(leadId, para);
-    onMover({ leadId, para, ordem: colunas.get(para)?.length ?? 0 });
+    onMover({ negociacaoId: leadId, para, ordem: colunas.get(para)?.length ?? 0 });
   }
 
   return (
@@ -320,7 +323,7 @@ function Quadro({
     >
       <div
         role="region"
-        aria-label="Quadro de leads por etapa"
+        aria-label="Quadro de negociações por etapa"
         tabIndex={0}
         className="relative flex w-full max-w-full min-w-0 items-start gap-4 overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
@@ -333,7 +336,7 @@ function Quadro({
             renderCartao={(lead, negado) => (
               <CartaoArrastavel
                 key={lead.id}
-                lead={lead}
+                negociacao={lead}
                 responsavel={responsaveis[lead.responsavelId] ?? "Sem responsável"}
                 destinos={destinosDe(lead)}
                 negado={negado}
@@ -352,7 +355,7 @@ function Quadro({
         {ativo ? (
           <div aria-hidden="true" inert>
             <LeadCard
-              lead={ativo}
+              negociacao={ativo}
               responsavel={responsaveis[ativo.responsavelId] ?? "Sem responsável"}
               onAbrir={onAbrir}
               agora={agora}
@@ -374,7 +377,7 @@ export function KanbanBoardSkeleton({ etapas = ETAPAS }: { etapas?: readonly Eta
     <div
       role="status"
       aria-busy="true"
-      aria-label="Carregando quadro de leads"
+      aria-label="Carregando quadro de negociações"
       className="relative flex w-full max-w-full min-w-0 items-start gap-4 overflow-x-auto pb-2"
     >
       {etapas.map((e, i) => (
@@ -400,13 +403,8 @@ export function KanbanBoard({ estado, etapas = ETAPAS, onTentarNovamente, classN
         estado={estado}
         carregando={<KanbanBoardSkeleton etapas={etapas} />}
         estaVazio={(d) => d.length === 0}
-        vazio={
-          <EmptyState
-            titulo="Nenhum lead ainda"
-            descricao="Quando você cadastrar um lead, ele aparece na coluna Novo."
-          />
-        }
-        erro={{ titulo: "Não foi possível carregar os leads" }}
+        vazio={<EmptyState titulo="Nenhuma negociação ainda" />}
+        erro={{ titulo: "Não foi possível carregar as negociações" }}
         onTentarNovamente={onTentarNovamente}
       >
         {(dados) => <Quadro leads={dados} etapas={etapas} {...resto} />}

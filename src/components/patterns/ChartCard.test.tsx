@@ -58,8 +58,12 @@ describe("FunnelChartCard (RF-12)", () => {
     const celulas = within(proposta)
       .getAllByRole("cell")
       .map((c) => c.textContent);
-    expect(celulas).toEqual(["8", "6", "54,8%"]);
-    expect(screen.getByText(/12 perdidos/)).toBeInTheDocument();
+    // Funil de negociações (RF-70): os números vêm da Base de histórias.
+    const linha = funil.find((l) => l.etapa === "proposta")!;
+    expect(celulas.slice(0, 2)).toEqual([String(linha.quantidade), String(linha.perdidos)]);
+    expect(celulas[2]).toMatch(/^\d+,\d%$/);
+    const perdidos = funil.find((l) => l.etapa === "perdido")!.quantidade;
+    expect(screen.getByText(new RegExp(`${perdidos} perdidos`))).toBeInTheDocument();
   });
 
   it("sem leads mostra vazio", () => {

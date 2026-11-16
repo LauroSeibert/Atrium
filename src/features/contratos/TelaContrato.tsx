@@ -32,6 +32,8 @@ import { DefinirTrilha } from "@/features/shell/trilha";
 import { formatData, formatDocumentoMascarado, formatMoeda, formatPercentual } from "@/lib/format";
 import { ErroApi } from "@/mocks/services/erros";
 import { fakeApi } from "@/mocks/services/fakeApi";
+import { SecaoDespesas } from "./SecaoDespesas";
+import { SecaoDocumentos } from "./SecaoDocumentos";
 import type { DetalheContrato } from "./tipos";
 
 const PAPEL: Record<string, string> = {
@@ -211,6 +213,17 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
                 <span className="text-text-muted">Imóvel removido</span>
               )}
             </div>
+            {/* RF-39: lead de origem, pela negociação vinculada. */}
+            <div className="flex flex-col gap-1 text-sm">
+              <span className="text-text-muted">Lead</span>
+              {d.lead ? (
+                <Button asChild variant="link" className="justify-start text-left whitespace-normal">
+                  <Link href={`/leads/${d.lead.id}`}>{d.lead.nome}</Link>
+                </Button>
+              ) : (
+                <span className="text-text-muted">Sem negociação vinculada</span>
+              )}
+            </div>
           </SectionCard>
 
           <SectionCard titulo="Partes">
@@ -291,6 +304,10 @@ function Corpo({ d, corretores }: { d: DetalheContrato; corretores: Record<strin
             </Table>
           </SectionCard>
         ) : null}
+
+        <SecaoDocumentos contratoId={contrato.id} />
+
+        <SecaoDespesas contratoId={contrato.id} />
 
         <Historico contratoId={contrato.id} corretores={corretores} />
       </div>

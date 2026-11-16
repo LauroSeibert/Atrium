@@ -14,7 +14,21 @@ function montar(props: Partial<React.ComponentProps<typeof LeadForm>> = {}) {
   return { onSalvar, user: userEvent.setup() };
 }
 
+const imoveis = BASE_HISTORIAS.imoveis.slice(0, 3).map((i) => ({ value: i.id, label: `${i.codigo} · ${i.titulo}` }));
+
 describe("LeadForm (RF-35)", () => {
+  it("sem `imoveis` não mostra o campo; com `imoveis`, envia o imóvel escolhido (RF-70)", async () => {
+    const { unmount } = render(<LeadForm corretores={corretores} onSalvar={vi.fn()} envio={{ fase: "idle" }} />);
+    expect(screen.queryByText("Imóvel de interesse")).not.toBeInTheDocument();
+    unmount();
+    const { onSalvar, user } = montar({ valoresIniciais: base, imoveis });
+    await user.type(screen.getByRole("textbox", { name: /^Nome/ }), "Marina Souza");
+    await user.click(screen.getByRole("combobox", { name: /Imóvel de interesse/ }));
+    await user.click(await screen.findByRole("option", { name: imoveis[1]!.label }));
+    await user.click(screen.getByRole("button", { name: "Salvar lead" }));
+    expect((onSalvar.mock.calls[0]![0] as NovoLead).imovelId).toBe(imoveis[1]!.value);
+  });
+
   it("submeter vazio mostra erros em pt-BR e foca o nome", async () => {
     const { onSalvar, user } = montar();
     await user.click(screen.getByRole("button", { name: "Salvar lead" }));

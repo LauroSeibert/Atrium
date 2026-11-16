@@ -8,7 +8,8 @@ import type { Base } from "../comum/base";
 import { dataLocal } from "../comum/tipos";
 import { diasDeAtraso, repasse, statusParcela } from "../contrato/derivados";
 import type { Contrato, Parcela } from "../contrato/schema";
-import { ETAPAS, type Etapa, type Lead } from "../lead/schema";
+import { statusDespesa } from "../despesa/operacoes";
+import { ETAPAS, type Etapa, type Negociacao } from "../negociacao/schema";
 import type { Imovel, StatusImovel } from "../imovel/schema";
 import type { Visita } from "../visita/schema";
 
@@ -25,7 +26,7 @@ export type MetricaMensal = {
 export type Periodo = "mesAtual" | "mesAnterior" | "ultimos3" | "ultimos12";
 export const PERIODOS: readonly Periodo[] = ["mesAtual", "mesAnterior", "ultimos3", "ultimos12"];
 
-const mesDe = (iso: string) => dataLocal(iso).slice(0, 7);
+export const mesDe = (iso: string) => dataLocal(iso).slice(0, 7);
 
 export function somarMesesRef(mes: string, n: number): string {
   const [a, m] = mes.split("-").map(Number) as [number, number];
@@ -48,8 +49,10 @@ export function mesesDoPeriodo(periodo: Periodo, hoje: string): { atual: string[
   return { atual: faixa(fim, n), anterior: faixa(somarMesesRef(fim, -n), n) };
 }
 
-const contaReceita = (c: Contrato) => c.status !== "rascunho";
-const contaComissao = (c: Contrato) => c.status === "ativo" || c.status === "encerrado";
+/** Parcelas pagas contam como receita em qualquer contrato assinado (inclusive cancelado depois). */
+export const contaReceita = (c: Contrato) => c.status !== "rascunho";
+/** Comissões e "contrato fechado" só de contratos ativos ou encerrados. */
+export const contaComissao = (c: Contrato) => c.status === "ativo" || c.status === "encerrado";
 
 export function metricaDoMes(base: Base, mes: string): MetricaMensal {
   let receitaVendas = 0;
@@ -136,20 +139,20 @@ export function proximosCompromissos(base: Base, hoje: string, dias = 7): Compro
 export type Funil = { etapa: Etapa; quantidade: number; perdidos: number; conversao: number | null }[];
 
 /**
- * Etapa em que o lead estava quando foi perdido: o `de` do último registro de alteração
- * `etapa → perdido` (ESTADOS §4). Empate de instante: vale o que vem depois no array.
+ * Etapa em que a negociação estava quando foi perdida: o `de` do último registro de alteração
+ * `etapa → perdido` da negociação (ESTADOS §4). Empate de instante: vale o que vem depois no array.
  * Sem registro (dado legado), conta como `novo`.
  */
-export function etapaDaPerda(base: Pick<Base, "alteracoes">, lead: Lead): Etapa | null {
-  if (lead.etapa !== "perdido") return null;
-  return indicePerdas(base).get(lead.id) ?? "novo";
+export function etapaDaPerda(base: Pick<Base, "alteracoes">, negociacao: Negociacao): Etapa | null {
+  if (negociacao.etapa !== "perdido") return null;
+  return indicePerdas(base).get(negociacao.id) ?? "novo";
 }
 
 function indicePerdas(base: Pick<Base, "alteracoes">): Map<string, Etapa> {
   const ultimo = new Map<string, { em: string; de: Etapa }>();
   for (const r of base.alteracoes)
     if (
-      r.entidade.tipo === "lead" &&
+      r.entidade.tipo === "negociacao" &&
       r.campo === "etapa" &&
       r.para === "perdido" &&
       typeof r.de === "string" &&
@@ -162,20 +165,25 @@ function indicePerdas(base: Pick<Base, "alteracoes">): Map<string, Etapa> {
 }
 
 /**
- * RF-12: conversão = quem chegou à próxima etapa (ou além) ÷ quem chegou a esta (ou além).
- * Lead perdido conta como tendo chegado à etapa em que estava ao ser perdido (`etapaDaPerda`)
+ * RF-12 (funil de negociações): conversão = quem chegou à próxima etapa (ou além) ÷ quem chegou a esta (ou além).
+ * Negociação perdida conta como tendo chegado à etapa em que estava ao ser perdida (`etapaDaPerda`)
  * e não além dela; assim a perda pesa na conversão daquela etapa (`perdidos`).
+ * `negociacoes` restringe o universo (ex.: criadas no período, RF-82).
  */
-export function funilDeLeads(base: Pick<Base, "leads" | "alteracoes">, responsavelId?: string): Funil {
-  const leads = base.leads.filter((l) => !responsavelId || l.responsavelId === responsavelId);
+export function funilDeNegociacoes(
+  base: Pick<Base, "negociacoes" | "alteracoes">,
+  opcoes: { responsavelId?: string; negociacoes?: readonly Negociacao[] } = {},
+): Funil {
+  const universo = opcoes.negociacoes ?? base.negociacoes;
+  const lista = universo.filter((n) => !opcoes.responsavelId || n.responsavelId === opcoes.responsavelId);
   const fluxo: readonly Etapa[] = ETAPAS.filter((e) => e !== "perdido");
   const perdasIdx = indicePerdas(base);
-  const perdas = leads.map((l) => (l.etapa === "perdido" ? (perdasIdx.get(l.id) ?? "novo") : null));
-  const alcance = leads.map((l, i) => fluxo.indexOf(perdas[i] ?? l.etapa));
+  const perdas = lista.map((n) => (n.etapa === "perdido" ? (perdasIdx.get(n.id) ?? "novo") : null));
+  const alcance = lista.map((n, i) => fluxo.indexOf(perdas[i] ?? n.etapa));
   const alcancou = (i: number) => alcance.filter((x) => x >= i).length;
   return ETAPAS.map((etapa) => {
     const i = fluxo.indexOf(etapa);
-    const quantidade = leads.filter((l) => l.etapa === etapa).length;
+    const quantidade = lista.filter((n) => n.etapa === etapa).length;
     const perdidos = etapa === "perdido" ? quantidade : perdas.filter((p) => p === etapa).length;
     if (i === -1 || i === fluxo.length - 1) return { etapa, quantidade, perdidos, conversao: null };
     const base_ = alcancou(i);
@@ -277,7 +285,7 @@ export function calcularDashboard(base: Base, periodo: Periodo, hoje: string): D
       receita: kpi(mAtual, mAnterior, serie, (m) => m.receitaVendas + m.receitaLocacoes),
     },
     receita12m: serie,
-    funil: funilDeLeads(base),
+    funil: funilDeNegociacoes(base),
     atividades: atividadesRecentes(base, 10),
     compromissos: proximosCompromissos(base, hoje, 7),
     meta: metaRealizado(base, mesDe(hoje)),
@@ -294,6 +302,10 @@ export type Financeiro = {
   comissoesPorCorretor: { corretorId: string; valor: number }[];
   atrasadasPorFaixa: { faixa: "1-30" | "31-60" | "60+"; quantidade: number; valor: number }[];
   repasses: { mes: string; aluguel: number; repasse: number }[];
+  /** RF-81: despesas pagas no período, a pagar com vencimento no período e atrasadas (hoje). */
+  despesas: { pagas: number; aPagar: number; atrasadas: { quantidade: number; valor: number } };
+  /** RF-81: receitas recebidas − despesas pagas no período. */
+  resultado: number;
 };
 
 /** RF-44…46. Inadimplência % = atrasado ÷ (atrasado + recebido) das parcelas vencidas de contratos ativos. */
@@ -339,9 +351,21 @@ export function calcularFinanceiro(base: Base, periodo: Periodo, hoje: string): 
           comissoesPorCorretor.set(m.corretorId, (comissoesPorCorretor.get(m.corretorId) ?? 0) + m.valor);
         }
   }
+  const despesas = { pagas: 0, aPagar: 0, atrasadas: { quantidade: 0, valor: 0 } };
+  for (const d of base.despesas) {
+    const st = statusDespesa(d, hoje);
+    if (d.pagaEm && noPeriodo(d.pagaEm)) despesas.pagas += d.valor;
+    if (st !== "paga" && atual.includes(d.vencimento.slice(0, 7))) despesas.aPagar += d.valor;
+    if (st === "atrasada") {
+      despesas.atrasadas.quantidade++;
+      despesas.atrasadas.valor += d.valor;
+    }
+  }
   const serie = metricasMensais(base, hoje, 12);
   return {
     periodo,
+    despesas,
+    resultado: recebido - despesas.pagas,
     recebido,
     aReceber,
     inadimplencia: { valor: atrasado, percentual: atrasado + vencidoPago ? atrasado / (atrasado + vencidoPago) : 0 },

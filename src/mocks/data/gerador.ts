@@ -10,6 +10,9 @@
  *   `seq` = contador, então os IDs novos do domínio nunca colidem.
  *
  * Etapa do kanban deixada VAZIA de propósito: "contato" (estado vazio da coluna, RF-30).
+ * Negociações (RF-70): 1–3 por lead; a principal carrega a etapa "do lead" (contrato, visitas).
+ * Contatos, anúncios, documentos e despesas (RF-74 a RF-78) saem antes dos eventos, para os IDs
+ * não dependerem de `hoje`.
  */
 import {
   dataLocal,
@@ -22,18 +25,27 @@ import {
   type Comodo,
   type Contrato,
   type Corretor,
+  type Anuncio,
+  type CanalAnuncio,
+  type CategoriaDespesa,
+  type Contato,
+  type Despesa,
+  type Documento,
   type Etapa,
   type Fachada,
   type Finalidade,
   type Imovel,
   type Lead,
   type MotivoPerda,
+  type Negociacao,
   type Parcela,
   type Parte,
   type RegistroAlteracao,
+  type StatusAnuncio,
   type StatusContrato,
   type StatusImovel,
   type StatusVisita,
+  type TipoDocumento,
   type TipoImovel,
   type Visita,
 } from "@/domain";
@@ -51,6 +63,8 @@ import {
   NOME_LONGO_LEAD,
   NOTAS_LEAD,
   OBS_VISITA,
+  OUTROS_CONTATOS,
+  DESPESAS_AVULSAS,
   TITULOS,
   TITULO_LONGO,
   cnpjFicticio,
@@ -86,8 +100,14 @@ export type CasosDeBorda = {
   contratoAluguelMinimo: string;
   imovelVendaMaxima: string;
   contratoVendaMaxima: string;
-  /** Etapa do kanban sem nenhum lead. */
+  /** Etapa do kanban sem nenhuma negociação. */
   etapaVazia: Etapa;
+  /** Lead com 3 negociações em etapas diferentes (proposta, visita, perdido). */
+  leadTresNegociacoes: string;
+  /** Negociação aberta sem imóvel definido. */
+  negociacaoSemImovel: string;
+  /** Despesa avulsa (sem contrato). */
+  despesaSemContrato: string;
 };
 
 const DIA = 86_400_000;
@@ -651,7 +671,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       numero: "CT-0000-0000",
       tipo,
       imovelId: im.id,
-      leadId: null,
+      negociacaoId: null,
       partes: [],
       valor,
       inicio,
@@ -679,6 +699,8 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   // ----- leads -------------------------------------------------------------------------
   type DraftLead = {
     lead: Lead;
+    etapa: Etapa;
+    motivo: MotivoPerda | null;
     criadoDias: number;
     ultimoDias: number;
     sk: Esqueleto | null;
@@ -770,17 +792,15 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       nome,
       contato,
       origem: r.escolher(origens),
-      etapa,
-      motivoPerda: etapa === "perdido" ? r.escolher(motivos) : null,
       interesse: { finalidade: fin, tipos, bairros, ...(quartosMin ? { quartosMin } : {}) },
       orcamento,
       imoveisVistos: [],
       responsavelId,
-      ordem: 0,
       criadoEm: iso(0),
       atualizadoEm: iso(0),
     };
-    return { lead, criadoDias, ultimoDias, sk, visitaContratoDias, fechadoDias };
+    const motivo = etapa === "perdido" ? r.escolher(motivos) : null;
+    return { lead, etapa, motivo, criadoDias, ultimoDias, sk, visitaContratoDias, fechadoDias };
   };
 
   const pares = new Map(contratosComLead.map((e) => [e.contrato.id, e] as const));
@@ -799,7 +819,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   // Casos: o 4º lead (pareado a contrato) tem nome muito longo; 3 leads sem contato.
   const leadsFinais: DraftLead[] = [...draftsLeads];
   const idxSemContato = leadsFinais
-    .flatMap((d, i) => (!d.sk && (d.lead.etapa === "novo" || d.lead.etapa === "perdido") ? [i] : []))
+    .flatMap((d, i) => (!d.sk && (d.etapa === "novo" || d.etapa === "perdido") ? [i] : []))
     .slice(0, 3);
   idxSemContato.forEach((i) => {
     leadsFinais[i] = { ...leadsFinais[i]!, lead: { ...leadsFinais[i]!.lead, contato: {} } };
@@ -867,7 +887,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   const visitaMs = (data: string) => ms(data, horaComercial(), r.chance(0.5) ? 0 : 30);
 
   for (const d of leadsFinais) {
-    const etapa = d.lead.etapa;
+    const etapa = d.etapa;
     const nPast = {
       novo: 0,
       contato: 0,
@@ -904,7 +924,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   }
   // Visitas futuras: 9 nos próximos 7 dias, 6 entre 8 e 30 dias.
   const leadsFuturos = r
-    .embaralhar(leadsFinais.filter((d) => d.lead.etapa === "visita" || d.lead.etapa === "proposta"))
+    .embaralhar(leadsFinais.filter((d) => d.etapa === "visita" || d.etapa === "proposta"))
     .slice(0, 15);
   leadsFuturos.forEach((d, i) => {
     const k = i < 9 ? r.inteiro(1, 7) : r.inteiro(8, 30);
@@ -926,6 +946,312 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       vistosDe.set(v.leadId, l);
     }
 
+  // ----- negociações (RF-70) ---------------------------------------------------------------
+  // A principal herda a etapa "do lead" (contrato, visitas); as outras vêm de imóveis vistos ou
+  // com visita agendada. Máximo 3 por lead; "contato" continua vazia.
+  type DraftNeg = {
+    neg: Omit<Negociacao, "ordem" | "criadoEm" | "atualizadoEm">;
+    d: DraftLead;
+    principal: boolean;
+    criadoDias: number;
+    ultimoDias: number;
+  };
+  const draftsNeg: DraftNeg[] = [];
+  const doTipo = (fin: Finalidade) => imoveis.filter((im) => im.finalidade === fin);
+  const disponiveisDe = (fin: Finalidade) => {
+    const l = doTipo(fin).filter((im) => im.status === "disponivel" || im.status === "reservado");
+    return l.length ? l : doTipo(fin);
+  };
+  let novosSemImovel = 0;
+  let leadTres: string | null = null;
+  for (const d of leadsFinais) {
+    const l = d.lead;
+    const fin = l.interesse.finalidade;
+    const daLead = visitas.filter((v) => v.leadId === l.id);
+    const vistos = vistosDe.get(l.id) ?? [];
+    const agendados = daLead.filter((v) => v.status === "agendada").map((v) => v.imovelId);
+    let imPrincipal: string | null =
+      d.sk?.contrato.imovelId ?? vistos[vistos.length - 1] ?? agendados[0] ?? daLead[0]?.imovelId ?? null;
+    if (imPrincipal === null && d.etapa === "novo") {
+      if (novosSemImovel < 4) novosSemImovel++;
+      else imPrincipal = r.escolher(disponiveisDe(fin)).id;
+    }
+    if (imPrincipal === null && d.etapa === "fechado") imPrincipal = r.escolher(doTipo(fin)).id;
+    const outros = [...new Set([...agendados, ...vistos])].filter((id) => id !== imPrincipal);
+    let secundarias: { imovelId: string; etapa: Etapa; motivo: MotivoPerda | null }[] = [];
+    for (const id of outros) {
+      if (secundarias.length >= 2) break;
+      const agendado = agendados.includes(id);
+      if (!agendado && !r.chance(0.35)) continue;
+      const st = imovelDe.get(id)!.status;
+      const encerrada = d.etapa === "fechado" || d.etapa === "perdido" || (st !== "disponivel" && st !== "reservado");
+      secundarias.push(
+        agendado && !encerrada
+          ? { imovelId: id, etapa: "visita", motivo: null }
+          : { imovelId: id, etapa: "perdido", motivo: d.etapa === "fechado" ? "concorrencia" : r.escolher(motivos) },
+      );
+    }
+    if (leadTres === null && d.etapa === "proposta" && !d.sk && imPrincipal !== null) {
+      leadTres = l.id;
+      const usados = new Set([imPrincipal, ...outros]);
+      const extras = disponiveisDe(fin).filter((im) => !usados.has(im.id));
+      const emVisita = agendados.find((x) => x !== imPrincipal) ?? extras[0]!.id;
+      const perdida = vistos.find((x) => x !== imPrincipal && x !== emVisita) ?? extras[1]!.id;
+      secundarias = [
+        { imovelId: emVisita, etapa: "visita", motivo: null },
+        { imovelId: perdida, etapa: "perdido", motivo: "preco" },
+      ];
+    }
+    draftsNeg.push({
+      neg: {
+        id: novoId("neg"),
+        leadId: l.id,
+        imovelId: imPrincipal,
+        etapa: d.etapa,
+        motivoPerda: d.motivo,
+        responsavelId: l.responsavelId,
+      },
+      d,
+      principal: true,
+      criadoDias: d.criadoDias,
+      ultimoDias: d.ultimoDias,
+    });
+    for (const s of secundarias) {
+      const criadoDias = r.inteiro(Math.min(d.ultimoDias, d.criadoDias), d.criadoDias);
+      draftsNeg.push({
+        neg: {
+          id: novoId("neg"),
+          leadId: l.id,
+          imovelId: s.imovelId,
+          etapa: s.etapa,
+          motivoPerda: s.motivo,
+          responsavelId: l.responsavelId,
+        },
+        d,
+        principal: false,
+        criadoDias,
+        ultimoDias: r.inteiro(Math.min(d.ultimoDias, criadoDias), criadoDias),
+      });
+    }
+  }
+  const negPrincipalDe = new Map(draftsNeg.filter((n) => n.principal).map((n) => [n.d.lead.id, n.neg] as const));
+
+  // ----- contatos (RF-74) ------------------------------------------------------------------
+  const partesPorContrato = new Map(esqueletos.map((e) => [e.contrato.id, partesDe(e)] as const));
+  const contatos: Contato[] = [];
+  const novoContato = (
+    nome: string,
+    papel: Contato["papel"],
+    imovelIds: string[],
+    contratoIds: string[],
+    criadoDias: number,
+    observacao?: string,
+  ) => {
+    const cidade = r.escolher(CIDADES);
+    const mail = r.chance(0.6);
+    const criadoEm = iso(emDias(criadoDias, 13));
+    contatos.push({
+      id: novoId("ctt"),
+      nome,
+      papel,
+      ...(r.chance(0.9) || !mail ? { telefone: telefoneFicticio(r, cidade.ddd) } : {}),
+      ...(mail ? { email: emailDe(nome) } : {}),
+      ...(observacao ? { observacao } : {}),
+      imovelIds,
+      contratoIds,
+      criadoEm,
+      atualizadoEm: criadoEm,
+    });
+  };
+  const fiadores: { nome: string; contratoId: string; imovelId: string; dias: number }[] = [];
+  for (const e of esqueletos.slice(0, 26)) {
+    const partes = partesPorContrato.get(e.contrato.id)!;
+    const dono = partes.find((p) => p.papel === "vendedor" || p.papel === "locador")!;
+    const im = imovelDe.get(e.contrato.imovelId)!;
+    novoContato(dono.nome, "proprietario", [im.id], [e.contrato.id], im.criadoDias);
+    const f = partes.find((p) => p.papel === "fiador");
+    if (f) fiadores.push({ nome: f.nome, contratoId: e.contrato.id, imovelId: im.id, dias: e.criadoDias });
+  }
+  for (const f of fiadores.slice(0, 4)) novoContato(f.nome, "fiador", [f.imovelId], [f.contratoId], f.dias);
+  const comContrato = esqueletos.filter((e) => e.papel !== "rascunho");
+  const amostra = (n: number) =>
+    r
+      .embaralhar(comContrato)
+      .slice(0, n)
+      .map((e) => e.contrato.id);
+  for (const [nome, papel, obs] of OUTROS_CONTATOS) {
+    const k = papel === "outro" ? [] : amostra(r.inteiro(1, 3));
+    novoContato(nome, papel, [], k, r.inteiro(60, 320), obs);
+    if (contatos.length >= 40) break;
+  }
+
+  // ----- anúncios (RF-75) ------------------------------------------------------------------
+  // Publicado/pausado só em imóvel disponível/reservado; vendido/alugado têm anúncios encerrados.
+  type DraftAnuncio = { anuncio: Anuncio; historico: { de: StatusAnuncio; para: StatusAnuncio; dias: number }[] };
+  const draftsAnuncios: DraftAnuncio[] = [];
+  const canais: CanalAnuncio[] = ["site", "portal", "classificados", "redes"];
+  for (const im of imoveis) {
+    if (draftsAnuncios.length >= 50) break;
+    const vivo = im.status === "disponivel" || im.status === "reservado";
+    const n = vivo ? r.ponderado([1, 2, 3], [3, 4, 2]) : im.status === "inativo" || r.chance(0.35) ? 1 : 0;
+    for (const canal of r.embaralhar(canais).slice(0, n)) {
+      const status: StatusAnuncio = vivo
+        ? r.ponderado(["publicado", "pausado", "rascunho"] as const, [7, 2, 1])
+        : im.status === "inativo"
+          ? r.chance(0.5)
+            ? "pausado"
+            : "encerrado"
+          : "encerrado";
+      const criadoDias = r.inteiro(Math.max(1, Math.floor(im.criadoDias / 2)), Math.max(1, im.criadoDias - 1));
+      const pubDias = Math.max(0, criadoDias - r.inteiro(0, 3));
+      const historico: DraftAnuncio["historico"] = [];
+      if (status !== "rascunho") historico.push({ de: "rascunho", para: "publicado", dias: pubDias });
+      if (status === "pausado" || status === "encerrado")
+        historico.push({ de: "publicado", para: status, dias: r.inteiro(0, Math.max(0, pubDias - 1)) });
+      const visualizacoes = status === "rascunho" ? 0 : r.inteiro(40, 2400);
+      const criadoEm = iso(emDias(criadoDias, 12));
+      draftsAnuncios.push({
+        anuncio: {
+          id: novoId("anc"),
+          imovelId: im.id,
+          canal,
+          status,
+          publicadoEm: status === "rascunho" ? null : iso(Math.max(Date.parse(criadoEm), emDias(pubDias, 13))),
+          visualizacoes,
+          contatos: Math.floor(visualizacoes / r.inteiro(25, 60)),
+          criadoEm,
+          atualizadoEm: criadoEm,
+        },
+        historico,
+      });
+    }
+  }
+
+  // ----- documentos (RF-76) ----------------------------------------------------------------
+  // Só metadados: `arquivoId: null` baixa um PDF de demonstração.
+  const documentos: Documento[] = [];
+  for (const e of comContrato) {
+    const c = e.contrato;
+    const num = numeros.get(c.id)!;
+    const im = imovelDe.get(c.imovelId)!;
+    const lista: { tipo: TipoDocumento; nome: string; mime: Documento["mime"] }[] = [];
+    if (e.assinaturaDias !== null)
+      lista.push({ tipo: "contratoAssinado", nome: `${num} assinado.pdf`, mime: "application/pdf" });
+    lista.push({
+      tipo: "documentoPessoal",
+      nome: `${c.tipo === "venda" ? "RG do comprador" : "CNH do locatário"}.${r.chance(0.5) ? "jpg" : "pdf"}`,
+      mime: "application/pdf",
+    });
+    if (c.tipo === "venda")
+      lista.push({ tipo: "matricula", nome: `Matrícula ${im.codigo}.pdf`, mime: "application/pdf" });
+    if (r.chance(0.4))
+      lista.push({ tipo: "certidao", nome: "Certidão negativa de débitos.pdf", mime: "application/pdf" });
+    if (r.chance(0.25)) lista.push({ tipo: "comprovante", nome: "Comprovante de renda.png", mime: "image/png" });
+    for (const item of lista) {
+      if (documentos.length >= 60) break;
+      const mime = item.nome.endsWith(".jpg") ? "image/jpeg" : item.mime;
+      const dias = Math.max(0, e.criadoDias - r.inteiro(0, 6));
+      documentos.push({
+        id: novoId("doc"),
+        contratoId: c.id,
+        tipo: item.tipo,
+        nome: item.nome,
+        mime,
+        tamanho: r.inteiro(60_000, 3_500_000),
+        arquivoId: null,
+        enviadoPorId: r.chance(0.7) ? im.corretorId : financeiro.id,
+        enviadoEm: iso(Math.max(criadoMsContrato.get(c.id)!, emDias(dias, 15))),
+      });
+    }
+  }
+
+  // ----- despesas (RF-78) ------------------------------------------------------------------
+  type DraftDespesa = {
+    categoria: CategoriaDespesa;
+    descricao: string;
+    valor: number;
+    venc: number;
+    contratoId: string | null;
+  };
+  const brutas: DraftDespesa[] = DESPESAS_AVULSAS.map(([categoria, descricao, reais], i) => ({
+    categoria,
+    descricao: `${descricao} — ${imoveis[i * 7]!.codigo}`,
+    valor: reais * 100,
+    venc: [12, -9, 40, 75, 3, -20][i] ?? 30, // dias atrás (negativo = futuro)
+    contratoId: null,
+  }));
+  for (const e of comContrato) {
+    const c = e.contrato;
+    const v = (dias: number) => e.dInicio + dias;
+    if (c.tipo === "venda") {
+      brutas.push({
+        categoria: "imposto",
+        descricao: "ITBI",
+        valor: arred(Math.round(c.valor * 0.03), 100),
+        venc: v(5),
+        contratoId: c.id,
+      });
+      brutas.push({
+        categoria: "cartorio",
+        descricao: "Escritura pública",
+        valor: arred(r.inteiro(2_500, 9_000), 10) * 100,
+        venc: v(3),
+        contratoId: c.id,
+      });
+      if (r.chance(0.6))
+        brutas.push({
+          categoria: "cartorio",
+          descricao: "Registro da matrícula",
+          valor: arred(r.inteiro(1_500, 5_000), 10) * 100,
+          venc: v(-10),
+          contratoId: c.id,
+        });
+    } else {
+      brutas.push({
+        categoria: "taxa",
+        descricao: "Vistoria de entrada",
+        valor: arred(r.inteiro(250, 600), 10) * 100,
+        venc: v(2),
+        contratoId: c.id,
+      });
+    }
+    if (r.chance(0.5))
+      brutas.push({
+        categoria: "certidao",
+        descricao: "Certidões do imóvel e do proprietário",
+        valor: arred(r.inteiro(120, 480), 10) * 100,
+        venc: v(8),
+        contratoId: c.id,
+      });
+    if (r.chance(0.25))
+      brutas.push({
+        categoria: "despachante",
+        descricao: "Despachante: documentação",
+        valor: arred(r.inteiro(300, 900), 10) * 100,
+        venc: v(6),
+        contratoId: c.id,
+      });
+  }
+  const despesas: Despesa[] = brutas.slice(0, 45).map((b, i) => {
+    const vencimento = dataRel(b.venc);
+    const atrasada = b.venc > 0 && b.venc < 45 && (i < DESPESAS_AVULSAS.length ? i === 0 : r.chance(0.3));
+    const paga = b.venc > 0 && !atrasada;
+    const criadoMs = emDias(Math.max(0, b.venc + r.inteiro(3, 12)), 12);
+    const pagaEm = paga ? passado(Math.max(criadoMs + HORA, ms(vencimento, 14) - r.inteiro(0, 2) * DIA)) : null;
+    const criadoEm = iso(criadoMs);
+    return {
+      id: novoId("dsp"),
+      categoria: b.categoria,
+      descricao: b.descricao,
+      valor: b.valor,
+      vencimento,
+      contratoId: b.contratoId,
+      pagaEm,
+      criadoEm,
+      atualizadoEm: pagaEm ?? criadoEm,
+    };
+  });
+
   // ----- eventos (atividades + registros de alteração) ------------------------------------
   const eventos: Evento[] = [];
   const tocado = new Map<string, number>();
@@ -937,12 +1263,12 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
     alvo: Atividade["alvo"],
     dados: Atividade["dados"],
     relacionados: Atividade["relacionados"] = [],
-    alts: { campo: string; de: ValorBruto; para: ValorBruto }[] = [],
+    alts: { campo: string; de: ValorBruto; para: ValorBruto; entidade?: RegistroAlteracao["entidade"] }[] = [],
   ) => {
     eventos.push({
       quando,
       atividade: { tipo, alvo, relacionados, autorId, dados },
-      alteracoes: alts.map((a) => ({ entidade: alvo, campo: a.campo, de: a.de, para: a.para })),
+      alteracoes: alts.map((a) => ({ entidade: a.entidade ?? alvo, campo: a.campo, de: a.de, para: a.para })),
     });
     tocar(alvo.id, quando);
   };
@@ -1068,6 +1394,19 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
         statusEvento(im, final, "disponivel", t + 60_000, c.id, null);
       }
     }
+    // comissões já pagas: Atividade `comissaoPaga` + registro `comissao.N.pagaEm` (como `registrarPagamentoComissao`)
+    c.comissoes.forEach((m, indice) => {
+      if (!m.pagaEm) return;
+      add(
+        Date.parse(m.pagaEm),
+        financeiro.id,
+        "comissaoPaga",
+        ref,
+        { indice, corretorId: m.corretorId, valor: m.valor },
+        [imovelRef(im.id)],
+        [{ campo: `comissao.${indice}.pagaEm`, de: null, para: m.pagaEm }],
+      );
+    });
     // pagamentos (só os últimos 60 dias entram no feed)
     for (const p of c.parcelas)
       if (p.pagoEm && Date.parse(p.pagoEm) >= hojeMs - 60 * DIA)
@@ -1082,55 +1421,111 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
         );
     if (lead) {
       const t = Math.min(cr + 30 * 60_000, limite);
-      add(t, lead.responsavelId, "contratoVinculado", { tipo: "lead", id: lead.id }, { numero: num }, [ref]);
+      const negociacaoId = negPrincipalDe.get(lead.id)!.id;
+      add(t, lead.responsavelId, "contratoVinculado", { tipo: "lead", id: lead.id }, { numero: num, negociacaoId }, [
+        ref,
+        imovelRef(im.id),
+      ]);
+      tocar(negociacaoId, t);
     }
   }
 
-  // leads
+  // negociações: criação (as secundárias), etapas e proposta; notas ficam no lead
   const etapasOrdem: Etapa[] = ["novo", "contato", "visita", "proposta", "fechado"];
-  for (const d of leadsFinais) {
-    const l = d.lead;
-    const ref = { tipo: "lead" as const, id: l.id };
+  const criadoMsNeg = new Map<string, number>();
+  for (const dn of draftsNeg) {
+    const n = dn.neg;
+    const d = dn.d;
+    const ref = { tipo: "lead" as const, id: n.leadId };
+    const negRef = { tipo: "negociacao" as const, id: n.id };
+    const rel = n.imovelId ? [imovelRef(n.imovelId)] : [];
+    const criadoMsN = dn.principal
+      ? criadoMsLead.get(n.leadId)!
+      : Math.max(criadoMsLead.get(n.leadId)! + HORA, emDias(dn.criadoDias));
+    criadoMsNeg.set(n.id, Math.min(criadoMsN, limite));
+    if (!dn.principal)
+      add(Math.min(criadoMsN, limite), n.responsavelId, "negociacaoCriada", ref, { negociacaoId: n.id }, rel);
     const passos: Etapa[] = [];
-    const idxFinal = l.etapa === "perdido" ? r.ponderado([0, 1, 2, 3], [2, 2, 3, 2]) : etapasOrdem.indexOf(l.etapa);
+    const idxFinal = n.etapa === "perdido" ? r.ponderado([0, 1, 2, 3], [2, 2, 3, 2]) : etapasOrdem.indexOf(n.etapa);
     for (let i = 1; i <= idxFinal; i++) {
       const incluir = r.chance(0.5);
       if (i === idxFinal || incluir) passos.push(etapasOrdem[i]!);
     }
-    if (l.etapa === "perdido") passos.push("perdido");
-    const criadoMsL = criadoMsLead.get(l.id)!;
+    if (n.etapa === "perdido") passos.push("perdido");
     let anterior: Etapa = "novo";
     const total = passos.length;
     passos.forEach((p, k) => {
-      const dias = Math.round(d.criadoDias - ((d.criadoDias - d.ultimoDias) * (k + 1)) / total);
-      const quando = Math.max(emDias(dias), criadoMsL + (k + 1) * HORA);
+      const dias = Math.round(dn.criadoDias - ((dn.criadoDias - dn.ultimoDias) * (k + 1)) / total);
+      const quando = Math.min(Math.max(emDias(dias), criadoMsN + (k + 1) * HORA), limite);
       add(
-        Math.min(quando, limite),
-        l.responsavelId,
+        quando,
+        n.responsavelId,
         "etapaAlterada",
         ref,
-        { de: anterior, para: p, motivo: p === "perdido" ? l.motivoPerda : null },
-        [],
-        [{ campo: "etapa", de: anterior, para: p }],
+        { de: anterior, para: p, motivo: p === "perdido" ? n.motivoPerda : null, negociacaoId: n.id },
+        rel,
+        [{ campo: "etapa", de: anterior, para: p, entidade: negRef }],
       );
-      if (p === "proposta") {
-        const vistos = vistosDe.get(l.id) ?? [];
-        const alvoIm = d.sk?.contrato.imovelId ?? vistos[vistos.length - 1];
-        add(
-          Math.min(quando + HORA, limite),
-          l.responsavelId,
-          "propostaEnviada",
-          ref,
-          { valor: l.orcamento },
-          alvoIm ? [imovelRef(alvoIm)] : [],
-        );
-      }
+      tocar(n.id, quando);
+      if (p === "proposta")
+        add(Math.min(quando + HORA, limite), n.responsavelId, "propostaEnviada", ref, { valor: d.lead.orcamento }, rel);
       anterior = p;
     });
-    if (r.chance(0.3)) {
+    if (dn.principal && r.chance(0.3)) {
       const dias = r.inteiro(Math.min(d.ultimoDias, d.criadoDias), d.criadoDias);
-      add(emDias(dias), l.responsavelId, "nota", ref, { texto: r.escolher(NOTAS_LEAD) });
+      add(emDias(dias), n.responsavelId, "nota", ref, { texto: r.escolher(NOTAS_LEAD) });
     }
+  }
+
+  // anúncios, documentos e despesas: só os últimos 60 dias entram no feed
+  const recente = (t: number) => t >= hojeMs - 60 * DIA;
+  for (const da of draftsAnuncios) {
+    const a = da.anuncio;
+    const im = imovelDe.get(a.imovelId)!;
+    for (const h of da.historico) {
+      const t = h.para === "publicado" && a.publicadoEm ? Date.parse(a.publicadoEm) : emDias(h.dias, 16);
+      tocar(a.id, t);
+      if (!recente(t)) continue;
+      add(
+        t,
+        im.corretorId,
+        "anuncioAlterado",
+        imovelRef(im.id),
+        { anuncioId: a.id, canal: a.canal, de: h.de, para: h.para },
+        [],
+        [{ campo: "status", de: h.de, para: h.para, entidade: { tipo: "anuncio", id: a.id } }],
+      );
+    }
+  }
+  for (const doc of documentos) {
+    const t = Date.parse(doc.enviadoEm);
+    if (recente(t))
+      add(
+        t,
+        doc.enviadoPorId,
+        "documentoAdicionado",
+        { tipo: "contrato", id: doc.contratoId },
+        {
+          documentoId: doc.id,
+          nome: doc.nome,
+          tipo: doc.tipo,
+        },
+      );
+  }
+  // Despesa paga: mesma Atividade e registro que `registrarPagamentoDespesa` (alvo = contrato ou a própria
+  // despesa, se avulsa), em todas as pagas — o registro de alteração não tem janela.
+  for (const dsp of despesas) {
+    if (!dsp.pagaEm) continue;
+    const ref = { tipo: "despesa" as const, id: dsp.id };
+    add(
+      Date.parse(dsp.pagaEm),
+      financeiro.id,
+      "despesaPaga",
+      dsp.contratoId ? { tipo: "contrato", id: dsp.contratoId } : ref,
+      { despesaId: dsp.id, descricao: dsp.descricao, valor: dsp.valor },
+      dsp.contratoId ? [ref] : [],
+      [{ campo: "pagaEm", de: null, para: dsp.pagaEm, entidade: ref }],
+    );
   }
 
   // visitas (só as dos últimos 40 dias e as futuras entram no feed)
@@ -1173,35 +1568,35 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
     const criadoEm = iso(criadoMsImovel.get(im.id)!);
     return { ...im, criadoEm, atualizadoEm: finais(im.id, criadoEm) };
   });
-  const ordemPorEtapa = new Map<Etapa, number>();
-  const leadsFinaisOrdenados = [...leadsFinais].sort(
-    (a, b) => a.ultimoDias - b.ultimoDias || a.lead.id.localeCompare(b.lead.id),
-  );
-  const leadsSaida: Lead[] = leadsFinais.map((d) => ({ ...d.lead })) as Lead[];
-  const ordemDe = new Map<string, number>();
-  for (const d of leadsFinaisOrdenados) {
-    const n = ordemPorEtapa.get(d.lead.etapa) ?? 0;
-    ordemDe.set(d.lead.id, n);
-    ordemPorEtapa.set(d.lead.etapa, n + 1);
-  }
-  const leads: Lead[] = leadsSaida.map((l) => {
+  const leads: Lead[] = leadsFinais.map((d) => {
+    const l = d.lead;
     const criadoEm = iso(criadoMsLead.get(l.id)!);
-    return {
-      ...l,
-      criadoEm,
-      atualizadoEm: finais(l.id, criadoEm),
-      ordem: ordemDe.get(l.id)!,
-      imoveisVistos: vistosDe.get(l.id) ?? [],
-    };
+    return { ...l, criadoEm, atualizadoEm: finais(l.id, criadoEm), imoveisVistos: vistosDe.get(l.id) ?? [] };
   });
+  // ordem 0…n por coluna: mais recente no topo
+  const ordemPorEtapa = new Map<Etapa, number>();
+  const ordemDe = new Map<string, number>();
+  for (const dn of [...draftsNeg].sort((a, b) => a.ultimoDias - b.ultimoDias || a.neg.id.localeCompare(b.neg.id))) {
+    const k = ordemPorEtapa.get(dn.neg.etapa) ?? 0;
+    ordemDe.set(dn.neg.id, k);
+    ordemPorEtapa.set(dn.neg.etapa, k + 1);
+  }
+  const negociacoes: Negociacao[] = draftsNeg.map((dn) => {
+    const criadoEm = iso(criadoMsNeg.get(dn.neg.id)!);
+    return { ...dn.neg, ordem: ordemDe.get(dn.neg.id)!, criadoEm, atualizadoEm: finais(dn.neg.id, criadoEm) };
+  });
+  const anuncios: Anuncio[] = draftsAnuncios.map(({ anuncio: a }) => ({
+    ...a,
+    atualizadoEm: finais(a.id, a.criadoEm),
+  }));
   const contratos: Contrato[] = esqueletos.map((e) => {
     const lead = leadDeContrato.get(e.contrato.id);
     const criadoEm = iso(criadoMsContrato.get(e.contrato.id)!);
     return {
       ...e.contrato,
       numero: numeros.get(e.contrato.id)!,
-      leadId: lead?.id ?? null,
-      partes: partesDe(e),
+      negociacaoId: lead ? negPrincipalDe.get(lead.id)!.id : null,
+      partes: partesPorContrato.get(e.contrato.id)!,
       criadoEm,
       atualizadoEm: finais(e.contrato.id, criadoEm),
     };
@@ -1212,8 +1607,13 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
     corretores,
     imoveis: imoveisFinais,
     leads,
+    negociacoes,
     visitas,
     contratos,
+    contatos,
+    anuncios,
+    documentos,
+    despesas,
     atividades,
     alteracoes,
     seq: contador,
@@ -1236,6 +1636,9 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
     imovelVendaMaxima: imoveisFinais.find((i) => i.preco === 1_200_000_000)!.id,
     contratoVendaMaxima: esqueletos.find((e) => e.especial === "maximo")!.contrato.id,
     etapaVazia: "contato",
+    leadTresNegociacoes: leadTres!,
+    negociacaoSemImovel: negociacoes.find((n) => n.imovelId === null && n.etapa === "novo")!.id,
+    despesaSemContrato: despesas.find((x) => x.contratoId === null)!.id,
   };
   return { base, casos };
 }

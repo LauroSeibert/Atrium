@@ -1,10 +1,11 @@
 "use client";
 /**
- * Detalhe do lead (RF-33, RF-34, RF-37, RF-65). Conteúdo reutilizado em página cheia (acesso direto) e no
- * drawer da rota interceptada (`modo`). Mudanças de etapa passam pelo mesmo `useMoverLead` do quadro.
+ * Detalhe do lead (RF-33, RF-34, RF-37, RF-65, RF-70…72). Conteúdo reutilizado em página cheia (acesso direto)
+ * e no drawer da rota interceptada (`modo`). O lead é a pessoa; etapa é de cada negociação, e as mudanças passam
+ * pelo mesmo `useMoverNegociacao` do quadro.
  */
 import { rotaDoImovel } from "@/components/layout/navegacao";
-import { CalendarPlus, ChevronDown, Mail, Phone, SendHorizontal } from "lucide-react";
+import { CalendarPlus, ChevronDown, Mail, Phone, Plus, SendHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -39,7 +40,8 @@ import { useEscrita } from "@/features/dados/escrita";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { DefinirTrilha } from "@/features/shell/trilha";
 import { AgendarVisita } from "./AgendarVisita";
-import { useMoverLead } from "./useMoverLead";
+import { DialogoNegociacao, type ModoDialogoNegociacao } from "./DialogoNegociacao";
+import { useMoverNegociacao } from "./useMoverLead";
 
 export type TelaLeadProps = { id: string; modo: "pagina" | "drawer" };
 
@@ -95,8 +97,9 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
   const { estado: atividades, recarregar: recarregarAtividades } = useConsulta(
     useCallback(() => fakeApi.listAtividades({ alvo: { tipo: "lead", id }, limite: 100 }), [id]),
   );
+  // Histórico do lead (orçamento) + o das negociações dele (etapa), numa lista só.
   const { estado: alteracoes, recarregar: recarregarAlteracoes } = useConsulta(
-    useCallback(() => fakeApi.listAlteracoes({ tipo: "lead", id }), [id]),
+    useCallback(() => fakeApi.listAlteracoesDoLead(id), [id]),
   );
   const { estado: corretoresEstado } = useConsulta(useCallback(() => fakeApi.listCorretores(), []));
   const autores = useMemo(
@@ -106,8 +109,9 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
       ),
     [corretoresEstado],
   );
-  const { mover, dialogos } = useMoverLead();
+  const { mover, vincular, dialogos } = useMoverNegociacao();
   const [visitaAberta, setVisitaAberta] = useState(false);
+  const [dialogoNegociacao, setDialogoNegociacao] = useState<ModoDialogoNegociacao | null>(null);
   const nome = "dados" in estado && estado.dados ? estado.dados.lead.nome : undefined;
   const nivel = modo === "drawer" ? 3 : 2;
   const naoEncontrado =
@@ -136,41 +140,129 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
       erro={naoEncontrado ? { titulo: "Lead não encontrado" } : { titulo: "Não foi possível carregar o lead" }}
       onTentarNovamente={naoEncontrado ? undefined : recarregar}
     >
-      {({ lead, responsavel, imoveisVistos, visitas, contrato, transicoes }) => {
-        const etapa = ETAPA_UI[lead.etapa];
+      {({ lead, responsavel, imoveisVistos, visitas, negociacoes, podeAgendarVisita }) => {
         const i = lead.interesse;
         return (
           <div className="flex animate-fade-in flex-col gap-4">
             <DefinirTrilha rotulo={lead.nome} />
             <div className="flex flex-wrap items-center gap-3">
-              <Badge tone={etapa.tom}>{etapa.rotulo}</Badge>
-              {lead.motivoPerda ? (
-                <span className="text-sm text-text-muted">
-                  Motivo da perda: {MOTIVO_PERDA_ROTULO[lead.motivoPerda]}
-                </span>
-              ) : null}
+              <span className="text-sm text-text-muted">
+                {negociacoes.length} {negociacoes.length === 1 ? "negociação" : "negociações"}
+              </span>
               <div className="ml-auto flex flex-wrap items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="secondary" trailingIcon={ChevronDown} disabled={transicoes.length === 0}>
-                      Mover para…
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Mover para…</DropdownMenuLabel>
-                    {transicoes.map((t) => (
-                      <DropdownMenuItem key={t.para} onSelect={() => mover(lead, t.para, undefined, t.exigeMotivo)}>
-                        {ETAPA_UI[t.para].rotulo}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button leadingIcon={CalendarPlus} onClick={() => setVisitaAberta(true)}>
+                <Button
+                  variant="secondary"
+                  leadingIcon={Plus}
+                  onClick={() => setDialogoNegociacao({ modo: "nova", leadId: lead.id })}
+                >
+                  Nova negociação
+                </Button>
+                <Button
+                  leadingIcon={CalendarPlus}
+                  onClick={() => setVisitaAberta(true)}
+                  disabled={!podeAgendarVisita.ok}
+                  aria-describedby={podeAgendarVisita.ok ? undefined : `${lead.id}-sem-visita`}
+                >
                   Agendar visita
                 </Button>
               </div>
             </div>
-            {contrato ? <p className="text-sm text-text-muted">Contrato vinculado: {contrato.numero}</p> : null}
+            {podeAgendarVisita.ok ? null : (
+              <p id={`${lead.id}-sem-visita`} className="text-sm text-text-muted">
+                {podeAgendarVisita.motivo}
+              </p>
+            )}
+
+            <SectionCard headingLevel={nivel} titulo="Negociações">
+              <ul className="flex flex-col">
+                {negociacoes.map((n) => {
+                  const etapa = ETAPA_UI[n.etapa];
+                  const rotulo = n.imovel ? `${n.imovel.codigo} · ${n.imovel.titulo}` : "Sem imóvel";
+                  return (
+                    <li
+                      key={n.id}
+                      className="flex flex-col gap-2 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:gap-4"
+                    >
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <p className="text-sm break-words text-text">
+                          {n.imovel ? (
+                            <Button asChild variant="link" className="text-left whitespace-normal">
+                              <Link href={rotaDoImovel(n.imovel)}>{rotulo}</Link>
+                            </Button>
+                          ) : (
+                            <span className="text-text-muted">Sem imóvel</span>
+                          )}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
+                          <Badge tone={etapa.tom}>{etapa.rotulo}</Badge>
+                          <span className="tnum">{n.valor === null ? "Sem valor" : formatMoeda(n.valor)}</span>
+                          {n.motivoPerda ? <span>Motivo da perda: {MOTIVO_PERDA_ROTULO[n.motivoPerda]}</span> : null}
+                          {n.contrato ? <span>Contrato vinculado: {n.contrato.numero}</span> : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {n.podeDefinirImovel.ok ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() => setDialogoNegociacao({ modo: "definir", negociacaoId: n.id })}
+                          >
+                            Definir imóvel
+                          </Button>
+                        ) : null}
+                        {n.podeVincular ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              vincular({
+                                id: n.id,
+                                etapa: n.etapa,
+                                rotulo: `${lead.nome} (${n.imovel ? n.imovel.codigo : "sem imóvel"})`,
+                              })
+                            }
+                          >
+                            Vincular contrato
+                          </Button>
+                        ) : null}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="secondary"
+                              trailingIcon={ChevronDown}
+                              disabled={n.transicoes.length === 0}
+                              aria-label={`Mover negociação ${rotulo} para…`}
+                            >
+                              Mover para…
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Mover para…</DropdownMenuLabel>
+                            {n.transicoes.map((t) => (
+                              <DropdownMenuItem
+                                key={t.para}
+                                onSelect={() =>
+                                  mover(
+                                    {
+                                      id: n.id,
+                                      etapa: n.etapa,
+                                      rotulo: `${lead.nome} (${n.imovel ? n.imovel.codigo : "sem imóvel"})`,
+                                    },
+                                    t.para,
+                                    undefined,
+                                    t.exigeMotivo,
+                                  )
+                                }
+                              >
+                                {ETAPA_UI[t.para].rotulo}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </SectionCard>
 
             <SectionCard headingLevel={nivel} titulo="Contato e interesse">
               <dl className="flex flex-col">
@@ -247,6 +339,7 @@ export function TelaLead({ id, modo }: TelaLeadProps) {
             </SectionCard>
 
             <AgendarVisita leadId={lead.id} aberto={visitaAberta} onAbertoChange={setVisitaAberta} />
+            <DialogoNegociacao alvo={dialogoNegociacao} onFechar={() => setDialogoNegociacao(null)} />
           </div>
         );
       }}

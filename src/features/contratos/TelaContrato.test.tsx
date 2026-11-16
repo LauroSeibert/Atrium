@@ -95,4 +95,62 @@ describe("TelaContrato (RF-42, RF-43, RF-48)", () => {
     render(<TelaContrato id="ctr_x" />);
     expect(await screen.findByRole("button", { name: /tentar de novo/i })).toBeInTheDocument();
   });
+
+  it("documentos: erro de validação aparece no diálogo e envio válido entra na lista (RF-76)", async () => {
+    const { d } = await contratoComParcelaEmAberto();
+    render(
+      <>
+        <TelaContrato id={d.contrato.id} />
+        <Toaster />
+      </>,
+    );
+    await screen.findByRole("region", { name: "Documentos" });
+    await userEvent.click(screen.getByRole("button", { name: "Enviar documento" }));
+    const dialogo = await screen.findByRole("dialog");
+
+    const ruim = new File(["x"], "planilha.xlsx", { type: "application/vnd.ms-excel" });
+    await userEvent.upload(within(dialogo).getByLabelText("Arquivo"), ruim, { applyAccept: false });
+    await userEvent.click(within(dialogo).getByRole("combobox", { name: "Tipo" }));
+    await userEvent.click(await screen.findByRole("option", { name: "Certidão" }));
+    await userEvent.click(within(dialogo).getByRole("button", { name: "Enviar" }));
+    expect(await within(dialogo).findByRole("alert")).toHaveTextContent("PDF, JPG ou PNG");
+
+    const bom = new File(["%PDF-1.4"], "certidao-teste.pdf", { type: "application/pdf" });
+    await userEvent.upload(within(dialogo).getByLabelText("Arquivo"), bom);
+    await userEvent.click(within(dialogo).getByRole("button", { name: "Enviar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(await screen.findByRole("button", { name: "Baixar certidao-teste.pdf" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Remover certidao-teste.pdf" }));
+    const confirmar = await screen.findByRole("alertdialog");
+    await userEvent.click(within(confirmar).getByRole("button", { name: "Remover documento" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Baixar certidao-teste.pdf" })).not.toBeInTheDocument(),
+    );
+    const desfazer = await screen.findAllByRole("button", { name: "Desfazer" });
+    await userEvent.click(desfazer[desfazer.length - 1]!);
+    expect(await screen.findByRole("button", { name: "Baixar certidao-teste.pdf" })).toBeInTheDocument();
+  });
+
+  it("despesas: lista as do contrato e registra pagamento quando o domínio permite (RF-78)", async () => {
+    const { itens } = await fakeApi.listDespesas({}, { pagina: 1, porPagina: 1000 });
+    const alvo = itens.find((x) => x.podePagar.ok && x.contratoId);
+    if (!alvo?.contratoId) throw new Error("sem despesa pagável de contrato");
+    render(
+      <>
+        <TelaContrato id={alvo.contratoId} />
+        <Toaster />
+      </>,
+    );
+    const secao = await screen.findByRole("region", { name: "Despesas" });
+    const nome = `Registrar pagamento de ${alvo.descricao}`;
+    const antes = (await within(secao).findAllByRole("button", { name: nome })).length;
+    await userEvent.click((await within(secao).findAllByRole("button", { name: nome }))[0]!);
+    expect((await screen.findAllByText(`Pagamento de ${alvo.descricao} registrado`)).length).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole("region", { name: "Despesas" })).queryAllByRole("button", { name: nome }),
+      ).toHaveLength(antes - 1),
+    );
+  });
 });

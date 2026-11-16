@@ -27,6 +27,8 @@ export const buttonVariants = cva(
         sm: "h-8 px-3 text-sm",
         md: "h-10 px-4 text-sm",
         lg: "h-11 px-6 text-base",
+        /** 44 px abaixo de `md` (alvo de toque), 40 px a partir de `md`. */
+        touch: "h-11 px-4 text-sm md:h-10",
       },
       iconOnly: { true: "px-0" },
     },
@@ -34,6 +36,7 @@ export const buttonVariants = cva(
       { iconOnly: true, size: "sm", className: "w-8" },
       { iconOnly: true, size: "md", className: "w-10" },
       { iconOnly: true, size: "lg", className: "w-11" },
+      { iconOnly: true, size: "touch", className: "w-11 md:w-10" },
     ],
     defaultVariants: { variant: "primary", size: "md" },
   },
@@ -57,7 +60,7 @@ export type ButtonProps = WithText | IconOnly;
 
 /**
  * Botão. Uma ação `primary` por vista (Von Restorff); demais `secondary`/`ghost`.
- * Alvos: sm 32 px (só em tabelas densas), md 40 px (padrão desktop), lg 44 px (mobile).
+ * Alvos: sm 32 px (só em tabelas densas), md 40 px (padrão desktop), lg 44 px (mobile), touch 44 px abaixo de md e 40 px depois.
  */
 export function Button({
   variant,

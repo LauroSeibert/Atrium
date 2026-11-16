@@ -1,6 +1,6 @@
 import { EllipsisVertical } from "lucide-react";
 import type { ReactNode } from "react";
-import type { Etapa, Lead, Permissao } from "@/domain";
+import type { Etapa, Lead, MotivoPerda, Origem, Permissao } from "@/domain";
 import { cn } from "@/lib/cn";
 import { formatMoeda, formatRelativo } from "@/lib/format";
 import { Avatar } from "../ui/Avatar";
@@ -16,20 +16,40 @@ import {
 import { Skeleton } from "../ui/Skeleton";
 import { ETAPA_UI, FINALIDADE_ROTULO, MOTIVO_PERDA_ROTULO, ORIGEM_ROTULO, TIPO_IMOVEL_ROTULO } from "./rotulos";
 
-/** Destino do "Mover para…" já resolvido pelo domínio (`podeTransicionarLead`); negado mostra o motivo. */
+/** Destino do "Mover para…" já resolvido pelo domínio (`destinosNegociacao`); negado mostra o motivo. */
 export type DestinoLead = { etapa: Etapa; permissao: Permissao };
 
+/**
+ * O que o card mostra de uma negociação (lead × imóvel, RF-70). `valor` vem do domínio
+ * (`valorNegociacao`: preço do imóvel ou, sem imóvel, orçamento do lead).
+ */
+export type NegociacaoCard = {
+  id: string;
+  etapa: Etapa;
+  ordem: number;
+  responsavelId: string;
+  motivoPerda: MotivoPerda | null;
+  atualizadoEm: string;
+  valor: number | null;
+  lead: { id: string; nome: string; origem: Origem; interesse: Lead["interesse"] };
+  imovel: { id: string; codigo: string; titulo: string } | null;
+};
+
+/** Nome acessível da negociação: "Ana Souza (AT-0012)" ou "Ana Souza (sem imóvel)". */
+export const rotuloNegociacao = (n: Pick<NegociacaoCard, "lead" | "imovel">) =>
+  `${n.lead.nome} (${n.imovel ? n.imovel.codigo : "sem imóvel"})`;
+
 export type LeadCardProps = {
-  lead: Lead;
+  negociacao: NegociacaoCard;
   /** Nome do corretor responsável (resolvido por quem chama). */
   responsavel: string;
   /** Opções de "Mover para…" (RF-31). Vazio = sem menu. */
   destinos?: readonly DestinoLead[];
-  /** Abre o detalhe do lead. */
+  /** Abre o detalhe do lead da negociação. */
   onAbrir: (leadId: string) => void;
-  /** Emite a intenção de mover; quem chama aplica pelo domínio (`transicionarLead`). */
-  onMover?: (leadId: string, para: Etapa) => void;
-  /** Última atividade (ISO); padrão: `lead.atualizadoEm`. */
+  /** Emite a intenção de mover a negociação; quem chama aplica pelo domínio (`transicionarNegociacao`). */
+  onMover?: (negociacaoId: string, para: Etapa) => void;
+  /** Última atividade (ISO); padrão: `negociacao.atualizadoEm`. */
   ultimaAtividade?: string;
   /** Referência de "agora" para o texto relativo (histórias determinísticas). */
   agora?: Date;
@@ -49,11 +69,12 @@ export function resumirInteresse(i: Lead["interesse"]): string {
 }
 
 /**
- * Card de lead do Kanban e das listas (RF-30, RF-31, RF-34). Só props: o menu "Mover para…" emite
- * `onMover` e mostra o motivo dos destinos negados; nenhuma regra de etapa mora aqui.
+ * Card de negociação do Kanban e das listas (RF-30, RF-31, RF-34, RF-70): nome do lead, imóvel (ou
+ * "Sem imóvel") e valor. Só props: o menu "Mover para…" emite `onMover` e mostra o motivo dos destinos
+ * negados; nenhuma regra de etapa mora aqui.
  */
 export function LeadCard({
-  lead,
+  negociacao,
   responsavel,
   destinos = [],
   onAbrir,
@@ -64,7 +85,8 @@ export function LeadCard({
   arrastando = false,
   className,
 }: LeadCardProps) {
-  const motivoPerda = lead.motivoPerda ? MOTIVO_PERDA_ROTULO[lead.motivoPerda] : null;
+  const { lead, imovel } = negociacao;
+  const motivoPerda = negociacao.motivoPerda ? MOTIVO_PERDA_ROTULO[negociacao.motivoPerda] : null;
   return (
     <Card
       className={cn(
@@ -78,6 +100,7 @@ export function LeadCard({
         <h3 className="min-w-0 flex-1 text-base font-semibold break-words text-text">
           <button
             type="button"
+            aria-label={rotuloNegociacao(negociacao)}
             onClick={() => onAbrir(lead.id)}
             className="cursor-pointer text-left after:absolute after:inset-0 after:rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
@@ -85,17 +108,31 @@ export function LeadCard({
           </button>
         </h3>
         {destinos.length > 0 && onMover ? (
-          <MoverPara nome={lead.nome} leadId={lead.id} destinos={destinos} onMover={onMover} />
+          <MoverPara
+            nome={rotuloNegociacao(negociacao)}
+            negociacaoId={negociacao.id}
+            destinos={destinos}
+            onMover={onMover}
+          />
         ) : null}
       </div>
+      <p className="line-clamp-2 break-words text-text">
+        {imovel ? (
+          <>
+            <span className="tnum font-medium">{imovel.codigo}</span> · {imovel.titulo}
+          </>
+        ) : (
+          <span className="text-text-muted">Sem imóvel</span>
+        )}
+      </p>
       <p className="tnum text-text">
-        {lead.orcamento === null ? <span className="text-text-muted">Sem orçamento</span> : formatMoeda(lead.orcamento)}
+        {negociacao.valor === null ? <span className="text-text-muted">Sem valor</span> : formatMoeda(negociacao.valor)}
       </p>
       <p className="line-clamp-2 text-text-muted">{resumirInteresse(lead.interesse)}</p>
       {motivoPerda ? <p className="text-text-muted">Motivo da perda: {motivoPerda}</p> : null}
       <div className="flex items-center justify-between gap-2 text-xs text-text-muted">
         <span className="min-w-0 truncate">{ORIGEM_ROTULO[lead.origem]}</span>
-        <span className="shrink-0">{formatRelativo(ultimaAtividade ?? lead.atualizadoEm, agora)}</span>
+        <span className="shrink-0">{formatRelativo(ultimaAtividade ?? negociacao.atualizadoEm, agora)}</span>
       </div>
       <div className="flex items-center gap-2 text-xs text-text-muted">
         <Avatar name={responsavel} size={24} />
@@ -107,14 +144,14 @@ export function LeadCard({
 
 function MoverPara({
   nome,
-  leadId,
+  negociacaoId,
   destinos,
   onMover,
 }: {
   nome: string;
-  leadId: string;
+  negociacaoId: string;
   destinos: readonly DestinoLead[];
-  onMover: (leadId: string, para: Etapa) => void;
+  onMover: (negociacaoId: string, para: Etapa) => void;
 }) {
   return (
     // modal=false: o Radix não aplica aria-hidden aos irmãos (o quadro inteiro) com o menu aberto.
@@ -137,7 +174,7 @@ function MoverPara({
             className="h-auto min-h-9 flex-col items-start justify-center gap-0 py-1 aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
             onSelect={(e) => {
               if (!permissao.ok) return e.preventDefault(); // negado: continua aberto, com o motivo visível
-              onMover(leadId, etapa);
+              onMover(negociacaoId, etapa);
             }}
           >
             {ETAPA_UI[etapa].rotulo}

@@ -18,13 +18,26 @@ export function podeTransicionarVisita(v: Visita, para: StatusVisita): Permissao
   return TRANSICOES_VISITA[v.status].includes(para) ? PERMITIDO : negar("A visita já foi concluída.");
 }
 
+/** Ações que a UI pode oferecer para a visita (Agenda, RF-73). */
+export function transicoesPermitidasVisita(v: Visita): { para: StatusVisita }[] {
+  return TRANSICOES_VISITA[v.status].map((para) => ({ para }));
+}
+
+/** Agendar exige lead com ao menos uma negociação que não esteja `perdido` (ESTADOS §3.5). */
+export function podeAgendarVisita(base: Pick<Base, "negociacoes">, leadId: string): Permissao {
+  return base.negociacoes.some((n) => n.leadId === leadId && n.etapa !== "perdido")
+    ? PERMITIDO
+    : negar("Lead sem negociação ativa não agenda visita.");
+}
+
 export function agendarVisita(base: Base, dados: NovaVisita, ctx: Contexto): Mudanca<Visita> {
   const d = novaVisitaSchema.parse(dados);
   if (Date.parse(d.dataHora) < Date.parse(ctx.agora)) throw new OperacaoInvalida("A visita precisa ser no futuro.");
   return transacao(base, ctx, (t) => {
-    const lead = t.get("leads", d.leadId);
+    t.get("leads", d.leadId);
     t.get("imoveis", d.imovelId);
-    if (lead.etapa === "perdido") throw new OperacaoInvalida("Lead perdido não agenda visita.");
+    const p = podeAgendarVisita(base, d.leadId);
+    if (!p.ok) throw new OperacaoInvalida(p.motivo);
     const v = t.put("visitas", { id: t.novoId("vis"), ...d, status: "agendada" });
     t.atividade({
       tipo: "visitaAgendada",

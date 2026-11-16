@@ -1,11 +1,19 @@
 import { validarBase, type Base } from "@/domain";
 
 /** Persistência do mock (REQUISITOS: alterações sobrevivem ao recarregar; RF-51 restaura). */
-const CHAVE = "atrium:mock:v1";
+/** v2: negociações, contatos, anúncios, documentos e despesas (BRIEF-MENU). Dado v1 é descartado. */
+const CHAVE = "atrium:mock:v2";
+/** Chaves de versões anteriores, removidas ao carregar para não ocupar a cota. */
+const CHAVES_ANTIGAS = ["atrium:mock:v1"];
 
 export type Salvo = { base: Base; usuarioAtualId: string; lidas: string[] };
 
 export function carregar(): Salvo | null {
+  try {
+    for (const k of CHAVES_ANTIGAS) globalThis.localStorage?.removeItem(k);
+  } catch {
+    /* armazenamento indisponível: nada a limpar */
+  }
   try {
     const bruto = globalThis.localStorage?.getItem(CHAVE);
     if (!bruto) return null;

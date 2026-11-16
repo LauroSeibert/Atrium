@@ -29,6 +29,12 @@ describe("Sidebar (RF-01, RF-60, RF-62)", () => {
     expect(screen.getByRole("link", { name: /^Dashboard/ })).not.toHaveAttribute("aria-current");
   });
 
+  it("dentro do Financeiro, o submenu abre e o pai fica marcado", () => {
+    montar({ pathname: "/financeiro/receitas" });
+    expect(screen.getByRole("button", { name: "Financeiro" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("link", { name: "Receitas" })).toHaveAttribute("aria-current", "page");
+  });
+
   it("botão recolher chama o callback", async () => {
     const { onAlternarRecolhida } = montar();
     const botao = screen.getByRole("button", { name: "Recolher menu" });

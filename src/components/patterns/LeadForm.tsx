@@ -3,6 +3,7 @@
 /**
  * Formulário de lead (RF-35 criação rápida + edição). Valida com `novoLeadSchema` (domínio);
  * telefone com máscara guarda só dígitos; interesse e orçamento ficam em "Mais detalhes".
+ * Com `imoveis`, oferece o imóvel (opcional) da 1ª negociação (RF-70, RF-72).
  */
 import { useEffect, useId, useState } from "react";
 import { Controller, useForm, type FieldErrors } from "react-hook-form";
@@ -10,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FINALIDADES, novoLeadSchema, ORIGENS, TIPOS_IMOVEL, type NovoLead } from "@/domain";
 import { formatTelefone } from "@/lib/format";
 import { Checkbox } from "../ui/Checkbox";
+import { Combobox, type ComboboxOption } from "../ui/Combobox";
 import { Field } from "../ui/Field";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
@@ -39,6 +41,8 @@ export type ResponsavelOpcao = { id: string; nome: string };
 export type LeadFormProps = {
   valoresIniciais?: NovoLead;
   corretores: ResponsavelOpcao[];
+  /** Opções do campo "Imóvel de interesse" (criação). Ausente = campo não aparece. */
+  imoveis?: ComboboxOption[];
   onSalvar: (dados: NovoLead) => void;
   envio: EnvioFormulario;
   onCancelar?: () => void;
@@ -50,6 +54,7 @@ const ROTULO_CAMPO: Record<string, string> = {
   "contato.email": "E-mail",
   origem: "Origem",
   responsavelId: "Responsável",
+  imovelId: "Imóvel de interesse",
   orcamento: "Orçamento",
   "interesse.finalidade": "Finalidade do interesse",
   "interesse.tipos": "Tipos de imóvel",
@@ -67,7 +72,10 @@ function mascararTelefone(d: string): string {
 
 type Interesse = NonNullable<NovoLead["interesse"]>;
 
-export function LeadForm({ valoresIniciais, corretores, onSalvar, envio, onCancelar }: LeadFormProps) {
+/** Valor da opção "sem imóvel" no Combobox (vira `imovelId` ausente). */
+const SEM_IMOVEL = "__sem_imovel";
+
+export function LeadForm({ valoresIniciais, corretores, imoveis, onSalvar, envio, onCancelar }: LeadFormProps) {
   const base = useId();
   const id = (caminho: string) => idDoCampo(base, caminho);
   const {
@@ -184,6 +192,29 @@ export function LeadForm({ valoresIniciais, corretores, onSalvar, envio, onCance
             )}
           />
         </Field>
+        {imoveis ? (
+          <Field
+            label="Imóvel de interesse"
+            requirement="optional"
+            id={id("imovelId")}
+            error={msg("imovelId")}
+            className={LARGURA_TOTAL}
+          >
+            <Controller
+              control={control}
+              name="imovelId"
+              render={({ field }) => (
+                <Combobox
+                  options={[{ value: SEM_IMOVEL, label: "Sem imóvel (definir depois)" }, ...imoveis]}
+                  value={field.value ?? SEM_IMOVEL}
+                  onValueChange={(v) => field.onChange(v === SEM_IMOVEL || v === "" ? undefined : v)}
+                  placeholder="Selecione o imóvel"
+                  searchPlaceholder="Buscar por código ou título"
+                />
+              )}
+            />
+          </Field>
+        ) : null}
 
         <Recolhivel titulo="Mais detalhes" aberto={detalhesAbertos} onAbertoChange={setDetalhesAbertos}>
           <Field

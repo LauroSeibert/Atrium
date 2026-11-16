@@ -78,16 +78,60 @@ describe("fakeApi — leituras", () => {
 });
 
 describe("fakeApi — escritas passam pelo domínio e têm desfazer (RF-04)", () => {
-  it("moveLead: perdido sem motivo é recusado; com motivo grava e desfaz", async () => {
-    const leads = await fakeApi.listLeads({ etapas: ["novo"] });
-    const id = leads[0]!.id;
-    await expect(fakeApi.moveLead(id, "perdido")).rejects.toMatchObject({ tipo: "regra" });
-    const { resultado, desfazer } = await fakeApi.moveLead(id, "perdido", 0, "preco");
+  it("moverNegociacao: perdido sem motivo é recusado; com motivo grava e desfaz (RF-31, RF-32)", async () => {
+    const [n] = await fakeApi.listNegociacoes({ etapas: ["novo"] });
+    const id = n!.id;
+    expect(n!.permissoesDeSoltar.perdido.ok).toBe(true);
+    await expect(fakeApi.moverNegociacao(id, "perdido")).rejects.toMatchObject({ tipo: "regra" });
+    const { resultado, desfazer } = await fakeApi.moverNegociacao(id, "perdido", 0, "preco");
     expect(resultado).toMatchObject({ etapa: "perdido", motivoPerda: "preco" });
-    const alt = await fakeApi.listAlteracoes({ tipo: "lead", id });
+    const alt = await fakeApi.listAlteracoes({ tipo: "negociacao", id });
     expect(alt[0]).toMatchObject({ campo: "etapa", de: "novo", para: "perdido" });
+    const doLead = await fakeApi.listAlteracoesDoLead(n!.leadId);
+    expect(doLead[0]).toMatchObject({ entidade: { tipo: "negociacao", id }, campo: "etapa" });
     await desfazer();
-    expect((await fakeApi.getLead(id)).lead).toMatchObject({ etapa: "novo", motivoPerda: null });
+    const [volta] = await fakeApi.listNegociacoes({ leadId: n!.leadId, etapas: ["novo"] });
+    expect(volta).toMatchObject({ id, etapa: "novo", motivoPerda: null });
+  });
+
+  it("criarNegociacao recusa duplicada aberta e definirImovelNegociacao preenche o imóvel (RF-70, RF-71)", async () => {
+    const [semImovel] = (await fakeApi.listNegociacoes({ etapas: ["novo"] })).filter((n) => n.imovel === null);
+    expect(semImovel).toBeDefined();
+    const { itens } = await fakeApi.listImoveis({ status: ["disponivel"] });
+    await fakeApi.definirImovelNegociacao(semImovel!.id, itens[0]!.id);
+    await expect(fakeApi.criarNegociacao(semImovel!.leadId, itens[0]!.id)).rejects.toMatchObject({ tipo: "regra" });
+    const { resultado } = await fakeApi.criarNegociacao(semImovel!.leadId, itens[1]!.id);
+    expect(resultado).toMatchObject({ etapa: "novo", imovelId: itens[1]!.id });
+    const lead = await fakeApi.getLead(semImovel!.leadId);
+    expect(lead.negociacoes.map((n) => n.imovel?.id)).toEqual(expect.arrayContaining([itens[0]!.id, itens[1]!.id]));
+  });
+
+  it("listLeads conta negociações; getLead traz negociações e contratos; createLead cria a 1ª negociação", async () => {
+    const leads = await fakeApi.listLeads();
+    expect(leads.every((l) => l.qtdNegociacoes >= 1)).toBe(true);
+    const com3 = leads.find((l) => l.qtdNegociacoes === 3)!;
+    expect((await fakeApi.getLead(com3.id)).negociacoes).toHaveLength(3);
+    const { itens } = await fakeApi.listImoveis({ status: ["disponivel"] });
+    const { resultado } = await fakeApi.createLead({
+      nome: "Lead de teste",
+      contato: {},
+      origem: "site",
+      imovelId: itens[0]!.id,
+    });
+    const novo = await fakeApi.getLead(resultado.id);
+    expect(novo.negociacoes).toHaveLength(1);
+    expect(novo.negociacoes[0]).toMatchObject({ etapa: "novo", imovel: { id: itens[0]!.id } });
+    expect(novo.podeAgendarVisita.ok).toBe(true);
+  });
+
+  it("getImovel traz negociações; getContrato traz negociação e lead", async () => {
+    const { itens } = await fakeApi.listContratos({}, { pagina: 1, porPagina: 100 });
+    const k = itens.find((l) => l.contrato.negociacaoId)!.contrato;
+    const c = await fakeApi.getContrato(k.id);
+    expect(c.negociacao).toMatchObject({ id: k.negociacaoId, etapa: "fechado" });
+    expect(c.lead?.id).toBe(c.negociacao!.leadId);
+    const im = await fakeApi.getImovel(k.imovelId);
+    expect(im.negociacoes.some((n) => n.id === k.negociacaoId)).toBe(true);
   });
 
   it("registrarPagamento grava pagoEm e desfaz", async () => {
@@ -125,7 +169,9 @@ describe("fakeApi — escritas passam pelo domínio e têm desfazer (RF-04)", ()
 
   it("a base continua válida depois de várias escritas", async () => {
     const leads = await fakeApi.listLeads();
-    for (const l of leads.slice(0, 10)) await fakeApi.moveLead(l.id, "visita").catch(() => undefined);
+    const negs = await fakeApi.listNegociacoes();
+    for (const n of negs.slice(0, 10)) await fakeApi.moverNegociacao(n.id, "visita").catch(() => undefined);
+    expect(leads.length).toBeGreaterThan(0);
     await fakeApi.createLead({ nome: "Lead de teste", contato: {}, origem: "site" });
     const { itens } = await fakeApi.listImoveis({ status: ["disponivel"] });
     await fakeApi.setStatusImoveis(
@@ -143,5 +189,119 @@ describe("fakeApi — escritas passam pelo domínio e têm desfazer (RF-04)", ()
     if (!ns.length) return;
     await fakeApi.marcarLida(ns[0]!.id);
     expect((await fakeApi.listNotificacoes())[0]!.lida).toBe(true);
+  });
+});
+
+describe("fakeApi — módulos do novo menu (BRIEF-MENU)", () => {
+  it("getAgenda: dias com visitas (com transições) e vencimentos (RF-73)", async () => {
+    const a = await fakeApi.getAgenda({ dias: 30 });
+    const itens = a.dias.flatMap((d) => d.itens);
+    expect(itens.some((i) => i.tipo === "visita")).toBe(true);
+    for (const i of itens) if (i.tipo === "visita") expect(i.transicoes.length).toBeGreaterThan(0);
+    const so = await fakeApi.getAgenda({ dias: 30, tipos: ["vencimento"] });
+    expect(so.dias.flatMap((d) => d.itens).every((i) => i.tipo === "vencimento")).toBe(true);
+  });
+
+  it("contatos: lista, filtra por papel, abre e salva (RF-74)", async () => {
+    const todos = await fakeApi.listContatos();
+    expect(todos.length).toBeGreaterThan(30);
+    const donos = await fakeApi.listContatos({ papeis: ["proprietario"] });
+    expect(donos.every((c) => c.papel === "proprietario")).toBe(true);
+    const ficha = await fakeApi.getContato(donos[0]!.id);
+    expect(ficha.contratos.length).toBeGreaterThan(0);
+    const { resultado } = await fakeApi.saveContato({
+      nome: "Contato de teste",
+      papel: "advogado",
+      imovelIds: [],
+      contratoIds: [],
+    });
+    expect((await fakeApi.search("Contato de teste")).contatos?.[0]?.id).toBe(resultado.id);
+    await expect(
+      fakeApi.saveContato({ nome: "x", papel: "advogado", imovelIds: [], contratoIds: [] }),
+    ).rejects.toMatchObject({ tipo: "validacao" });
+  });
+
+  it("anúncios: transições e alerta vêm do domínio (RF-75)", async () => {
+    const lista = await fakeApi.listAnuncios();
+    expect(lista.length).toBeGreaterThan(40);
+    const pub = lista.find((a) => a.status === "publicado")!;
+    expect(pub.transicoes.map((t) => t.para)).toContain("pausado");
+    const { desfazer } = await fakeApi.transicionarAnuncio(pub.id, "pausado");
+    expect((await fakeApi.listAnuncios({ status: ["pausado"] })).some((a) => a.id === pub.id)).toBe(true);
+    await desfazer();
+    await expect(fakeApi.transicionarAnuncio(pub.id, "rascunho")).rejects.toMatchObject({ tipo: "regra" });
+  });
+
+  it("documentos: envia, baixa, remove; exemplo baixa PDF de demonstração (RF-76)", async () => {
+    const { itens } = await fakeApi.listContratos({ status: ["ativo"] });
+    const contratoId = itens[0]!.contrato.id;
+    const exemplos = await fakeApi.listDocumentos(contratoId);
+    expect(exemplos.length).toBeGreaterThan(0);
+    const demo = await fakeApi.baixarDocumento(exemplos[0]!.id);
+    expect(demo.type).toBe("application/pdf");
+    expect(await demo.text()).toContain("Documento de demonstra");
+
+    const arquivo = new File(["conteúdo"], "comprovante.pdf", { type: "application/pdf" });
+    const { resultado, soNestaSessao } = await fakeApi.enviarDocumento(contratoId, arquivo, "comprovante");
+    expect(resultado).toMatchObject({ nome: "comprovante.pdf", mime: "application/pdf" });
+    // Sem IndexedDB (jsdom): cai na memória e avisa a UI.
+    expect(soNestaSessao).toBe(true);
+    expect(await (await fakeApi.baixarDocumento(resultado.id)).text()).toBe("conteúdo");
+
+    const exe = new File(["x"], "virus.exe", { type: "application/x-msdownload" });
+    await expect(fakeApi.enviarDocumento(contratoId, exe, "outro")).rejects.toMatchObject({ tipo: "validacao" });
+
+    const { desfazer } = await fakeApi.removerDocumento(resultado.id);
+    expect((await fakeApi.listDocumentos(contratoId)).some((d) => d.id === resultado.id)).toBe(false);
+    await desfazer();
+    expect(await (await fakeApi.baixarDocumento(resultado.id)).text()).toBe("conteúdo");
+  });
+
+  it("receitas, despesas, comissões e repasses (RF-77…80)", async () => {
+    const r = await fakeApi.listReceitas({ status: ["atrasado"] }, { pagina: 1, porPagina: 200 });
+    expect(r.total).toBeGreaterThan(0);
+    expect(r.itens.every((l) => l.status === "atrasado" && l.podePagar.ok)).toBe(true);
+
+    const d = await fakeApi.listDespesas({ status: ["atrasada"] }, { pagina: 1, porPagina: 100 });
+    expect(d.total).toBeGreaterThan(0);
+    const alvo = d.itens[0]!;
+    expect(alvo.podePagar.ok).toBe(true);
+    await fakeApi.pagarDespesa(alvo.id);
+    const paga = (await fakeApi.listDespesas({ status: ["paga"] }, { pagina: 1, porPagina: 100 })).itens.find(
+      (x) => x.id === alvo.id,
+    )!;
+    expect(paga.podeEditar.ok).toBe(false);
+    await expect(fakeApi.saveDespesa({ ...alvo, id: alvo.id, valor: 1 })).rejects.toMatchObject({ tipo: "regra" });
+    const avulsas = await fakeApi.listDespesas({ contratoId: null }, { pagina: 1, porPagina: 100 });
+    expect(avulsas.itens.every((x) => x.contrato === null)).toBe(true);
+
+    const pendentes = await fakeApi.listComissoes({ status: "pendente" });
+    expect(pendentes.length).toBeGreaterThan(0);
+    const m = pendentes[0]!;
+    await fakeApi.pagarComissao(m.contratoId, m.indice);
+    await expect(fakeApi.pagarComissao(m.contratoId, m.indice)).rejects.toMatchObject({ tipo: "regra" });
+
+    const rep = await fakeApi.listRepasses();
+    expect(rep.length).toBeGreaterThan(0);
+    expect(rep.every((x) => x.repasse < x.aluguel)).toBe(true);
+  });
+
+  it("getFinanceiro traz despesas e resultado; getRelatorios os 5 relatórios (RF-81, RF-82)", async () => {
+    const f = await fakeApi.getFinanceiro("ultimos12");
+    expect(f.resultado).toBe(f.recebido - f.despesas.pagas);
+    const rel = await fakeApi.getRelatorios({ periodo: "ultimos12" });
+    expect(rel.vendasPorPeriodo).toHaveLength(12);
+    expect(rel.desempenhoCorretores.length).toBeGreaterThan(0);
+    expect(rel.imoveisMaisProcurados.length).toBeLessThanOrEqual(10);
+    expect(rel.receitaPorPeriodo).toHaveLength(12);
+    expect(rel.conversaoLeads.funil.length).toBe(6);
+  });
+
+  it("resetMock limpa também os arquivos", async () => {
+    const { itens } = await fakeApi.listContratos({ status: ["ativo"] });
+    const arquivo = new File(["a"], "a.pdf", { type: "application/pdf" });
+    const { resultado } = await fakeApi.enviarDocumento(itens[0]!.contrato.id, arquivo, "outro");
+    await fakeApi.resetMock();
+    await expect(fakeApi.baixarDocumento(resultado.id)).rejects.toMatchObject({ tipo: "naoEncontrado" });
   });
 });

@@ -1,8 +1,12 @@
+import { CAMPOS_MONITORADOS_ANUNCIO, type Anuncio } from "../anuncio/schema";
 import type { Atividade, RegistroAlteracao, TipoAtividade, ValorBruto } from "../atividade/schema";
 import type { Contrato } from "../contrato/schema";
+import { CAMPOS_MONITORADOS_DESPESA, type Despesa } from "../despesa/schema";
 import { CAMPOS_MONITORADOS_IMOVEL, type Imovel } from "../imovel/schema";
 import { CAMPOS_MONITORADOS_LEAD, type Lead } from "../lead/schema";
-import { buscar, type Base, type Colecao, type EntidadeDe } from "./base";
+import { CAMPOS_MONITORADOS_NEGOCIACAO, type Negociacao } from "../negociacao/schema";
+import { validarBase } from "../invariantes";
+import { buscar, COLECOES, type Base, type Colecao, type EntidadeDe } from "./base";
 import { OperacaoInvalida, type Contexto, type RefEntidade, type TipoEntidade } from "./tipos";
 
 /**
@@ -42,19 +46,22 @@ export type Transacao = {
 const TIPO_DA_COLECAO: Partial<Record<Colecao, TipoEntidade>> = {
   imoveis: "imovel",
   leads: "lead",
+  negociacoes: "negociacao",
   contratos: "contrato",
+  anuncios: "anuncio",
+  despesas: "despesa",
 };
+
+const pegar = <E, K extends keyof E>(e: E, campos: readonly K[]) =>
+  Object.fromEntries(campos.map((k) => [k, e[k]])) as Record<string, ValorBruto>;
 
 /** Campos que geram registro de alteração, achatados (`parcela.3.pagoEm`). */
 export function camposMonitorados(colecao: Colecao, e: unknown): Record<string, ValorBruto> | null {
-  if (colecao === "imoveis") {
-    const i = e as Imovel;
-    return Object.fromEntries(CAMPOS_MONITORADOS_IMOVEL.map((k) => [k, i[k]]));
-  }
-  if (colecao === "leads") {
-    const l = e as Lead;
-    return Object.fromEntries(CAMPOS_MONITORADOS_LEAD.map((k) => [k, l[k]]));
-  }
+  if (colecao === "imoveis") return pegar(e as Imovel, CAMPOS_MONITORADOS_IMOVEL);
+  if (colecao === "leads") return pegar(e as Lead, CAMPOS_MONITORADOS_LEAD);
+  if (colecao === "negociacoes") return pegar(e as Negociacao, CAMPOS_MONITORADOS_NEGOCIACAO);
+  if (colecao === "anuncios") return pegar(e as Anuncio, CAMPOS_MONITORADOS_ANUNCIO);
+  if (colecao === "despesas") return pegar(e as Despesa, CAMPOS_MONITORADOS_DESPESA);
   if (colecao === "contratos") {
     const c = e as Contrato;
     const r: Record<string, ValorBruto> = {
@@ -78,12 +85,8 @@ export function camposMonitorados(colecao: Colecao, e: unknown): Record<string, 
 const chave = (colecao: Colecao, id: string) => `${colecao}:${id}`;
 
 export function transacao<T>(base: Base, ctx: Contexto, corpo: (t: Transacao) => T): Mudanca<T> {
-  const colecoes: { -readonly [C in Colecao]: EntidadeDe<C>[] } = {
-    corretores: [...base.corretores],
-    imoveis: [...base.imoveis],
-    leads: [...base.leads],
-    visitas: [...base.visitas],
-    contratos: [...base.contratos],
+  const colecoes = Object.fromEntries(COLECOES.map((c) => [c, [...base[c]]])) as {
+    -readonly [C in Colecao]: EntidadeDe<C>[];
   };
   let atividades = [...base.atividades];
   let seq = base.seq;
@@ -187,29 +190,36 @@ export function transacao<T>(base: Base, ctx: Contexto, corpo: (t: Transacao) =>
       if (assinatura(buscar(baseAtual, colecao, id)) !== assinatura(valor))
         throw new OperacaoInvalida("Os dados mudaram desde então; não dá mais para desfazer.");
     }
-    return transacao(baseAtual, ctxDesfazer, (u) => {
+    const r = transacao(baseAtual, ctxDesfazer, (u) => {
       const etapas = new Set<string>();
       for (const [k, { colecao, id, valor }] of antes) {
         if (soOrdem(k)) continue;
         if (valor === undefined) u.remove(colecao, id);
         else restaurar(u, colecao, valor as EntidadeDe<typeof colecao>);
-        if (colecao === "leads") {
-          if (valor) etapas.add((valor as Lead).etapa);
-          const agora = depois.get(chave(colecao, id)) as Lead | undefined;
+        if (colecao === "negociacoes") {
+          if (valor) etapas.add((valor as Negociacao).etapa);
+          const agora = depois.get(chave(colecao, id)) as Negociacao | undefined;
           if (agora) etapas.add(agora.etapa);
         }
       }
       // Outros movimentos podem ter renumerado as colunas: normaliza 0…n preservando a ordem relativa.
       for (const etapa of etapas)
-        u.all("leads")
-          .filter((l) => l.etapa === etapa)
+        u.all("negociacoes")
+          .filter((n) => n.etapa === etapa)
           .sort((x, y) => x.ordem - y.ordem)
-          .forEach((l, i) => {
-            if (l.ordem !== i) u.put("leads", { ...l, ordem: i });
+          .forEach((n, i) => {
+            if (n.ordem !== i) u.put("negociacoes", { ...n, ordem: i });
           });
       u.removerAtividades(criadas);
       return null;
     });
+    // Outras operações podem ter se apoiado no estado novo (ex.: contrato vinculado à negociação fechada,
+    // nova negociação do mesmo lead × imóvel, outro anúncio no mesmo canal). Restaurar o snapshot não pode
+    // quebrar invariante: só os erros que o desfazer INTRODUZ contam (bases de teste parciais já podem ter outros).
+    const jaHavia = new Set(validarBase(baseAtual));
+    const novos = validarBase(r.base).filter((e) => !jaHavia.has(e));
+    if (novos.length > 0) throw new OperacaoInvalida(`Não dá mais para desfazer: ${motivoLegivel(novos[0]!)}`);
+    return r;
   };
 
   return { base: nova, resultado, desfazer };
@@ -217,7 +227,7 @@ export function transacao<T>(base: Base, ctx: Contexto, corpo: (t: Transacao) =>
 
 /**
  * O que precisa estar igual para o desfazer valer: tudo, menos `ordem` (renumerada por movimentos
- * de outros leads na mesma coluna) e `atualizadoEm`.
+ * de outras negociações na mesma coluna) e `atualizadoEm`.
  */
 function assinatura(e: unknown): string {
   if (e === undefined) return "undefined";
@@ -230,4 +240,10 @@ function restaurar<C extends Colecao>(u: Transacao, colecao: C, valor: EntidadeD
   const lista = u.all(colecao) as unknown as { id: string }[];
   const i = lista.findIndex((e) => e.id === valor.id);
   lista[i] = valor;
+}
+
+/** Mensagem do invariante sem o prefixo técnico (`negociação neg_x: …`). */
+function motivoLegivel(erro: string): string {
+  const i = erro.indexOf(": ");
+  return i >= 0 ? erro.slice(i + 2) : erro;
 }

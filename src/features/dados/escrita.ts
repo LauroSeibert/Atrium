@@ -4,6 +4,8 @@
  * mostra o toast e oferece "Desfazer". A tela não decide regra nenhuma aqui: só diz o texto do toast.
  */
 import { useCallback, useState } from "react";
+import type { FaseConfirmacao } from "@/components/patterns/ConfirmDestructive";
+import type { EnvioFormulario } from "@/components/patterns/FormSection";
 import { toast } from "@/components/ui/Toast";
 import type { Escrita } from "@/mocks/services/fakeApi";
 import { paraErroApi, type ErroApi } from "@/mocks/services/erros";
@@ -11,7 +13,7 @@ import { invalidarDados } from "./revisao";
 
 export type OpcoesEscrita<T> = {
   /** Título do toast de sucesso; recebe o resultado (ex.: "Lead movido para Visita"). */
-  sucesso: string | ((resultado: T) => string);
+  sucesso: string | ((resultado: T, escrita: Escrita<T> & { soNestaSessao?: boolean }) => string);
   /** Oferece "Desfazer" no toast (padrão: true). */
   desfazivel?: boolean;
   /** Título do toast de erro (padrão: "Não foi possível salvar"). A descrição é a mensagem do erro. */
@@ -36,7 +38,7 @@ export async function executarEscrita<T>(
     return { fase: "erro", erro };
   }
   invalidarDados();
-  const titulo = typeof opcoes.sucesso === "function" ? opcoes.sucesso(escrita.resultado) : opcoes.sucesso;
+  const titulo = typeof opcoes.sucesso === "function" ? opcoes.sucesso(escrita.resultado, escrita) : opcoes.sucesso;
   const id = toast({
     tone: "success",
     title: titulo,
@@ -78,4 +80,16 @@ export function useEscrita() {
   }, []);
   const limpar = useCallback(() => setEstado({ fase: "idle" }), []);
   return { estado, executar, limpar };
+}
+
+/** Fase da escrita → fase do formulário (botão "Salvando…", alerta de erro do servidor). */
+export function envioDe(fase: FaseEscrita): EnvioFormulario {
+  if (fase.fase === "enviando") return { fase: "salvando" };
+  return fase.fase === "erro" ? { fase: "erro", mensagem: fase.mensagem } : { fase: "idle" };
+}
+
+/** Fase da escrita → fase do diálogo de confirmação. */
+export function faseConfirmacaoDe(fase: FaseEscrita): FaseConfirmacao {
+  if (fase.fase === "enviando") return { fase: "confirmando" };
+  return fase.fase === "erro" ? { fase: "erro", mensagem: fase.mensagem } : { fase: "idle" };
 }

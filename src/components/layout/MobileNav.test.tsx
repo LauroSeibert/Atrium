@@ -23,14 +23,23 @@ describe("MobileNav (RF-01, RF-63)", () => {
   it("aberto mostra o drawer e os links dos módulos", () => {
     montar(true);
     expect(screen.getByRole("dialog", { name: "Menu" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Imóveis" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Agenda" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Leads" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Configurações" })).toBeInTheDocument();
   });
 
+  it("grupo da rota atual aberto e o outro recolhido", async () => {
+    montar(true);
+    expect(screen.getByRole("button", { name: "Comercial" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Operação" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "Imóveis" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Operação" }));
+    expect(screen.getByRole("link", { name: "Imóveis" })).toBeInTheDocument();
+  });
+
   it("clicar num link fecha o drawer", async () => {
     const { onAbertoChange } = montar(true);
-    await userEvent.click(screen.getByRole("link", { name: "Financeiro" }));
+    await userEvent.click(screen.getByRole("link", { name: "Relatórios" }));
     expect(onAbertoChange).toHaveBeenCalledWith(false);
   });
 });

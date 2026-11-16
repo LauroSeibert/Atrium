@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useToastStore } from "@/components/ui/Toast";
 import { executarEscrita } from "./escrita";
 import { invalidarDados } from "./revisao";
+import { enviandoLinha, useAcaoEmLinha } from "./useAcaoEmLinha";
 import { useConsulta } from "./useConsulta";
 
 beforeEach(() => useToastStore.getState().clear());
@@ -51,5 +52,34 @@ describe("executarEscrita (RF-04)", () => {
       desfazivel: false,
     });
     expect(useToastStore.getState().toasts[0]?.action).toBeUndefined();
+  });
+});
+
+describe("useAcaoEmLinha", () => {
+  it("bloqueia segundo acionamento enquanto envia e volta a idle", async () => {
+    const { result } = renderHook(() => useAcaoEmLinha());
+    let liberar: () => void = () => {};
+    const lenta = () =>
+      new Promise<{ resultado: number; desfazer: () => Promise<void> }>((res) => {
+        liberar = () => res({ resultado: 1, desfazer: async () => {} });
+      });
+    let primeira: Promise<unknown> = Promise.resolve();
+    act(() => {
+      primeira = result.current.executar("a", lenta, { sucesso: "ok" });
+    });
+    expect(result.current.estado).toEqual({ fase: "enviando", id: "a" });
+    expect(enviandoLinha(result.current.estado, "b")).toBe(false);
+    const segunda = vi.fn(async () => ({ resultado: 2, desfazer: async () => {} }));
+    let r2: unknown;
+    await act(async () => {
+      r2 = await result.current.executar("b", segunda, { sucesso: "ok" });
+    });
+    expect(r2).toBeUndefined();
+    expect(segunda).not.toHaveBeenCalled();
+    await act(async () => {
+      liberar();
+      await primeira;
+    });
+    expect(result.current.estado).toEqual({ fase: "idle" });
   });
 });

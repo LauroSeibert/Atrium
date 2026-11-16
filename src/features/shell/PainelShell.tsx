@@ -12,10 +12,10 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type R
 import { AppShell } from "@/components/layout/AppShell";
 import { MobileNav } from "@/components/layout/MobileNav";
 import {
-  NAV_PRINCIPAL,
+  NAV_FOLHAS,
   NAV_REFERENCIA,
-  NAV_RODAPE,
   rotaDaNotificacao,
+  type ItemNavegacao,
   trilhaDaRota,
   rotaDoImovel,
 } from "@/components/layout/navegacao";
@@ -57,7 +57,7 @@ function useBuscaGlobal(termo: string) {
     return () => clearTimeout(t);
   }, [termo]);
   const buscar = useCallback(
-    () =>
+    (): ReturnType<typeof fakeApi.search> =>
       normalizar(termoEstavel).length < 2
         ? Promise.resolve({ imoveis: [], leads: [], contratos: [] })
         : fakeApi.search(termoEstavel),
@@ -124,8 +124,13 @@ export function PainelShell({
   useAtalhoPaleta(() => setPaletaAberta(true));
 
   const grupos = useMemo<GrupoPaleta[]>(() => {
-    const doMenu = (itens: typeof NAV_PRINCIPAL): ItemPaleta[] =>
-      itens.map((i) => ({ id: i.href, rotulo: i.rotulo, icone: i.icone, onSelect: () => ir(i.href) }));
+    const doMenu = (itens: readonly (ItemNavegacao & { rotuloCompleto?: string })[]): ItemPaleta[] =>
+      itens.map((i) => ({
+        id: i.href,
+        rotulo: i.rotuloCompleto ?? i.rotulo,
+        icone: i.icone,
+        onSelect: () => ir(i.href),
+      }));
     const estaticos: GrupoPaleta[] = [
       {
         id: "acoes",
@@ -147,7 +152,7 @@ export function PainelShell({
           },
         ],
       },
-      { id: "ir", rotulo: "Ir para", itens: doMenu([...NAV_PRINCIPAL, ...NAV_RODAPE, ...NAV_REFERENCIA]) },
+      { id: "ir", rotulo: "Ir para", itens: doMenu([...NAV_FOLHAS, ...NAV_REFERENCIA]) },
     ];
     // Com busca remota a paleta não filtra sozinha: filtramos os grupos fixos aqui.
     const termo = normalizar(busca);

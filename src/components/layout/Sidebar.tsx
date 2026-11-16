@@ -8,7 +8,7 @@ import { AtriumLogo, AtriumMark } from "../brand/AtriumLogo";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { Tooltip } from "../ui/Tooltip";
-import { NAV_PRINCIPAL, NAV_RODAPE, type ItemNavegacao } from "./navegacao";
+import { NAV_PRINCIPAL, NAV_RODAPE, type EntradaNavegacao } from "./navegacao";
 import { NavegacaoPrincipal } from "./NavegacaoPrincipal";
 
 export type TomSidebar = "clara" | "marca";
@@ -27,8 +27,8 @@ export type SidebarProps = {
   tom?: TomSidebar;
   /** Trilho fixo do tablet: sempre recolhido, sem o botão de recolher. */
   fixa?: boolean;
-  itens?: readonly ItemNavegacao[];
-  rodape?: readonly ItemNavegacao[];
+  itens?: readonly EntradaNavegacao[];
+  rodape?: readonly EntradaNavegacao[];
   className?: string;
   /** Nome do landmark; mude só quando houver duas sidebars na mesma página (ex.: comparação no catálogo). */
   "aria-label"?: string;

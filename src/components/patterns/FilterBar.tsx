@@ -17,13 +17,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/Popover";
 export type FiltroAtivo = { id: string; rotulo: string; onRemover: () => void };
 
 export type FilterBarProps = {
-  busca: string;
-  onBuscaChange: (busca: string) => void;
+  /** Sem `onBuscaChange` não há campo de busca (modo "à vista", ver `aVista`). */
+  busca?: string;
+  onBuscaChange?: (busca: string) => void;
   /** Atraso da digitação antes de emitir `onBuscaChange` (UI, não regra). */
   debounceMs?: number;
   rotuloBusca?: string;
   placeholderBusca?: string;
 
+  /**
+   * Modo "à vista": poucos controles de lista fechada (ex.: Selects) direto na barra, sem Popover.
+   * `onLimparTudo` vira o botão "Limpar filtros" (passe-o só com filtro aplicado).
+   */
+  aVista?: ReactNode;
   /** Conteúdo do Popover "Filtros (N)": os controles de cada tela. */
   filtros?: ReactNode;
   /** Filtros menos usados: ficam recolhidos dentro do Popover até "Mais filtros". */
@@ -54,11 +60,12 @@ function textoContagem(total: number | undefined, estado: "pronto" | "carregando
 }
 
 export function FilterBar({
-  busca,
+  busca = "",
   onBuscaChange,
   debounceMs = 300,
   rotuloBusca = "Buscar",
   placeholderBusca = "Buscar",
+  aVista,
   filtros,
   maisFiltros,
   ativos = [],
@@ -86,7 +93,7 @@ export function FilterBar({
     if (texto === emitido) return;
     const t = setTimeout(() => {
       setEmitido(texto);
-      onBuscaChange(texto);
+      onBuscaChange?.(texto);
     }, debounceMs);
     return () => clearTimeout(t);
   }, [texto, emitido, debounceMs, onBuscaChange]);
@@ -97,17 +104,25 @@ export function FilterBar({
   return (
     <div className={cn("flex max-w-full min-w-0 flex-col gap-3", className)}>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-0 basis-full sm:flex-1 sm:basis-64">
-          <Input
-            type="search"
-            aria-label={rotuloBusca}
-            placeholder={placeholderBusca}
-            leadingIcon={Search}
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            autoComplete="off"
-          />
-        </div>
+        {onBuscaChange ? (
+          <div className="min-w-0 basis-full sm:flex-1 sm:basis-64">
+            <Input
+              type="search"
+              aria-label={rotuloBusca}
+              placeholder={placeholderBusca}
+              leadingIcon={Search}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+        ) : null}
+        {aVista}
+        {aVista && onLimparTudo ? (
+          <Button variant="ghost" onClick={onLimparTudo}>
+            Limpar filtros
+          </Button>
+        ) : null}
         {temFiltros ? (
           <Popover>
             <PopoverTrigger asChild>

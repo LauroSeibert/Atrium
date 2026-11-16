@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { centavos, contratoId, corretorId, imovelId, isoData, isoDataHora, leadId, mesRef } from "../comum/tipos";
+import { centavos, contratoId, corretorId, imovelId, isoData, isoDataHora, mesRef, negociacaoId } from "../comum/tipos";
 
 export const STATUS_CONTRATO = ["rascunho", "ativo", "encerrado", "cancelado"] as const;
 export const statusContrato = z.enum(STATUS_CONTRATO);
@@ -42,7 +42,8 @@ export const contratoSchema = z
     numero: z.string().regex(/^CT-\d{4}-\d{4}$/),
     tipo: tipoContrato,
     imovelId,
-    leadId: leadId.nullable(),
+    /** Negociação que originou o contrato (fechada); o lead vem dela (invariante 3). */
+    negociacaoId: negociacaoId.nullable(),
     partes: z.array(parteSchema).min(2),
     valor: centavos.positive(),
     inicio: isoData,
@@ -73,3 +74,6 @@ export type Contrato = z.infer<typeof contratoSchema>;
 export type StatusParcela = "pago" | "atrasado" | "aVencer" | "cancelada";
 /** Status exibido/filtrável (RF-41): o armazenado + `inadimplente`, que é derivado. */
 export type StatusExibicaoContrato = StatusContrato | "inadimplente";
+
+/** Status exibido da comissão (RF-79): derivado de `pagaEm`. */
+export type StatusComissao = "paga" | "pendente";

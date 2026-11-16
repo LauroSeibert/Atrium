@@ -25,8 +25,18 @@ export const visitaId = idCom("vis");
 export const contratoId = idCom("ctr");
 export const atividadeId = idCom("atv");
 export const alteracaoId = idCom("alt");
+export const negociacaoId = idCom("neg");
+export const contatoId = idCom("ctt");
+export const anuncioId = idCom("anc");
+export const documentoId = idCom("doc");
+export const despesaId = idCom("dsp");
 
-export const tipoEntidade = z.enum(["imovel", "lead", "contrato"]);
+/**
+ * Entidades que aparecem em `alvo`/`relacionados` de atividades e em registros de alteração.
+ * Atividades usam imóvel, lead e contrato; `negociacao`, `anuncio` e `despesa` aparecem nos
+ * registros de alteração (ESTADOS §4).
+ */
+export const tipoEntidade = z.enum(["imovel", "lead", "contrato", "negociacao", "anuncio", "despesa"]);
 export type TipoEntidade = z.infer<typeof tipoEntidade>;
 export const refEntidade = z.object({ tipo: tipoEntidade, id: z.string().min(1) });
 export type RefEntidade = z.infer<typeof refEntidade>;
@@ -49,6 +59,11 @@ export class TransicaoInvalida extends Error {
   ) {
     super(motivo);
   }
+}
+
+/** Dado de entrada recusado pelo domínio com mensagem legível (ex.: arquivo grande demais). Vira erro `validacao`. */
+export class DadosInvalidos extends Error {
+  override readonly name = "DadosInvalidos";
 }
 
 /** Erro de pré-condição que não é transição (entidade inexistente, desfazer vencido…). */

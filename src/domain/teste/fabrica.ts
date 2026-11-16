@@ -1,10 +1,15 @@
+import type { Anuncio } from "../anuncio/schema";
 import type { Base } from "../comum/base";
 import { BASE_VAZIA } from "../comum/base";
 import type { Contexto } from "../comum/tipos";
+import type { Contato } from "../contato/schema";
 import type { Contrato } from "../contrato/schema";
 import type { Corretor } from "../corretor/schema";
+import type { Despesa } from "../despesa/schema";
+import type { Documento } from "../documento/schema";
 import type { Imovel } from "../imovel/schema";
 import type { Lead } from "../lead/schema";
+import type { Negociacao } from "../negociacao/schema";
 import type { Visita } from "../visita/schema";
 
 /** Fábricas mínimas e válidas para os testes do domínio (dados fictícios). */
@@ -67,13 +72,85 @@ export function lead(over: Partial<Lead> = {}): Lead {
     nome: "Lead Teste",
     contato: { telefone: "11988887777" },
     origem: "site",
-    etapa: "novo",
-    motivoPerda: null,
     interesse: { finalidade: "venda", tipos: [], bairros: [] },
     orcamento: null,
     imoveisVistos: [],
     responsavelId: "cor_a",
+    criadoEm: CRIADO,
+    atualizadoEm: CRIADO,
+    ...over,
+  };
+}
+
+/** Negociação mínima: lead_a × imv_a em `novo`. */
+export function negociacao(over: Partial<Negociacao> = {}): Negociacao {
+  return {
+    id: "neg_a",
+    leadId: "lead_a",
+    imovelId: "imv_a",
+    etapa: "novo",
+    motivoPerda: null,
+    responsavelId: "cor_a",
     ordem: 0,
+    criadoEm: CRIADO,
+    atualizadoEm: CRIADO,
+    ...over,
+  };
+}
+
+export function contato(over: Partial<Contato> = {}): Contato {
+  return {
+    id: "ctt_a",
+    nome: "Contato Teste",
+    papel: "proprietario",
+    telefone: "11977776666",
+    imovelIds: ["imv_a"],
+    contratoIds: [],
+    criadoEm: CRIADO,
+    atualizadoEm: CRIADO,
+    ...over,
+  };
+}
+
+export function anuncio(over: Partial<Anuncio> = {}): Anuncio {
+  return {
+    id: "anc_a",
+    imovelId: "imv_a",
+    canal: "site",
+    status: "rascunho",
+    publicadoEm: null,
+    visualizacoes: 0,
+    contatos: 0,
+    criadoEm: CRIADO,
+    atualizadoEm: CRIADO,
+    ...over,
+  };
+}
+
+export function documento(over: Partial<Documento> = {}): Documento {
+  return {
+    id: "doc_a",
+    contratoId: "ctr_a",
+    tipo: "matricula",
+    nome: "matricula.pdf",
+    mime: "application/pdf",
+    tamanho: 120_000,
+    arquivoId: null,
+    enviadoPorId: "cor_a",
+    enviadoEm: CRIADO,
+    ...over,
+  };
+}
+
+export function despesa(over: Partial<Despesa> = {}): Despesa {
+  return {
+    id: "dsp_a",
+    categoria: "imposto",
+    descricao: "ITBI",
+    valor: 900_000,
+    vencimento: "2026-11-20",
+    pagaEm: null,
+    contratoId: null,
     criadoEm: CRIADO,
     atualizadoEm: CRIADO,
     ...over,
@@ -86,7 +163,7 @@ export function contrato(over: Partial<Contrato> = {}): Contrato {
     numero: "CT-2026-0001",
     tipo: "venda",
     imovelId: "imv_a",
-    leadId: null,
+    negociacaoId: null,
     partes: [
       { papel: "comprador", nome: "Comprador Teste", documento: "12345678901" },
       { papel: "vendedor", nome: "Vendedor Teste", documento: "10987654321" },
@@ -133,13 +210,14 @@ export function visita(over: Partial<Visita> = {}): Visita {
   };
 }
 
-/** Base mínima válida: 1 corretor, 1 imóvel de venda disponível, 1 lead novo. */
+/** Base mínima válida: 2 corretores, 1 imóvel de venda disponível, 1 lead com 1 negociação em `novo`. */
 export function baseMinima(over: Partial<Base> = {}): Base {
   return {
     ...BASE_VAZIA,
     corretores: [corretor(), corretor({ id: "cor_b", nome: "Beto Teste", email: "beto@example.com" })],
     imoveis: [imovel()],
     leads: [lead()],
+    negociacoes: [negociacao()],
     ...over,
   };
 }

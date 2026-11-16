@@ -5,7 +5,12 @@
  */
 import type { StatusExibicaoContrato, StatusParcela, TipoContrato } from "@/domain/contrato/schema";
 import type { Finalidade, StatusImovel, TipoComodo, TipoImovel } from "@/domain/imovel/schema";
-import type { Etapa, MotivoPerda, Origem } from "@/domain/lead/schema";
+import type { CanalAnuncio, StatusAnuncio } from "@/domain/anuncio/schema";
+import type { PapelContato } from "@/domain/contato/schema";
+import type { CategoriaDespesa, StatusDespesa } from "@/domain/despesa/schema";
+import type { TipoDocumento } from "@/domain/documento/schema";
+import type { Origem } from "@/domain/lead/schema";
+import type { Etapa, MotivoPerda } from "@/domain/negociacao/schema";
 import type { StatusVisita } from "@/domain/visita/schema";
 import type { BadgeProps } from "../ui/Badge";
 
@@ -88,4 +93,51 @@ export const COMODO_ROTULO: Record<TipoComodo, string> = {
   garagem: "Garagem",
   areaGourmet: "Área gourmet",
   escritorio: "Escritório",
+};
+
+export const STATUS_ANUNCIO_UI: Record<StatusAnuncio, Rotulado> = {
+  rascunho: { rotulo: "Rascunho", tom: "neutral" },
+  publicado: { rotulo: "Publicado", tom: "success" },
+  pausado: { rotulo: "Pausado", tom: "warning" },
+  encerrado: { rotulo: "Encerrado", tom: "neutral" },
+};
+
+export const CANAL_ANUNCIO_ROTULO: Record<CanalAnuncio, string> = {
+  site: "Site próprio",
+  portal: "Portal imobiliário",
+  classificados: "Classificados",
+  redes: "Redes sociais",
+};
+
+export const PAPEL_CONTATO_ROTULO: Record<PapelContato, string> = {
+  proprietario: "Proprietário",
+  advogado: "Advogado",
+  cartorio: "Cartório",
+  despachante: "Despachante",
+  fiador: "Fiador",
+  outro: "Outro",
+};
+
+export const TIPO_DOCUMENTO_ROTULO: Record<TipoDocumento, string> = {
+  contratoAssinado: "Contrato assinado",
+  documentoPessoal: "Documento pessoal",
+  matricula: "Matrícula",
+  certidao: "Certidão",
+  comprovante: "Comprovante",
+  outro: "Outro",
+};
+
+export const CATEGORIA_DESPESA_ROTULO: Record<CategoriaDespesa, string> = {
+  imposto: "Imposto",
+  cartorio: "Cartório",
+  certidao: "Certidão",
+  taxa: "Taxa",
+  despachante: "Despachante",
+  outro: "Outro",
+};
+
+export const STATUS_DESPESA_UI: Record<StatusDespesa, Rotulado> = {
+  paga: { rotulo: "Paga", tom: "success" },
+  aVencer: { rotulo: "A vencer", tom: "neutral" },
+  atrasada: { rotulo: "Atrasada", tom: "danger" },
 };

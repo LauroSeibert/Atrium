@@ -14,6 +14,13 @@ export const TIPOS_ATIVIDADE = [
   "pagamentoRegistrado",
   "contratoCriado",
   "contratoVinculado",
+  "negociacaoCriada",
+  "imovelDefinido",
+  "anuncioAlterado",
+  "documentoAdicionado",
+  "documentoRemovido",
+  "comissaoPaga",
+  "despesaPaga",
 ] as const;
 export const tipoAtividade = z.enum(TIPOS_ATIVIDADE);
 export type TipoAtividade = z.infer<typeof tipoAtividade>;

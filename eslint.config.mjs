@@ -36,7 +36,7 @@ const designSystemSelectors = [
  * Pega atribuição direta, atribuição computada e Object.assign. Spreads ({...lead, etapa})
  * não são bloqueados (colidem com filtros por status); a defesa aí são os tipos readonly do domínio.
  */
-const CAMPOS_DE_ESTADO = "/^(status|etapa|pagoEm|motivoPerda)$/";
+const CAMPOS_DE_ESTADO = "/^(status|etapa|pagoEm|pagaEm|motivoPerda)$/";
 const MSG_ESTADO =
   "Mudança de estado fora do domínio: use a função de transição em src/domain (docs/ESTADOS-E-FLUXOS.md).";
 const fluxoCriticoSelectors = [

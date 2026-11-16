@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { OperacaoInvalida, TransicaoInvalida } from "../comum/tipos";
-import { baseMinima, CTX, CTX_DEPOIS, imovel, lead, visita } from "../teste/fabrica";
+import { baseMinima, CTX, CTX_DEPOIS, imovel, lead, negociacao, visita } from "../teste/fabrica";
 import { STATUS_VISITA } from "./schema";
-import { TRANSICOES_VISITA, agendarVisita, podeTransicionarVisita, transicionarVisita } from "./estado";
+import {
+  TRANSICOES_VISITA,
+  agendarVisita,
+  podeAgendarVisita,
+  podeTransicionarVisita,
+  transicionarVisita,
+  transicoesPermitidasVisita,
+} from "./estado";
 
 const nova = (over = {}) => ({
   imovelId: "imv_a",
@@ -64,9 +71,25 @@ describe("agendarVisita", () => {
     expect(agendarVisita(baseMinima(), nova({ dataHora: CTX.agora }), CTX).resultado.status).toBe("agendada");
   });
 
-  it("lead perdido lança OperacaoInvalida", () => {
-    const base = baseMinima({ leads: [lead({ etapa: "perdido", motivoPerda: "preco" })] });
-    expect(() => agendarVisita(base, nova(), CTX)).toThrow("Lead perdido não agenda visita.");
+  it("lead só com negociações perdidas (ou sem nenhuma) lança OperacaoInvalida", () => {
+    const perdida = negociacao({ etapa: "perdido", motivoPerda: "preco" });
+    const base = baseMinima({ negociacoes: [perdida] });
+    expect(podeAgendarVisita(base, "lead_a").ok).toBe(false);
+    expect(() => agendarVisita(base, nova(), CTX)).toThrow("Lead sem negociação ativa não agenda visita.");
+    // basta uma negociação não perdida (mesmo fechada ou em outro imóvel)
+    const outra = negociacao({ id: "neg_b", imovelId: null, etapa: "fechado", motivoPerda: null });
+    expect(
+      podeAgendarVisita(baseMinima({ negociacoes: [perdida, { ...outra, imovelId: "imv_a" }] }), "lead_a").ok,
+    ).toBe(true);
+  });
+
+  it("transicoesPermitidasVisita: só agendada tem ações", () => {
+    expect(transicoesPermitidasVisita(visita()).map((t) => t.para)).toEqual([
+      "realizada",
+      "cancelada",
+      "naoCompareceu",
+    ]);
+    expect(transicoesPermitidasVisita(visita({ status: "realizada" }))).toEqual([]);
   });
 
   it("lead ou imóvel inexistente lança OperacaoInvalida; dados inválidos lançam", () => {

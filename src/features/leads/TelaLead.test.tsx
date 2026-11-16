@@ -32,7 +32,7 @@ const envolver = (ui: React.ReactNode) =>
     </TooltipProvider>,
   );
 
-describe("TelaLead (RF-33, RF-34, RF-37, RF-65)", () => {
+describe("TelaLead (RF-33, RF-34, RF-37, RF-65, RF-70)", () => {
   it("mostra contato, interesse, linha do tempo e histórico", async () => {
     const [lead] = await fakeApi.listLeads();
     envolver(<TelaLead id={lead!.id} modo="pagina" />);
@@ -53,14 +53,29 @@ describe("TelaLead (RF-33, RF-34, RF-37, RF-65)", () => {
     await waitFor(() => expect(within(linha).getByText(/Ligar amanhã cedo/)).toBeInTheDocument());
   });
 
-  it("'Mover para…' muda a etapa, com toast", async () => {
-    const [lead] = await fakeApi.listLeads({ etapas: ["novo"] });
+  it("lista as negociações e 'Mover para…' muda a etapa de uma delas, com toast (RF-70)", async () => {
+    const n = (await fakeApi.listNegociacoes({ etapas: ["novo"] })).find((x) => x.imovel)!;
+    const user = userEvent.setup();
+    envolver(<TelaLead id={n.leadId} modo="pagina" />);
+    expect(await screen.findByRole("heading", { level: 2, name: "Negociações" })).toBeInTheDocument();
+    const rotulo = `${n.imovel!.codigo} · ${n.imovel!.titulo}`;
+    await user.click(await screen.findByRole("button", { name: `Mover negociação ${rotulo} para…` }));
+    await user.click(await screen.findByRole("menuitem", { name: "Visita" }));
+    expect(await screen.findByText(`${n.lead!.nome} (${n.imovel!.codigo}) movido para Visita`)).toBeInTheDocument();
+    const salvo = (await fakeApi.getLead(n.leadId)).negociacoes.find((x) => x.id === n.id)!;
+    expect(salvo.etapa).toBe("visita");
+  });
+
+  it("'Nova negociação' cria outra negociação do lead, com imóvel opcional (RF-71)", async () => {
+    const [lead] = await fakeApi.listLeads();
+    const antes = lead!.qtdNegociacoes;
     const user = userEvent.setup();
     envolver(<TelaLead id={lead!.id} modo="pagina" />);
-    await user.click(await screen.findByRole("button", { name: "Mover para…" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Visita" }));
-    expect(await screen.findByText(`${lead!.nome} movido para Visita`)).toBeInTheDocument();
-    expect((await fakeApi.getLead(lead!.id)).lead.etapa).toBe("visita");
+    await user.click(await screen.findByRole("button", { name: "Nova negociação" }));
+    const dialogo = await screen.findByRole("dialog", { name: "Nova negociação" });
+    await user.click(within(dialogo).getByRole("button", { name: "Criar negociação" }));
+    expect(await screen.findByText("Negociação criada")).toBeInTheDocument();
+    expect((await fakeApi.getLead(lead!.id)).negociacoes).toHaveLength(antes + 1);
   });
 
   it("lead inexistente vira estado de erro com link de volta", async () => {

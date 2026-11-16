@@ -456,3 +456,37 @@ export function cpfFicticio(r: Aleatorio): string {
 export function cnpjFicticio(r: Aleatorio): string {
   return `00000${String(r.inteiro(0, 999999999)).padStart(9, "0")}`;
 }
+
+/** Contatos fora do funil (RF-74): escritórios e serviços FICTÍCIOS. */
+export const OUTROS_CONTATOS: readonly (readonly [
+  string,
+  "advogado" | "cartorio" | "despachante" | "outro",
+  string | undefined,
+])[] = [
+  ["Dra. Lívia Montenegro", "advogado", "Revisa minutas de compra e venda."],
+  ["Dr. Otávio Bragança", "advogado", undefined],
+  ["Dra. Cecília Arantes", "advogado", "Especialista em locação comercial."],
+  ["Tabelionato Exemplo de Notas — Centro", "cartorio", "Escrituras: agendar com 5 dias úteis."],
+  ["Cartório Exemplo de Registro de Imóveis", "cartorio", undefined],
+  ["Ofício Exemplo de Títulos e Documentos", "cartorio", undefined],
+  ["Despachante Rápido Exemplo", "despachante", "Certidões em até 3 dias."],
+  ["Wagner Despachos (exemplo)", "despachante", undefined],
+  ["Vistorias Exemplo Ltda.", "outro", "Vistoria de entrada e saída de locação."],
+  ["Fotografia Imobiliária Exemplo", "outro", undefined],
+  ["Dr. Henrique Salles", "advogado", undefined],
+  ["Despachante Central Exemplo", "despachante", undefined],
+];
+
+/** Despesas sem contrato (RF-78): [categoria, descrição, valor em reais]. */
+export const DESPESAS_AVULSAS: readonly (readonly [
+  "imposto" | "cartorio" | "certidao" | "taxa" | "despachante" | "outro",
+  string,
+  number,
+])[] = [
+  ["certidao", "Certidões para captação", 320],
+  ["despachante", "Despachante: regularização de planta", 850],
+  ["taxa", "Taxa de averbação de construção", 1_240],
+  ["cartorio", "Reconhecimento de firmas", 96],
+  ["imposto", "IPTU atrasado assumido na captação", 2_180],
+  ["outro", "Cópias autenticadas", 64],
+];

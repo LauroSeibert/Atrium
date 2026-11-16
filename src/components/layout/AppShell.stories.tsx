@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { useState } from "react";
-import { fn } from "storybook/test";
+import { fn, screen, userEvent, within } from "storybook/test";
 import type { Notificacao } from "@/domain";
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
@@ -16,6 +16,7 @@ import {
   PESSOAS,
   useNavegacaoLocal,
   VIEWPORT_360,
+  VIEWPORT_TABLET,
   VIEWPORTS_SHELL,
 } from "./historias-shell";
 import { MobileNav } from "./MobileNav";
@@ -63,6 +64,9 @@ function PainelDemonstracao({
             onAlternarRecolhida={() => setRecolhida((r) => !r)}
             contadores={CONTADORES}
           />
+        }
+        sidebarCompacta={
+          <Sidebar pathname={pathname} recolhida fixa onAlternarRecolhida={fn()} contadores={CONTADORES} />
         }
         mobileNav={
           <MobileNav aberto={menuAberto} onAbertoChange={setMenuAberto} pathname={pathname} contadores={CONTADORES} />
@@ -129,6 +133,24 @@ type Story = StoryObj<typeof meta>;
 
 export const Desktop: Story = {};
 export const Recolhido: Story = { args: { recolhidaInicial: true } };
+export const RotaNoFinanceiro: Story = {
+  name: "Rota dentro do Financeiro",
+  args: { pathnameInicial: "/financeiro/receitas" },
+};
+export const RecolhidoComPainelDoFinanceiro: Story = {
+  name: "Recolhido com painel do Financeiro aberto",
+  args: { recolhidaInicial: true, pathnameInicial: "/financeiro/despesas" },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Financeiro" }));
+    await screen.findByRole("dialog", { name: "Financeiro" });
+  },
+};
+export const TrilhoTablet: Story = {
+  name: "Trilho do tablet (768 px)",
+  args: { pathnameInicial: "/agenda" },
+  parameters: { viewport: { options: VIEWPORTS_SHELL } },
+  globals: { viewport: VIEWPORT_TABLET },
+};
 export const Mobile: Story = {
   name: "Mobile (360 px)",
   parameters: { viewport: { options: VIEWPORTS_SHELL } },

@@ -20,17 +20,17 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 
 ### 2.1 Transversais
 
-| ID    | Requisito                                                                                                                                                           | Prior. |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| RF-01 | Navegação entre módulos por sidebar (desktop) e drawer (mobile), com item ativo destacado.                                                                          | M      |
-| RF-02 | Busca global e atalhos por paleta de comandos (⌘K / Ctrl+K): imóveis por código/título, leads por nome, contratos por número, e ações ("Novo imóvel", "Novo lead"). | M      |
-| RF-03 | Alternar tema claro/escuro/sistema; preferência persistida.                                                                                                         | M      |
-| RF-04 | Toda ação que altera dados mostra feedback (toast) e, quando reversível, oferece "Desfazer".                                                                        | M      |
-| RF-05 | Ações destrutivas (inativar imóvel, marcar lead como perdido, cancelar contrato) pedem confirmação descrevendo o impacto. Não há exclusão definitiva no MVP.        | M      |
-| RF-06 | Filtros, ordenação, paginação e modo de visualização refletidos na URL (link compartilhável, botão voltar funciona).                                                | M      |
-| RF-07 | Formatação pt-BR: moeda (R$ 1.234,56), área (m²), datas (dd/mm/aaaa e relativas: "há 2 h"), telefone ((11) 91234-5678).                                             | M      |
-| RF-08 | Seletor de "usuário atual" (persona) que muda o recorte padrão das listas.                                                                                          | S      |
-| RF-09 | Densidade de tabelas (confortável/compacta), persistida.                                                                                                            | S      |
+| ID    | Requisito                                                                                                                                                                                                                                                                                                                               | Prior. |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-01 | Navegação por sidebar (desktop), trilho (tablet) e drawer (mobile), com item ativo destacado. Itens em grupos: Dashboard; **Comercial** (Leads, Agenda, Contatos); **Operação** (Imóveis, Anúncios, Contratos); **Financeiro** com submenu (Visão geral, Receitas, Despesas, Comissões, Repasses); Relatórios; Configurações no rodapé. | M      |
+| RF-02 | Busca global e atalhos por paleta de comandos (⌘K / Ctrl+K): imóveis por código/título, leads por nome, contratos por número, e ações ("Novo imóvel", "Novo lead").                                                                                                                                                                     | M      |
+| RF-03 | Alternar tema claro/escuro/sistema; preferência persistida.                                                                                                                                                                                                                                                                             | M      |
+| RF-04 | Toda ação que altera dados mostra feedback (toast) e, quando reversível, oferece "Desfazer".                                                                                                                                                                                                                                            | M      |
+| RF-05 | Ações destrutivas (inativar imóvel, marcar lead como perdido, cancelar contrato) pedem confirmação descrevendo o impacto. Não há exclusão definitiva no MVP.                                                                                                                                                                            | M      |
+| RF-06 | Filtros, ordenação, paginação e modo de visualização refletidos na URL (link compartilhável, botão voltar funciona).                                                                                                                                                                                                                    | M      |
+| RF-07 | Formatação pt-BR: moeda (R$ 1.234,56), área (m²), datas (dd/mm/aaaa e relativas: "há 2 h"), telefone ((11) 91234-5678).                                                                                                                                                                                                                 | M      |
+| RF-08 | Seletor de "usuário atual" (persona) que muda o recorte padrão das listas.                                                                                                                                                                                                                                                              | S      |
+| RF-09 | Densidade de tabelas (confortável/compacta), persistida.                                                                                                                                                                                                                                                                                | S      |
 
 ### 2.2 Dashboard
 
@@ -38,7 +38,7 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
 | RF-10 | KPIs: imóveis ativos, leads novos (mês), visitas agendadas (próximos 7 dias), receita do mês; cada um com variação vs. mês anterior (▲▼ + cor + texto) e mini tendência. | M      |
 | RF-11 | Gráfico de receita dos últimos 12 meses (vendas × locações), com tooltip acessível e tabela alternativa.                                                                 | M      |
-| RF-12 | Funil resumido de leads por etapa, com quantidade e taxa de conversão entre etapas.                                                                                      | M      |
+| RF-12 | Funil resumido de negociações por etapa (RF-70), com quantidade e taxa de conversão entre etapas.                                                                        | M      |
 | RF-13 | Atividades recentes (últimas 10), cada uma levando ao registro de origem.                                                                                                | M      |
 | RF-14 | Próximos compromissos (visitas e vencimentos dos próximos 7 dias).                                                                                                       | M      |
 | RF-15 | Filtro de período do dashboard (mês atual, mês anterior, últimos 3/12 meses).                                                                                            | S      |
@@ -54,25 +54,25 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | RF-23 | Ordenação por mais recentes, preço (↑↓), área. Paginação com total de resultados.                                                                                                                                                                                                         | M      |
 | RF-24 | Detalhe do imóvel: galeria de cômodos (SVG) navegável por teclado, ficha técnica (áreas, quartos, suítes, banheiros, vagas, condomínio, IPTU), diferenciais, descrição, corretor responsável.                                                                                             | M      |
 | RF-25 | Status do imóvel: disponível, reservado, vendido, alugado, inativo. O usuário altera manualmente só entre **disponível, reservado e inativo**; **vendido/alugado** decorrem do contrato (ativo/encerrado) e não são editáveis à mão. Toda alteração tem confirmação e entra no histórico. | M      |
-| RF-26 | Histórico do imóvel (criação, mudanças de preço/status, visitas, propostas).                                                                                                                                                                                                              | M      |
+| RF-26 | Histórico do imóvel (criação, mudanças de preço/status, visitas, negociações, anúncios).                                                                                                                                                                                                  | M      |
 | RF-27 | Criar e editar imóvel em formulário multi-seção com validação inline; cômodos escolhidos de uma lista (ilustração automática por tipo).                                                                                                                                                   | M      |
 | RF-28 | Marcar imóvel como favorito/destaque (filtro "Favoritos").                                                                                                                                                                                                                                | S      |
-| RF-29 | Ver leads interessados no imóvel (a partir do detalhe).                                                                                                                                                                                                                                   | S      |
+| RF-29 | Ver as negociações do imóvel (leads interessados e etapa de cada um) a partir do detalhe (RF-72).                                                                                                                                                                                         | S      |
 
 ### 2.4 Leads / CRM
 
-| ID    | Requisito                                                                                                                            | Prior. |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| RF-30 | Quadro kanban por etapa: Novo → Contato → Visita → Proposta → Fechado / Perdido; cada coluna com contagem e soma do orçamento.       | M      |
-| RF-31 | Mover lead para qualquer etapa por arrastar e soltar **e** por alternativa sem arrastar (menu "Mover para…" e teclado).              | M      |
-| RF-32 | Mover para "Perdido" exige motivo (preço, localização, desistência, concorrência, outro).                                            | M      |
-| RF-33 | Detalhe do lead (drawer): contato, origem, orçamento, interesses (tipo, bairros, quartos), imóveis vistos, responsável.              | M      |
-| RF-34 | Linha do tempo do lead (mudanças de etapa, visitas, propostas, notas), com adição de nota.                                           | M      |
-| RF-35 | Criação rápida de lead (nome + contato + origem) a partir do kanban e da paleta de comandos.                                         | M      |
-| RF-36 | Filtrar o kanban por responsável, origem e período; "Meus leads" como atalho.                                                        | M      |
-| RF-37 | Agendar visita a partir do lead (imóvel, data, hora), que aparece em compromissos (RF-14).                                           | S      |
-| RF-38 | Alternar kanban ↔ lista (tabela) dos leads.                                                                                          | S      |
-| RF-39 | Ao mover um lead para Fechado, oferecer vincular um contrato existente do imóvel (opcional; o lead pode ficar fechado sem contrato). | S      |
+| ID    | Requisito                                                                                                                                                                                                                                                              | Prior. |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-30 | Quadro kanban de **negociações** por etapa: Novo → Contato → Visita → Proposta → Fechado / Perdido. Um card por lead × imóvel (o mesmo lead aparece uma vez por imóvel); cada coluna com contagem e soma dos valores (preço do imóvel; sem imóvel, orçamento do lead). | M      |
+| RF-31 | Mover negociação para qualquer etapa por arrastar e soltar **e** por alternativa sem arrastar (menu "Mover para…" e teclado).                                                                                                                                          | M      |
+| RF-32 | Mover negociação para "Perdido" exige motivo (preço, localização, desistência, concorrência, outro).                                                                                                                                                                   | M      |
+| RF-33 | Detalhe do lead (drawer): contato, origem, orçamento, perfil de interesse (tipo, bairros, quartos), imóveis vistos, responsável e a lista das suas negociações com a etapa de cada uma.                                                                                | M      |
+| RF-34 | Linha do tempo do lead (mudanças de etapa, visitas, propostas, notas), com adição de nota.                                                                                                                                                                             | M      |
+| RF-35 | Criação rápida de lead (nome + contato + origem, imóvel opcional) a partir do kanban e da paleta de comandos; cria o lead e a primeira negociação em "Novo".                                                                                                           | M      |
+| RF-36 | Filtrar o kanban por responsável, origem e período; "Meus leads" como atalho.                                                                                                                                                                                          | M      |
+| RF-37 | Agendar visita a partir do lead (imóvel, data, hora), que aparece em compromissos (RF-14).                                                                                                                                                                             | S      |
+| RF-38 | Alternar kanban ↔ lista (tabela) dos leads.                                                                                                                                                                                                                            | S      |
+| RF-39 | Ao mover uma negociação para Fechado, oferecer vincular um contrato existente do imóvel dessa negociação (opcional; pode ficar fechada sem contrato).                                                                                                                  | S      |
 
 ### 2.5 Contratos e financeiro
 
@@ -91,13 +91,13 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 
 ### 2.6 Shell (layout)
 
-| ID    | Requisito                                                                                             | Prior. |
-| ----- | ----------------------------------------------------------------------------------------------------- | ------ |
-| RF-60 | Sidebar recolhível (só ícones + tooltips), com estado persistido.                                     | M      |
-| RF-61 | Breadcrumb e cabeçalho de página (título, descrição, ação primária) em todas as telas.                | M      |
-| RF-62 | Badges de contagem na navegação (ex.: leads novos, parcelas atrasadas).                               | S      |
-| RF-63 | No mobile: sidebar em drawer e barra de ação inferior com a ação primária da tela.                    | M      |
-| RF-64 | Central de notificações in-app (mock), gerada a partir de atividades e vencimentos; marcar como lida. | S      |
+| ID    | Requisito                                                                                                                                                                                                                                     | Prior. |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-60 | Sidebar recolhível (só ícones + tooltips), com estado persistido. Recolhida (e no trilho do tablet), o grupo com submenu abre um painel flutuante ao lado do ícone; aberta, o submenu expande no lugar e o grupo da tela atual começa aberto. | M      |
+| RF-61 | Breadcrumb e cabeçalho de página (título, descrição, ação primária) em todas as telas.                                                                                                                                                        | M      |
+| RF-62 | Badges de contagem na navegação (ex.: leads novos, parcelas atrasadas).                                                                                                                                                                       | S      |
+| RF-63 | No mobile: sidebar em drawer (grupos recolhíveis, o da tela atual aberto) e barra de ação inferior com a ação primária da tela.                                                                                                               | M      |
+| RF-64 | Central de notificações in-app (mock), gerada a partir de atividades e vencimentos; marcar como lida.                                                                                                                                         | S      |
 
 ### 2.7 Configurações
 
@@ -111,6 +111,41 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 | ID    | Requisito                                                                                                                                              | Prior. |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
 | RF-65 | Seção "Histórico de alterações" no detalhe de imóvel, lead e contrato: quem alterou preço, status ou valor monetário, quando, e valor anterior → novo. | M      |
+
+### 2.9 Comercial (negociações, agenda e contatos)
+
+Decisões do Lauro em 2026-11-16: todo lead é um potencial cliente (não há entidade "Cliente" separada); o mesmo lead pode negociar mais de um imóvel, cada um com etapa própria; contatos são as outras pessoas (fora do funil).
+
+| ID    | Requisito                                                                                                                                                                                                                                      | Prior. |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-70 | **Negociação** = um lead × um imóvel, com etapa própria (máquina em ESTADOS §3.1). O lead guarda os dados da pessoa; a etapa, o motivo de perda e a posição no kanban ficam na negociação.                                                     | M      |
+| RF-71 | Adicionar negociação a um lead existente escolhendo o imóvel (a partir do detalhe do lead e do imóvel). Não pode haver duas negociações abertas (fora de fechado/perdido) do mesmo lead para o mesmo imóvel.                                   | M      |
+| RF-72 | Detalhe do lead e detalhe do imóvel listam as negociações (imóvel ou lead, etapa, responsável), cada uma levando ao card no kanban.                                                                                                            | M      |
+| RF-73 | **Agenda** (`/agenda`): visitas e vencimentos de parcelas em lista agrupada por dia; filtro por tipo (visitas, vencimentos) e período (hoje, 7 dias, 30 dias); marcar visita como realizada, cancelada ou não compareceu.                      | M      |
+| RF-74 | **Contatos** (`/contatos`): pessoas fora do funil (proprietário, advogado, cartório, despachante, fiador, outro). Lista com busca e filtro por papel; criar e editar (nome, papel, telefone, e-mail, observação, imóveis e contratos ligados). | M      |
+
+### 2.10 Operação (anúncios e documentos)
+
+| ID    | Requisito                                                                                                                                                                                                                                                                                                                               | Prior. |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-75 | **Anúncios** (`/anuncios`), só demonstração: um anúncio por imóvel × canal (site próprio, portal imobiliário, classificados, redes sociais), com status rascunho → publicado ⇄ pausado → encerrado (máquina em ESTADOS §3.8), visualizações e contatos fictícios. Nada é integrado.                                                     | S      |
+| RF-76 | **Documentos do contrato** (aba no detalhe do contrato): enviar arquivo (PDF, JPG ou PNG, até 10 MB) escolhendo o tipo (contrato assinado, documento pessoal, matrícula, certidão, comprovante, outro); listar, baixar e remover (com confirmação e Desfazer). O arquivo fica salvo no navegador (IndexedDB) e sobrevive ao recarregar. | M      |
+
+### 2.11 Financeiro (receitas e despesas)
+
+| ID    | Requisito                                                                                                                                                                                                                                                                                                                                                     | Prior. |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-77 | **Receitas** (`/financeiro/receitas`): parcelas de todos os contratos numa tabela (contrato, imóvel, vencimento, valor, status), com filtros por status, tipo de contrato e período; registrar pagamento (RF-43) e exportar CSV.                                                                                                                              | M      |
+| RF-78 | **Despesas** (`/financeiro/despesas`): custos de impostos e burocracia de contratos e documentação. Lançar e editar despesa (categoria: imposto, cartório, certidão, taxa, despachante, outro; descrição, valor, vencimento, contrato opcional), registrar pagamento com Desfazer, filtros e CSV. As despesas de um contrato também aparecem no detalhe dele. | M      |
+| RF-79 | **Comissões** (`/financeiro/comissoes`): comissões de todos os contratos por competência e corretor, com status (paga, pendente) e ação "Marcar como paga".                                                                                                                                                                                                   | S      |
+| RF-80 | **Repasses** (`/financeiro/repasses`): repasses ao proprietário de todas as locações, por mês (derivado, mesma regra do RF-46).                                                                                                                                                                                                                               | S      |
+| RF-81 | A visão geral do financeiro mostra também as despesas do período e o resultado (receitas recebidas − despesas pagas).                                                                                                                                                                                                                                         | M      |
+
+### 2.12 Relatórios
+
+| ID    | Requisito                                                                                                                                                                                                                                                                          | Prior. |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| RF-82 | **Relatórios** (`/relatorios`), uma tela com cinco relatórios: vendas por período, desempenho dos corretores, conversão de leads, imóveis mais procurados e receita por período. Filtro de período e de corretor; cada um com gráfico, tabela acessível (RNF-17) e exportação CSV. | M      |
 
 ## 3. Requisitos não funcionais
 
@@ -143,8 +178,10 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 - Backend, banco de dados e API real (tudo é `fakeApi` em memória + `localStorage`).
 - Autenticação, autorização e multiusuário real (persona é só um seletor de demonstração).
 - Pagamentos, boletos, Pix e conciliação bancária.
-- Upload real de imagens e documentos (imóveis usam ilustrações SVG).
-- Integrações: portais imobiliários, WhatsApp, e-mail, calendário, assinatura eletrônica.
+- Upload de imagens de imóveis (usam ilustrações SVG) e armazenamento de arquivos em servidor: os documentos do contrato (RF-76) ficam só no navegador.
+- Integrações: portais imobiliários (os anúncios do RF-75 são só demonstração), WhatsApp, e-mail, calendário, assinatura eletrônica.
+- Tarefas e atividades com prazo e responsável; captações; propostas como entidade própria (seguem como etapa da negociação).
+- Contas a pagar da própria imobiliária (aluguel, folha, fornecedores): as despesas do RF-78 são só impostos e burocracia de contratos e documentação.
 - Notificações push/e-mail (só a central in-app mock, RF-64).
 - Internacionalização (só pt-BR) e múltiplas moedas.
 - Geração de contrato em PDF.
@@ -161,21 +198,29 @@ Prioridade: **M** = must (MVP), **S** = should (entra se não atrasar o Gate 8).
 
 Rotas do App Router (grupo `(dashboard)` compartilha o shell da Fase 7).
 
-| Rota                           | Tela                                                                        | Persona principal  | RFs                                  |
-| ------------------------------ | --------------------------------------------------------------------------- | ------------------ | ------------------------------------ |
-| `/`                            | Dashboard                                                                   | Gestor             | RF-10…16                             |
-| `/imoveis`                     | Imóveis — lista (grade/lista, filtros na URL)                               | Corretor           | RF-20…23, RF-28, RF-49               |
-| `/imoveis/novo`                | Imóvel — criação                                                            | Corretor           | RF-27                                |
-| `/imoveis/[id]`                | Imóvel — detalhe (galeria, ficha, histórico de alterações)                  | Corretor           | RF-24…26, RF-29, RF-65               |
-| `/imoveis/[id]/editar`         | Imóvel — edição                                                             | Corretor           | RF-27                                |
-| `/leads`                       | Leads — kanban (ou lista via `?view=lista`)                                 | Corretor           | RF-30…32, RF-35, RF-36, RF-38, RF-39 |
-| `/leads/[id]`                  | Lead — detalhe (abre como drawer sobre o kanban; acesso direto abre página) | Corretor           | RF-33, RF-34, RF-37                  |
-| `/contratos`                   | Contratos — tabela                                                          | Financeiro         | RF-40, RF-41, RF-47, RF-49           |
-| `/contratos/[id]`              | Contrato — detalhe e cronograma                                             | Financeiro         | RF-42, RF-43, RF-46, RF-48           |
-| `/financeiro`                  | Financeiro — resumo                                                         | Gestor, Financeiro | RF-44, RF-45                         |
-| `/configuracoes`               | Configurações                                                               | Todos              | RF-03, RF-08, RF-09, RF-50, RF-51    |
-| `/design-system/colors`        | Referência: cores (Fase 1)                                                  | Time               | —                                    |
-| `/design-system/illustrations` | Referência: SVGs (Fase 5)                                                   | Time               | —                                    |
+| Rota                           | Tela                                                                        | Persona principal  | RFs                                         |
+| ------------------------------ | --------------------------------------------------------------------------- | ------------------ | ------------------------------------------- |
+| `/`                            | Dashboard                                                                   | Gestor             | RF-10…16                                    |
+| `/imoveis`                     | Imóveis — lista (grade/lista, filtros na URL)                               | Corretor           | RF-20…23, RF-28, RF-49                      |
+| `/imoveis/novo`                | Imóvel — criação                                                            | Corretor           | RF-27                                       |
+| `/imoveis/[id]`                | Imóvel — detalhe (galeria, ficha, histórico de alterações)                  | Corretor           | RF-24…26, RF-29, RF-65                      |
+| `/imoveis/[id]/editar`         | Imóvel — edição                                                             | Corretor           | RF-27                                       |
+| `/leads`                       | Leads — kanban de negociações (ou lista via `?view=lista`)                  | Corretor           | RF-30…32, RF-35, RF-36, RF-38, RF-39, RF-70 |
+| `/leads/[id]`                  | Lead — detalhe (abre como drawer sobre o kanban; acesso direto abre página) | Corretor           | RF-33, RF-34, RF-37, RF-71, RF-72           |
+| `/agenda`                      | Agenda — visitas e vencimentos                                              | Corretor           | RF-73                                       |
+| `/contatos`                    | Contatos                                                                    | Todos              | RF-74                                       |
+| `/anuncios`                    | Anúncios (demonstração)                                                     | Corretor           | RF-75                                       |
+| `/contratos`                   | Contratos — tabela                                                          | Financeiro         | RF-40, RF-41, RF-47, RF-49                  |
+| `/contratos/[id]`              | Contrato — detalhe, cronograma, documentos e despesas                       | Financeiro         | RF-42, RF-43, RF-46, RF-48, RF-76, RF-78    |
+| `/financeiro`                  | Financeiro — visão geral                                                    | Gestor, Financeiro | RF-44, RF-45, RF-81                         |
+| `/financeiro/receitas`         | Receitas (parcelas de todos os contratos)                                   | Financeiro         | RF-77                                       |
+| `/financeiro/despesas`         | Despesas                                                                    | Financeiro         | RF-78                                       |
+| `/financeiro/comissoes`        | Comissões                                                                   | Gestor, Financeiro | RF-79                                       |
+| `/financeiro/repasses`         | Repasses ao proprietário                                                    | Financeiro         | RF-80                                       |
+| `/relatorios`                  | Relatórios                                                                  | Gestor             | RF-82                                       |
+| `/configuracoes`               | Configurações                                                               | Todos              | RF-03, RF-08, RF-09, RF-50, RF-51           |
+| `/design-system/colors`        | Referência: cores (Fase 1)                                                  | Time               | —                                           |
+| `/design-system/illustrations` | Referência: SVGs (Fase 5)                                                   | Time               | —                                           |
 
 **Globais (em todas as telas do shell):** sidebar/drawer (RF-01, RF-60, RF-62), topbar com busca ⌘K (RF-02), notificações (RF-64), alternador de tema (RF-03), breadcrumb (RF-61), toasts (RF-04, RNF-18), _skip link_ (RNF-03).
 
@@ -194,8 +239,9 @@ src/app/
       [id]/page.tsx                # detalhe em página cheia (acesso direto / recarregar)
       @drawer/default.tsx          # null
       @drawer/(.)[id]/page.tsx     # rota interceptada: detalhe em drawer sobre o kanban
+    agenda/page.tsx · contatos/page.tsx · anuncios/page.tsx · relatorios/page.tsx
     contratos/  page.tsx · [id]/page.tsx
-    financeiro/page.tsx
+    financeiro/  page.tsx · receitas/page.tsx · despesas/page.tsx · comissoes/page.tsx · repasses/page.tsx
     configuracoes/page.tsx
     design-system/  colors/page.tsx · illustrations/page.tsx
 ```
@@ -218,7 +264,16 @@ flowchart LR
   K(("⌘K")) -.-> I & L & C & IN
 ```
 
-**Ordem do menu:** Dashboard · Imóveis · Leads · Contratos · Financeiro — e, separado no rodapé, Configurações. (Lei de Hick: 5 itens principais.)
+**Ordem do menu (2026-11-16):**
+
+- Dashboard
+- **Comercial** (rótulo de grupo): Leads · Agenda · Contatos
+- **Operação** (rótulo de grupo): Imóveis · Anúncios · Contratos
+- **Financeiro** (item com submenu): Visão geral · Receitas · Despesas · Comissões · Repasses
+- Relatórios
+- Configurações, separado no rodapé
+
+Regras: um modo de exibição (kanban, lista) não vira item; submenu só com três ou mais filhos; rótulos de grupo discretos (texto pequeno em cinza); documentos ficam dentro do contrato, sem item próprio.
 
 ## 7. Critérios de aceite do MVP (Gate 8)
 
