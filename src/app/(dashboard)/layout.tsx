@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
-import { COOKIE_SIDEBAR, PainelShell } from "@/features/shell/PainelShell";
+import { COOKIE_SIDEBAR } from "@/features/shell/cookies";
+import { PainelShell } from "@/features/shell/PainelShell";
 
 /**
  * Shell do painel (Fase 7): sidebar/drawer, topbar, ⌘K, notificações e toasts em todas as telas.

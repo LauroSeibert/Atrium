@@ -34,11 +34,11 @@ import {
 import { Toaster } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { trocarComTransicao } from "@/lib/motion";
-import { usePreferencia } from "@/lib/preferencias";
 import { useRecurso, type Recurso } from "@/lib/recurso";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { invalidarDados } from "@/features/dados/revisao";
 import { useConsulta } from "@/features/dados/useConsulta";
+import { COOKIE_SIDEBAR } from "./cookies";
 import { useRotuloDaTrilha } from "./trilha";
 
 const assinarNada = () => () => {};
@@ -71,7 +71,6 @@ function useBuscaGlobal(termo: string) {
 }
 
 /** Cookie espelho da preferência, lido no servidor para a sidebar já nascer recolhida (sem piscar). */
-export const COOKIE_SIDEBAR = "atrium-sidebar-recolhida";
 
 export function PainelShell({
   children,
@@ -83,14 +82,13 @@ export function PainelShell({
   const pathname = usePathname();
   const router = useRouter();
   const rotuloAtual = useRotuloDaTrilha(pathname);
-  const [recolhida, gravarRecolhida] = usePreferencia<boolean>("sidebar-recolhida", recolhidaInicial);
-  const setRecolhida = useCallback(
-    (v: boolean) => {
-      gravarRecolhida(v);
-      document.cookie = `${COOKIE_SIDEBAR}=${v ? 1 : 0}; path=/; max-age=31536000; samesite=lax`;
-    },
-    [gravarRecolhida],
-  );
+  // Fonte única: o cookie, lido no servidor. Assim o HTML já chega com a sidebar no estado certo
+  // e nada muda depois da hidratação (antes o localStorage podia divergir e a sidebar "encolhia" ao carregar).
+  const [recolhida, setRecolhidaEstado] = useState(recolhidaInicial);
+  const setRecolhida = useCallback((v: boolean) => {
+    setRecolhidaEstado(v);
+    document.cookie = `${COOKIE_SIDEBAR}=${v ? 1 : 0}; path=/; max-age=31536000; samesite=lax`;
+  }, []);
   const [menuAberto, setMenuAberto] = useState(false);
   const [paletaAberta, setPaletaAberta] = useState(false);
   const [busca, setBusca] = useState("");

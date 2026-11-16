@@ -135,6 +135,18 @@
     /* Reserva o espaço da barra de rolagem: abrir menus/modais (que travam a rolagem) não desloca a página. */
     scrollbar-gutter: stable;
   }
+  /* Tailwind v4 tirou o cursor de mão dos botões; tudo que é clicável volta a mostrar. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+  /* Barras de rolagem finas e neutras em todo o app (listas, popovers, tabelas, sidebar). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+  }
   body {
     font-size: var(--font-size-sm);
     line-height: var(--line-height-body);

@@ -35,3 +35,16 @@ describe("DateInput / TimeInput (formato brasileiro)", () => {
     expect(onValueChange).toHaveBeenLastCalledWith("14:30");
   });
 });
+
+describe("Calendário do DateInput", () => {
+  it("abre no dia selecionado, navega pelo teclado e escolhe", async () => {
+    const onValueChange = vi.fn();
+    render(<Field label="Data">{(c) => <DateInput {...c} value="2026-11-05" onValueChange={onValueChange} />}</Field>);
+    await userEvent.click(screen.getByRole("button", { name: "Abrir calendário" }));
+    expect(await screen.findByRole("grid", { name: /novembro de 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /, 5 de novembro de 2026/ })).toHaveFocus();
+    await userEvent.keyboard("{ArrowRight}{Enter}");
+    expect(onValueChange).toHaveBeenLastCalledWith("2026-11-06");
+    expect(screen.getByLabelText("Data")).toHaveValue("06/11/2026");
+  });
+});
