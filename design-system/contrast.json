@@ -510,6 +510,24 @@
       "bg": "bg-subtle",
       "min": 4.5,
       "use": "Segmento não selecionado no trilho"
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface-header",
+      "min": 4.5,
+      "use": "Cabeçalho de coluna (Geist 12/500) na tabela densa"
+    },
+    {
+      "fg": "text",
+      "bg": "surface-header",
+      "min": 4.5,
+      "use": "Texto da linha sob hover na tabela densa"
+    },
+    {
+      "fg": "danger",
+      "bg": "surface-header",
+      "min": 4.5,
+      "use": "Vencimento em atraso sob hover"
     }
   ],
   "decorative": {

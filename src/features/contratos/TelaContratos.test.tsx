@@ -63,18 +63,32 @@ describe("TelaContratos (RF-40, RF-41, RF-47)", () => {
         screen.getByText(contagem(esperado.total).replace(/^0 contratos$/, "Nenhum resultado")),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByRole("list", { name: "Filtros aplicados" })).toHaveTextContent("Status: Inadimplente");
+    // O status vira a aba ativa (não um chip).
+    expect(screen.getByRole("button", { name: /Inadimplentes/, pressed: true })).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Filtros aplicados" })).not.toBeInTheDocument();
     const tabela = screen.getByRole("region", { name: "Contratos" });
     for (const l of esperado.itens.slice(0, 10))
       expect(within(tabela).getByText(l.contrato.numero)).toBeInTheDocument();
   });
 
-  it("marcar um status grava na URL", async () => {
+  it("a aba de status mostra a contagem e filtra pela URL", async () => {
+    const todos = await fakeApi.listContratos({}, GRANDE);
     render(<TelaContratos />);
     await screen.findByRole("region", { name: "Contratos" });
-    await userEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    await userEvent.click(await screen.findByRole("checkbox", { name: "Inadimplente" }));
+    const grupo = screen.getByRole("group", { name: "Status do contrato" });
+    await waitFor(() =>
+      expect(within(grupo).getByRole("button", { pressed: true })).toHaveTextContent(`${todos.total} Todos`),
+    );
+    await userEvent.click(within(grupo).getByRole("button", { name: /Inadimplentes/ }));
     expect(replace).toHaveBeenCalledWith(expect.stringContaining("status=inadimplente"), expect.anything());
+  });
+
+  it("marcar um status em Mais filtros grava na URL", async () => {
+    render(<TelaContratos />);
+    await screen.findByRole("region", { name: "Contratos" });
+    await userEvent.click(screen.getByRole("button", { name: "Mais filtros" }));
+    await userEvent.click(await screen.findByRole("checkbox", { name: "Encerrado" }));
+    expect(replace).toHaveBeenCalledWith(expect.stringContaining("status=encerrado"), expect.anything());
   });
 
   it("erro de carregamento oferece tentar de novo", async () => {

@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Instrument_Serif } from "next/font/google";
 
 /**
  * Instrument Serif (títulos e números de destaque, sempre peso 400), Geist (interface) e
@@ -13,7 +13,6 @@ export const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 export const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-export const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
-/** Classes das três variáveis, para o <html> do app e o preview do Storybook. */
-export const fontesVariaveis = `${instrumentSerif.variable} ${geist.variable} ${geistMono.variable}`;
+/** Classes das duas variáveis, para o <html> do app e o preview do Storybook. */
+export const fontesVariaveis = `${instrumentSerif.variable} ${geist.variable}`;

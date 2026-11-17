@@ -1,33 +1,32 @@
 "use client";
 /**
- * Contratos — lista (RF-40, RF-41, RF-47, RF-49; RF-06 estado na URL; RF-09 densidade).
- * Só monta compostos e liga ao fakeApi: status de exibição e próximo vencimento vêm derivados do domínio.
+ * Contratos — lista (RF-40, RF-41, RF-47, RF-49; RF-06 estado na URL), no padrão de listagem densa do
+ * DESIGN.md: cabeçalho compacto, abas de status com as contagens, barra de filtros numa linha e tabela
+ * com no máximo 2 linhas por célula. Status de exibição e próximo vencimento vêm derivados do domínio.
  */
 import { Download } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContractCard, ContractCardSkeleton } from "@/components/patterns/ContractCard";
-import type { DataTableAcaoEmLote, DataTableColuna } from "@/components/patterns/DataTable";
+import { AbasDeStatus } from "@/components/patterns/AbasDeStatus";
+import { BarraDeLote, type DataTableAcaoEmLote, type DataTableColuna } from "@/components/patterns/DataTable";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
-import { StatCard, StatGroup, type DadosStat } from "@/components/patterns/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { DateInput } from "@/components/ui/DateInput";
 import { Select } from "@/components/ui/Select";
-import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
 import { PERMITIDO, type StatusExibicaoContrato, type TipoContrato } from "@/domain";
 import { DEBOUNCE_BUSCA_MS, useParametrosUrl } from "@/features/dados/useParametrosUrl";
-import { mapear, type Recurso } from "@/lib/recurso";
 import { useConsulta } from "@/features/dados/useConsulta";
+import { cn } from "@/lib/cn";
 import { baixarCsv } from "@/lib/csv";
 import { formatData, formatMoeda } from "@/lib/format";
-import { usePreferencia } from "@/lib/preferencias";
 import { useTelaLarga } from "@/lib/useMidia";
 import { fakeApi } from "@/mocks/services/fakeApi";
 import { gerarCsv } from "./csv";
@@ -49,21 +48,54 @@ const eTipo = (v: string | undefined): v is TipoContrato => TIPOS.includes(v as 
 const eStatus = (v: string): v is StatusExibicaoContrato => STATUS.includes(v as StatusExibicaoContrato);
 const dataValida = (v: string | undefined) => (v && ISO_DATA.test(v) ? v : undefined);
 
-function resumoPartes(l: LinhaContrato): string {
+/** Partes em duas linhas: a primeira; depois "+ segunda" ou "+N" quando há mais de duas. */
+function partesEmDuasLinhas(l: LinhaContrato): [string, string] {
   const [primeira, segunda, ...resto] = l.contrato.partes;
-  const nomes = [primeira, segunda].filter(Boolean).map((p) => p!.nome);
-  return resto.length > 0 ? `${nomes.join(", ")} +${resto.length}` : nomes.join(", ");
+  if (!primeira) return ["—", ""];
+  if (!segunda) return [primeira.nome, ""];
+  return [primeira.nome, resto.length > 0 ? `+${resto.length + 1}` : `+ ${segunda.nome}`];
 }
 
-/** Contagem por status de exibição (agregação de exibição; o status vem derivado do domínio). */
-const kpi = (r: Recurso<Record<string, number>>, s: StatusExibicaoContrato, alerta = false): Recurso<DadosStat> =>
-  mapear(r, (m) => ({ valor: m[s] ?? 0, tom: alerta && (m[s] ?? 0) > 0 ? "alerta" : "neutro" }));
+/** Abas de status = indicadores; "Em dia" é o status `ativo` (inadimplente tem aba própria). */
+type IdAba = "todos" | "ativo" | "rascunho" | "inadimplente";
+const ABAS: readonly { id: IdAba; rotulo: string; risco?: boolean }[] = [
+  { id: "todos", rotulo: "Todos" },
+  { id: "ativo", rotulo: "Em dia" },
+  { id: "rascunho", rotulo: "Rascunhos" },
+  { id: "inadimplente", rotulo: "Inadimplentes", risco: true },
+];
+
+/** Uma célula de no máximo 2 linhas, sem quebra: o texto inteiro fica no `title`. */
+function Celula({
+  l1,
+  l2,
+  direita = false,
+  tom,
+}: {
+  l1: ReactNode;
+  l2?: ReactNode;
+  direita?: boolean;
+  tom?: "danger";
+}) {
+  const titulo = [l1, l2].filter((t) => typeof t === "string" && t).join(" · ") || undefined;
+  return (
+    <div className={cn("flex min-w-0 flex-col", direita && "items-end text-right")} title={titulo}>
+      <span className={cn("max-w-full truncate text-sm", tom === "danger" ? "text-danger" : "text-text")}>{l1}</span>
+      {l2 ? (
+        <span
+          className={cn("mt-0.5 max-w-full truncate text-xs", tom === "danger" ? "text-danger" : "text-text-muted")}
+        >
+          {l2}
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 const semImovel = { titulo: "Imóvel removido", codigo: "—" };
 
 export function TelaContratos() {
   const url = useParametrosUrl();
-  const [densidade] = usePreferencia<TableDensity>("densidade", "comfortable");
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const telaLarga = useTelaLarga();
 
@@ -104,24 +136,31 @@ export function TelaContratos() {
     for (const l of todos.itens) m[l.statusExibicao] = (m[l.statusExibicao] ?? 0) + 1;
     return m;
   }, []);
-  const { estado: resumo, recarregar: recarregarResumo } = useConsulta(carregarResumo);
+  const { estado: resumo } = useConsulta(carregarResumo);
+  const contagens = "dados" in resumo && resumo.dados ? resumo.dados : undefined;
+  const abas = ABAS.map((a) => ({
+    ...a,
+    contagem: contagens
+      ? a.id === "todos"
+        ? Object.values(contagens).reduce((s, n) => s + n, 0)
+        : (contagens[a.id] ?? 0)
+      : undefined,
+  }));
+  const abaAtiva: IdAba | null =
+    status.length === 0
+      ? "todos"
+      : status.length === 1 && ABAS.some((a) => a.id === status[0])
+        ? (status[0] as IdAba)
+        : null;
 
   const total = "dados" in estado && estado.dados ? estado.dados.total : undefined;
 
   const alternarStatus = (s: StatusExibicaoContrato, marcado: boolean) =>
     url.definir({ status: marcado ? [...status, s] : status.filter((x) => x !== s) });
 
+  // O tipo aparece no próprio seletor e o status numa aba; só o que não tem lugar visível vira chip.
   const ativos: FiltroAtivo[] = [
-    ...(tipo
-      ? [
-          {
-            id: "tipo",
-            rotulo: `Tipo: ${TIPO_CONTRATO_ROTULO[tipo]}`,
-            onRemover: () => url.definir({ tipo: undefined }),
-          },
-        ]
-      : []),
-    ...status.map((s) => ({
+    ...(abaAtiva ? [] : status).map((s) => ({
       id: `status-${s}`,
       rotulo: `Status: ${STATUS_CONTRATO_UI[s].rotulo}`,
       onRemover: () => alternarStatus(s, false),
@@ -135,7 +174,7 @@ export function TelaContratos() {
   ];
   const limparFiltros = () =>
     url.definir({ tipo: undefined, status: undefined, de: undefined, ate: undefined, busca: undefined });
-  const temFiltro = ativos.length > 0 || busca !== "";
+  const temFiltro = ativos.length > 0 || busca !== "" || tipo !== undefined || status.length > 0;
 
   const exportarVisiveis = () => {
     if (!("dados" in estado) || !estado.dados) return;
@@ -177,21 +216,20 @@ export function TelaContratos() {
   const colunas: DataTableColuna<LinhaContrato>[] = [
     {
       id: "numero",
-      cabecalho: "Contrato e vigência",
+      cabecalho: "Contrato",
+      className: "w-1/6",
       celula: (l) => (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex min-w-0 flex-col">
           <Link
             href={`/contratos/${l.contrato.id}`}
-            className="num rounded-sm text-caption font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="w-fit max-w-full truncate rounded-sm num text-sm font-medium text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {l.contrato.numero}
           </Link>
-          <span className="text-xs text-text-muted tabular-nums">
-            {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} ·{" "}
-            <span className="whitespace-nowrap">
-              <span className="sr-only">Vigência: </span>
-              {formatData(l.contrato.inicio)} a {formatData(l.contrato.fim)}
-            </span>
+          <span className="mt-0.5 truncate num text-xs text-text-muted">
+            {TIPO_CONTRATO_ROTULO[l.contrato.tipo]} · <span className="sr-only">vigência de </span>
+            {formatData(l.contrato.inicio, "tabela")} <span aria-hidden="true">→</span>
+            <span className="sr-only">a</span> {formatData(l.contrato.fim, "tabela")}
           </span>
         </div>
       ),
@@ -199,19 +237,22 @@ export function TelaContratos() {
     {
       id: "imovel",
       cabecalho: "Imóvel",
-      className: "min-w-40 max-w-52",
+      className: "w-2/7 max-w-0",
       celula: (l) => (
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="line-clamp-2 text-md">{(l.imovel ?? semImovel).titulo}</span>
-          <span className="num text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
-        </div>
+        <Celula
+          l1={(l.imovel ?? semImovel).titulo}
+          l2={<span className="num">{(l.imovel ?? semImovel).codigo}</span>}
+        />
       ),
     },
     {
       id: "partes",
-      cabecalho: "Cliente",
-      className: "min-w-36 max-w-48",
-      celula: (l) => <span className="break-words text-text-2">{resumoPartes(l)}</span>,
+      cabecalho: "Partes",
+      className: "w-1/5 max-w-0",
+      celula: (l) => {
+        const [p1, p2] = partesEmDuasLinhas(l);
+        return <Celula l1={p1} l2={p2} />;
+      },
     },
     {
       id: "valor",
@@ -220,28 +261,29 @@ export function TelaContratos() {
       celula: (l) => <span className="num whitespace-nowrap">{formatMoeda(l.contrato.valor)}</span>,
     },
     {
-      id: "status",
-      cabecalho: "Status",
-      alinhamento: "direita",
-      celula: (l) => (
-        <Badge tone={STATUS_CONTRATO_UI[l.statusExibicao].tom} dot>
-          {STATUS_CONTRATO_UI[l.statusExibicao].rotulo}
-        </Badge>
-      ),
-    },
-    {
       id: "proximoVencimento",
       cabecalho: "Próximo vencimento",
       alinhamento: "direita",
       celula: (l) =>
         l.proximoVencimento ? (
-          <span className="num flex flex-col items-end whitespace-nowrap">
-            <span>{formatData(l.proximoVencimento.vencimento)}</span>
-            <span className="text-xs text-text-muted">{formatMoeda(l.proximoVencimento.valor)}</span>
-          </span>
+          <Celula
+            direita
+            tom={l.statusExibicao === "inadimplente" ? "danger" : undefined}
+            l1={<span className="num">{formatData(l.proximoVencimento.vencimento, "tabela")}</span>}
+            l2={<span className="num">{formatMoeda(l.proximoVencimento.valor)}</span>}
+          />
         ) : (
           <span className="text-text-muted">—</span>
         ),
+    },
+    {
+      id: "status",
+      cabecalho: "Status",
+      celula: (l) => (
+        <Badge tone={STATUS_CONTRATO_UI[l.statusExibicao].tom} dot>
+          {STATUS_CONTRATO_UI[l.statusExibicao].rotulo}
+        </Badge>
+      ),
     },
   ];
 
@@ -256,19 +298,6 @@ export function TelaContratos() {
 
   const filtrosPopover = (
     <>
-      <Field label="Tipo">
-        {(c) => (
-          <Select
-            {...c}
-            value={tipo ?? "todos"}
-            onValueChange={(v) => url.definir({ tipo: v === "todos" ? undefined : v })}
-            options={[
-              { value: "todos", label: "Todos os tipos" },
-              ...TIPOS.map((t) => ({ value: t, label: TIPO_CONTRATO_ROTULO[t] })),
-            ]}
-          />
-        )}
-      </Field>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-medium text-text">Status</legend>
         {STATUS.map((s) => (
@@ -289,9 +318,23 @@ export function TelaContratos() {
     </>
   );
 
+  const seletorTipo = (
+    <Select
+      aria-label="Tipo"
+      className="w-auto"
+      value={tipo ?? "todos"}
+      onValueChange={(v) => url.definir({ tipo: v === "todos" ? undefined : v })}
+      options={[
+        { value: "todos", label: "Tipo: todos" },
+        ...TIPOS.map((t) => ({ value: t, label: `Tipo: ${TIPO_CONTRATO_ROTULO[t].toLocaleLowerCase("pt-BR")}` })),
+      ]}
+    />
+  );
+
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Operação · carteira"
         titulo="Contratos"
         acoes={
@@ -300,38 +343,52 @@ export function TelaContratos() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-6">
-        <StatGroup aria-label="Indicadores de contratos" colunas={3}>
-          <StatCard variante="celula" rotulo="Em dia" estado={kpi(resumo, "ativo")} onTentarNovamente={recarregarResumo} />
-          <StatCard variante="celula" rotulo="Rascunhos" estado={kpi(resumo, "rascunho")} onTentarNovamente={recarregarResumo} />
-          <StatCard variante="celula" rotulo="Inadimplentes" estado={kpi(resumo, "inadimplente", true)} onTentarNovamente={recarregarResumo} />
-        </StatGroup>
-        <FilterBar
-          busca={busca}
-          onBuscaChange={(b) => url.definir({ busca: b })}
-          debounceMs={DEBOUNCE_BUSCA_MS}
-          rotuloBusca="Buscar contratos"
-          placeholderBusca="Número, parte ou código do imóvel"
-          filtros={filtrosPopover}
-          ativos={ativos}
-          onLimparTudo={limparFiltros}
-          total={total}
-          estado={estado.fase === "loading" ? "carregando" : "pronto"}
-          rotuloItem={["contrato", "contratos"]}
-          ordenacao={
-            <Select
-              aria-label="Ordenar por"
-              value={ordem}
-              onValueChange={(v) => url.definir({ ordem: v === "recentes" ? undefined : v })}
-              options={Object.entries(ORDENS).map(([value, label]) => ({ value, label }))}
-            />
-          }
+      <div className="flex min-w-0 flex-col">
+        <AbasDeStatus
+          aria-label="Status do contrato"
+          abas={abas}
+          ativa={abaAtiva}
+          onChange={(id) => url.definir({ status: id === "todos" ? undefined : [id] })}
+          className="mt-3"
         />
+        <div className="py-4">
+          {telaLarga && selecionados.length > 0 ? (
+            <BarraDeLote
+              variante="tinta"
+              quantidade={selecionados.length}
+              acoes={acoesEmLote}
+              selecionados={selecionados}
+              onLimpar={() => setSelecionados([])}
+            />
+          ) : (
+            <FilterBar
+              busca={busca}
+              onBuscaChange={(b) => url.definir({ busca: b })}
+              debounceMs={DEBOUNCE_BUSCA_MS}
+              buscaCompacta
+              rotuloBusca="Buscar contratos"
+              placeholderBusca="Número, parte ou código do imóvel"
+              aVista={seletorTipo}
+              filtros={filtrosPopover}
+              rotuloFiltros="Mais filtros"
+              ativos={ativos}
+              onLimparTudo={ativos.length > 0 ? limparFiltros : undefined}
+              ordenacao={
+                <Select
+                  aria-label="Ordenar por"
+                  value={ordem}
+                  onValueChange={(v) => url.definir({ ordem: v === "recentes" ? undefined : v })}
+                  options={Object.entries(ORDENS).map(([value, label]) => ({ value, label }))}
+                />
+              }
+            />
+          )}
+        </div>
 
         <ListaResponsiva
           rotulo="Contratos"
           telaLarga={telaLarga}
-          densidade={densidade}
+          densidade="lista"
           colunas={colunas}
           idLinha={(l) => l.contrato.id}
           estado={estado}
@@ -343,6 +400,9 @@ export function TelaContratos() {
             onSelecaoChange: setSelecionados,
             rotuloSelecao: (l) => `Selecionar ${l.contrato.numero}`,
             acoesEmLote,
+            rotuloContagem: ["contrato", "contratos"],
+            barraDeLote: "externa",
+            larguraMinima: "min-w-240",
           }}
           cartaoCarregando={<ContractCardSkeleton />}
           cartao={(l) => (

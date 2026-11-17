@@ -75,6 +75,13 @@ const dataCurta = new Intl.DateTimeFormat(LOCALE, {
   month: "2-digit",
   year: "numeric",
 });
+/** "13/12/26": dentro de tabelas densas (DESIGN.md). */
+const dataTabela = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: TIME_ZONE,
+  day: "2-digit",
+  month: "2-digit",
+  year: "2-digit",
+});
 const dataLonga = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TIME_ZONE,
   day: "numeric",
@@ -224,10 +231,15 @@ function paraDate(data: Date | string): Date | null {
  * @param data Date ou string ISO.
  * @param estilo Estilo de saída.
  */
-export function formatData(data: Date | string, estilo: "curta" | "longa" | "mesAno" = "curta"): string {
+export function formatData(
+  data: Date | string,
+  estilo: "curta" | "tabela" | "longa" | "mesAno" = "curta",
+): string {
   const d = paraDate(data);
   if (!d) return INVALIDO;
   switch (estilo) {
+    case "tabela":
+      return dataTabela.format(d);
     case "longa":
       return dataLonga.format(d);
     case "mesAno":

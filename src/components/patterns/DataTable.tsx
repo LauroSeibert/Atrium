@@ -86,8 +86,99 @@ export type DataTableProps<T extends object> = {
   /** Quantas linhas o skeleton mostra (padrão: `porPagina`, no máximo 10). */
   linhasSkeleton?: number;
   vazio?: Pick<EmptyStateProps, "titulo" | "descricao" | "acao" | "ilustracao">;
+  /**
+   * Padrão de listagem densa (DESIGN.md): tabela e rodapé num só cartão, com o total ("30 contratos",
+   * anunciado em `role="status"`) à esquerda e as páginas à direita. Singular e plural do item.
+   */
+  rotuloContagem?: readonly [singular: string, plural: string];
+  /**
+   * `flutuante` (padrão): a barra de ações em lote flutua sobre a lista.
+   * `externa`: quem chama mostra a `BarraDeLote` no lugar da barra de filtros.
+   */
+  barraDeLote?: "flutuante" | "externa";
+  /** Largura mínima da tabela antes de rolar na horizontal (classe `min-w-*`). */
+  larguraMinima?: string;
   className?: string;
 };
+
+export type BarraDeLoteProps = {
+  quantidade: number;
+  acoes: DataTableAcaoEmLote[];
+  selecionados: string[];
+  onLimpar: () => void;
+  /** `flutuante` paira sobre a lista; `tinta` ocupa a linha da barra de filtros (listagem densa). */
+  variante?: "flutuante" | "tinta";
+  className?: string;
+};
+
+/** Ações em lote (RF-49): "N selecionados", as ações permitidas pelo domínio e "Cancelar". */
+export function BarraDeLote({
+  quantidade,
+  acoes,
+  selecionados,
+  onLimpar,
+  variante = "flutuante",
+  className,
+}: BarraDeLoteProps) {
+  const tinta = variante === "tinta";
+  return (
+    <div
+      role="toolbar"
+      aria-label="Ações em lote"
+      className={cn(
+        "flex flex-wrap items-center gap-2",
+        tinta
+          ? "tinta min-h-14 rounded-md bg-ink-panel py-2 pr-2 pl-5 text-text"
+          : [
+              // Flutua sobre a lista (não empurra o conteúdo): camada flutuante, por isso tem sombra.
+              "z-dropdown fixed inset-x-4 bottom-20 md:inset-x-auto md:bottom-6 md:left-1/2 md:w-max md:-translate-x-1/2",
+              "animate-fade-in rounded-lg border border-border bg-surface-raised py-1.5 pr-1.5 pl-4 shadow-3",
+            ],
+        className,
+      )}
+    >
+      <p aria-hidden="true" className="num mr-1 text-sm font-medium whitespace-nowrap text-text">
+        {quantidade === 1 ? "1 selecionado" : `${quantidade} selecionados`}
+      </p>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        {acoes.map((acao) => {
+          const negada = !acao.permissao.ok;
+          const motivo = acao.permissao.ok ? undefined : acao.permissao.motivo;
+          const botao = (
+            <Button
+              variant={acao.variante ?? (tinta ? "ghost" : "secondary")}
+              size="sm"
+              leadingIcon={acao.icone}
+              aria-disabled={negada || undefined}
+              aria-describedby={negada ? `lote-${acao.id}-motivo` : undefined}
+              onClick={() => {
+                if (!negada) acao.onExecutar(selecionados);
+              }}
+            >
+              {acao.rotulo}
+            </Button>
+          );
+          return negada ? (
+            <span key={acao.id} className="inline-flex">
+              <Tooltip content={motivo}>{botao}</Tooltip>
+              <span id={`lote-${acao.id}-motivo`} className="sr-only">
+                {motivo}
+              </span>
+            </span>
+          ) : (
+            <span key={acao.id} className="inline-flex">
+              {botao}
+            </span>
+          );
+        })}
+      </div>
+      <span aria-hidden="true" className={cn("mx-1 h-5 w-px bg-border", tinta && "ml-auto")} />
+      <Button variant="ghost" size="sm" onClick={onLimpar}>
+        {tinta ? "Cancelar" : "Limpar seleção"}
+      </Button>
+    </div>
+  );
+}
 
 /** Só seleção de linhas: ordenação e paginação são de quem chama (manual). */
 const FEATURES = tableFeatures({ rowSelectionFeature });
@@ -120,8 +211,13 @@ export function DataTable<T extends object>({
   onPaginaChange,
   linhasSkeleton,
   vazio,
+  rotuloContagem,
+  barraDeLote = "flutuante",
+  larguraMinima,
   className,
 }: DataTableProps<T>) {
+  const lista = densidade === "lista";
+  const fundoCabecalho = lista ? "bg-surface-header" : "bg-bg-subtle";
   const selecionavel = Boolean(onSelecaoChange);
   const temFixaInicio = selecionavel || colunas.some((c) => c.fixa === "inicio");
   const dados = "dados" in estado ? estado.dados : undefined;
@@ -157,7 +253,7 @@ export function DataTable<T extends object>({
   const todosNaPagina = idsPagina.length > 0 && marcadosNaPagina === idsPagina.length;
 
   const cabecalhoSelecao = selecionavel ? (
-    <TableHead className={cn("sticky left-0 z-(--z-base) w-12 min-w-12 bg-bg-subtle px-0")}>
+    <TableHead className={cn("sticky left-0 z-(--z-base) w-12 min-w-12 px-0", fundoCabecalho)}>
       <div className="flex justify-center">
         <Checkbox
           aria-label="Selecionar todos desta página"
@@ -185,7 +281,7 @@ export function DataTable<T extends object>({
               sortable={c.ordenavel}
               sortDirection={direcao}
               onSortChange={(proxima) => onOrdenacaoChange?.({ id: c.id, direcao: proxima })}
-              className={cn(classesFixa(c.fixa, selecionavel), c.fixa && "bg-bg-subtle", c.className)}
+              className={cn(classesFixa(c.fixa, selecionavel), c.fixa && fundoCabecalho, c.className)}
             >
               {c.cabecalho}
             </TableHead>
@@ -233,56 +329,13 @@ export function DataTable<T extends object>({
               : `${selecionadosAgora} selecionados`}
         </p>
       ) : null}
-      {selecionavel && selecionadosAgora > 0 ? (
-        <div
-          role="toolbar"
-          aria-label="Ações em lote"
-          className={cn(
-            // Flutua sobre a lista (não empurra o conteúdo): camada flutuante, por isso tem sombra.
-            "z-dropdown fixed inset-x-4 bottom-20 flex flex-wrap items-center gap-2 md:inset-x-auto md:bottom-6 md:left-1/2 md:w-max md:-translate-x-1/2",
-            "animate-fade-in rounded-lg border border-border bg-surface-raised py-1.5 pr-1.5 pl-4 shadow-3 md:bottom-6",
-          )}
-        >
-          <p aria-hidden="true" className="tnum mr-1 text-sm font-medium whitespace-nowrap text-text">
-            {selecionadosAgora === 1 ? "1 selecionado" : `${selecionadosAgora} selecionados`}
-          </p>
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {acoesEmLote.map((acao) => {
-              const negada = !acao.permissao.ok;
-              const motivo = acao.permissao.ok ? undefined : acao.permissao.motivo;
-              const botao = (
-                <Button
-                  variant={acao.variante ?? "secondary"}
-                  size="sm"
-                  leadingIcon={acao.icone}
-                  aria-disabled={negada || undefined}
-                  aria-describedby={negada ? `lote-${acao.id}-motivo` : undefined}
-                  onClick={() => {
-                    if (!negada) acao.onExecutar(selecionados);
-                  }}
-                >
-                  {acao.rotulo}
-                </Button>
-              );
-              return negada ? (
-                <span key={acao.id} className="inline-flex">
-                  <Tooltip content={motivo}>{botao}</Tooltip>
-                  <span id={`lote-${acao.id}-motivo`} className="sr-only">
-                    {motivo}
-                  </span>
-                </span>
-              ) : (
-                <span key={acao.id} className="inline-flex">
-                  {botao}
-                </span>
-              );
-            })}
-          </div>
-          <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
-          <Button variant="ghost" size="sm" onClick={() => onSelecaoChange?.([])}>
-            Limpar seleção
-          </Button>
-        </div>
+      {selecionavel && selecionadosAgora > 0 && barraDeLote === "flutuante" ? (
+        <BarraDeLote
+          quantidade={selecionadosAgora}
+          acoes={acoesEmLote}
+          selecionados={selecionados}
+          onLimpar={() => onSelecaoChange?.([])}
+        />
       ) : null}
 
       <EstadoRecurso
@@ -292,11 +345,17 @@ export function DataTable<T extends object>({
         erro={{ titulo: "Não foi possível carregar a lista" }}
       >
         {(pagina) => (
-          <div className="flex min-w-0 animate-fade-in flex-col gap-3">
+          <div
+            className={cn(
+              "flex min-w-0 animate-fade-in flex-col",
+              lista ? "overflow-hidden rounded-lg border border-border bg-surface" : "gap-3",
+            )}
+          >
             <Table
               aria-label={ariaLabel}
               density={densidade}
-              containerClassName={temFixaInicio ? "scroll-pl-12" : undefined}
+              className={larguraMinima}
+              containerClassName={cn(temFixaInicio && "scroll-pl-12", lista && "rounded-none border-0")}
             >
               {cabecalho}
               <TableBody>
@@ -347,7 +406,16 @@ export function DataTable<T extends object>({
                 )}
               </TableBody>
             </Table>
-            {pagina.total > 0 ? (
+            {rotuloContagem ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft py-2 pr-3 pl-5 sm:pl-6">
+                <p role="status" className="num text-caption text-text-muted">
+                  {pagina.total === 1 ? `1 ${rotuloContagem[0]}` : `${pagina.total.toLocaleString("pt-BR")} ${rotuloContagem[1]}`}
+                </p>
+                {pagina.totalPaginas > 1 ? (
+                  <Pagination page={pagina.pagina} pageCount={pagina.totalPaginas} onPageChange={onPaginaChange} />
+                ) : null}
+              </div>
+            ) : pagina.total > 0 ? (
               <Pagination
                 page={pagina.pagina}
                 pageCount={pagina.totalPaginas}

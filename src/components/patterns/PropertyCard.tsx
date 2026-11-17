@@ -110,7 +110,7 @@ export function PilulaFinalidade({ imovel, className }: { imovel: Imovel; classN
 export function CodigoStatusImovel({ imovel, className }: { imovel: Imovel; className?: string }) {
   return (
     <p className={cn("text-xs text-text-muted", className)}>
-      <span className="font-mono">{imovel.codigo}</span>
+      <span className="num">{imovel.codigo}</span>
       <span aria-hidden="true"> · </span>
       <span>{STATUS_IMOVEL_UI[imovel.status].rotulo}</span>
     </p>
@@ -126,7 +126,7 @@ export function SelosImovel({ imovel }: { imovel: Imovel }) {
         {status.rotulo}
       </Badge>
       <Badge size="sm">{FINALIDADE_ROTULO[imovel.finalidade]}</Badge>
-      <span className="font-mono text-xs text-text-muted">{imovel.codigo}</span>
+      <span className="num text-xs text-text-muted">{imovel.codigo}</span>
     </div>
   );
 }

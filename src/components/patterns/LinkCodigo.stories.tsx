@@ -13,7 +13,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Normal: Story = {};
 /** Sem estado de carregamento próprio: é só texto com destino. */
-export const Carregando: Story = { render: () => <span className="font-mono text-sm text-text-muted">…</span> };
+export const Carregando: Story = { render: () => <span className="num text-sm text-text-muted">…</span> };
 export const Vazio: Story = { render: () => <EmptyState tamanho="compacto" titulo="Sem código" /> };
 export const Erro: Story = { render: () => <ErrorState tamanho="compacto" onTentarNovamente={() => {}} /> };
 export const DadosExtremos: Story = {

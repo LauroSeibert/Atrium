@@ -18,7 +18,7 @@ export function LinkCodigo({ href, children, className, ...props }: LinkCodigoPr
       href={href}
       {...props}
       className={cn(
-        "w-fit rounded-sm font-mono text-sm font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "w-fit rounded-sm num text-sm font-medium whitespace-nowrap text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
     >

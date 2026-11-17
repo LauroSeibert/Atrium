@@ -70,7 +70,7 @@ export function TickPeriodo({
 }
 
 /** Eixos em Geist Mono 11 px (text-muted); linha de base em tinta; grade tracejada no fio claro. */
-export const TICK = { fill: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-family-mono)" } as const;
+export const TICK = { fill: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-family-sans)", fontVariantNumeric: "tabular-nums" } as const;
 export const EIXO = { stroke: "var(--text)" } as const;
 export const GRADE = { stroke: "var(--border)", strokeDasharray: "3 4" } as const;
 export const CURSOR = { fill: "var(--surface-muted)" } as const;

@@ -7,6 +7,6 @@ describe("LinkCodigo", () => {
     render(<LinkCodigo href="/contratos/ctr_1">CT-2026-0012</LinkCodigo>);
     const l = screen.getByRole("link", { name: "CT-2026-0012" });
     expect(l).toHaveAttribute("href", "/contratos/ctr_1");
-    expect(l).toHaveClass("font-mono");
+    expect(l).toHaveClass("num");
   });
 });

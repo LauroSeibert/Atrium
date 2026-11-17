@@ -17,6 +17,11 @@ export type PageHeaderProps = {
   acaoPrimaria?: ReactNode;
   /** Conteúdo abaixo do título (abas, filtros, indicadores). */
   children?: ReactNode;
+  /**
+   * `visao` (padrão): telas de visão geral, H1 grande e respiro generoso.
+   * `lista`: telas de listagem densa (DESIGN.md), H1 de 44 px, pouco respiro e área de conteúdo mais larga.
+   */
+  densidade?: "visao" | "lista";
   className?: string;
 };
 
@@ -31,14 +36,19 @@ export function PageHeader({
   acoes,
   acaoPrimaria,
   children,
+  densidade = "visao",
   className,
 }: PageHeaderProps) {
+  const lista = densidade === "lista";
   return (
-    <header className={cn("flex flex-col gap-6 pb-9 md:pb-11", className)}>
+    <header
+      data-pagina={densidade}
+      className={cn("flex flex-col gap-6", lista ? "pb-2" : "pb-9 md:pb-11", className)}
+    >
       <div className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end md:justify-between">
         <div className="flex min-w-0 flex-col">
-          {eyebrow ? <p className="eyebrow mb-4">{eyebrow}</p> : null}
-          <h1 className="display text-5xl text-balance text-text">{titulo}</h1>
+          {eyebrow ? <p className={cn("eyebrow", lista ? "mb-2.5" : "mb-4")}>{eyebrow}</p> : null}
+          <h1 className={cn("display text-balance text-text", lista ? "text-lista" : "text-5xl")}>{titulo}</h1>
           {descricao ? <p className="mt-4 max-w-140 text-base text-text-2">{descricao}</p> : null}
         </div>
         {acoes || acaoPrimaria ? (

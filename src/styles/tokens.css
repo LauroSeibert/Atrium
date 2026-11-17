@@ -50,6 +50,7 @@
   --surface-raised: #FFFFFF;
   --surface-muted: #F1EDE5;
   --surface-sunken: #ECE6DA;
+  --surface-header: #FBFAF7;
   --border: #E7E2D7;
   --border-soft: #EFEBE3;
   --line-strong: #DDD6C8;
@@ -105,7 +106,6 @@
   /* tipografia */
   --font-family-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
   --font-family-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
   --font-size-2xs: 11px;
   --font-size-xs: 12px;
   --font-size-caption: 13px;
@@ -116,6 +116,7 @@
   --font-size-xl: 22px;
   --font-size-2xl: 30px;
   --font-size-3xl: 40px;
+  --font-size-lista: 44px;
   --font-size-4xl: clamp(44px, 3.2vw + 20px, 64px);
   --font-size-5xl: clamp(44px, 4vw + 20px, 68px);
   --font-size-6xl: clamp(52px, 5vw + 20px, 88px);
@@ -186,6 +187,7 @@
   --surface-raised: #FFFFFF;
   --surface-muted: #F1EDE5;
   --surface-sunken: #ECE6DA;
+  --surface-header: #FBFAF7;
   --border: #E7E2D7;
   --border-soft: #EFEBE3;
   --line-strong: #DDD6C8;
@@ -250,6 +252,7 @@
   --surface-raised: #1F1D19;
   --surface-muted: #1F1D19;
   --surface-sunken: #22201B;
+  --surface-header: #1B1915;
   --border: #2A2723;
   --border-soft: #24211D;
   --line-strong: #3A362F;
@@ -321,6 +324,7 @@
   --surface-raised: #1F1D19;
   --surface-muted: #1F1D19;
   --surface-sunken: #22201B;
+  --surface-header: #1B1915;
   --border: #2A2723;
   --border-soft: #24211D;
   --line-strong: #3A362F;

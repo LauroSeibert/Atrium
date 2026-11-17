@@ -67,7 +67,7 @@ export function TelaRepasses() {
       celula: (l) => (
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="line-clamp-2">{(l.imovel ?? semImovel).titulo}</span>
-          <span className="font-mono text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
+          <span className="num text-xs text-text-muted">{(l.imovel ?? semImovel).codigo}</span>
         </div>
       ),
     },

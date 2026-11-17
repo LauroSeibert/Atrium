@@ -2,21 +2,31 @@ import type { ComponentProps, SVGProps } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Monograma Atrium: um "A" de traço serifado (haste fina à esquerda, grossa à direita, pés de serifa)
- * num quadrado de cantos suaves, em tinta, com fio de latão. Desenhado em traço (não texto) para não
- * depender da webfont nem virar texto visível para leitores de tela. É a marca da sidebar recolhida.
- * Cores só por tokens: --sidebar, --accent e --on-ink-strong.
+ * Monograma Atrium: o átrio da casa romana visto de cima. Quatro águas do telhado descem para a
+ * abertura central (compluvium) e, no meio do pátio, o espelho d'água (impluvium) em latão. As águas
+ * horizontais claras e as laterais em meio-tom dão o volume. Tudo em formas (nada de texto), num
+ * quadrado de cantos suaves em tinta com fio de latão. É a marca da sidebar recolhida e o favicon.
+ * Cores só por tokens: --sidebar, --accent, --on-ink-strong e --on-ink-muted.
  */
 export function AtriumMark({ title = "Atrium", ...props }: SVGProps<SVGSVGElement> & { title?: string }) {
   return (
     <svg viewBox="0 0 32 32" role="img" aria-label={title || undefined} {...props}>
       <rect x="0.5" y="0.5" width="31" height="31" rx="8.5" fill="var(--sidebar)" stroke="var(--accent)" />
-      <g fill="none" stroke="var(--on-ink-strong)" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 8 10.2 23.5" strokeWidth="1.1" />
-        <path d="M16 8 21.8 23.5" strokeWidth="2" />
-        <path d="M12.3 18.4h7.6" strokeWidth="1.1" />
-        <path d="M8.6 23.6h3.4M19.9 23.6h3.6" strokeWidth="1.1" />
-      </g>
+      <path
+        d="M7 7h18l-6 6h-6z M7 25h18l-6-6h-6z"
+        fill="var(--on-ink-strong)"
+        stroke="var(--sidebar)"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7 7l6 6v6l-6 6z M25 7l-6 6v6l6 6z"
+        fill="var(--on-ink-muted)"
+        stroke="var(--sidebar)"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+      />
+      <rect x="14.5" y="14.5" width="3" height="3" fill="var(--accent)" />
     </svg>
   );
 }

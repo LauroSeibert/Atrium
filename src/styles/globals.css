@@ -16,6 +16,7 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-muted: var(--surface-muted);
   --color-surface-sunken: var(--surface-sunken);
+  --color-surface-header: var(--surface-header);
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
   --color-line-strong: var(--line-strong);
@@ -72,7 +73,6 @@
   --font-*: initial;
   --font-serif: var(--font-family-serif);
   --font-sans: var(--font-family-sans);
-  --font-mono: var(--font-family-mono);
 
   --font-weight-*: initial;
   --font-weight-regular: var(--weight-regular);
@@ -100,6 +100,8 @@
   --text-caption--line-height: var(--line-height-body);
   --text-md: var(--font-size-md);
   --text-md--line-height: var(--line-height-body);
+  --text-lista: var(--font-size-lista);
+  --text-lista--line-height: var(--line-height-display);
   --text-4xl: var(--font-size-4xl);
   --text-4xl--line-height: var(--line-height-display);
   --text-5xl: var(--font-size-5xl);
@@ -334,7 +336,6 @@
   letter-spacing: var(--letter-spacing-display);
 }
 @utility num {
-  font-family: var(--font-family-mono);
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
 }

@@ -25,7 +25,10 @@ export type ListaResponsivaProps<T extends object> = {
   cartaoCarregando: ReactNode;
   densidade?: TableDensity;
   /** Seleção e ações em lote (só na tabela). */
-  tabela?: Pick<DataTableProps<T>, "selecionados" | "onSelecaoChange" | "rotuloSelecao" | "acoesEmLote">;
+  tabela?: Pick<
+    DataTableProps<T>,
+    "selecionados" | "onSelecaoChange" | "rotuloSelecao" | "acoesEmLote" | "rotuloContagem" | "barraDeLote" | "larguraMinima"
+  >;
 };
 
 /**

@@ -34,6 +34,10 @@ export type FilterBarProps = {
   filtros?: ReactNode;
   /** Filtros menos usados: ficam recolhidos dentro do Popover até "Mais filtros". */
   maisFiltros?: ReactNode;
+  /** Rótulo do botão do Popover (padrão "Filtros"); o N dos ativos entra entre parênteses. */
+  rotuloFiltros?: string;
+  /** Busca com largura máxima de 520 px (listagem densa), em vez de ocupar a linha. */
+  buscaCompacta?: boolean;
   /** Filtros aplicados; viram chips removíveis e definem o N do botão. */
   ativos?: FiltroAtivo[];
   onLimparTudo?: () => void;
@@ -68,6 +72,8 @@ export function FilterBar({
   aVista,
   filtros,
   maisFiltros,
+  rotuloFiltros = "Filtros",
+  buscaCompacta = false,
   ativos = [],
   onLimparTudo,
   total,
@@ -105,7 +111,7 @@ export function FilterBar({
     <div className={cn("flex max-w-full min-w-0 flex-col gap-3", className)}>
       <div className="flex flex-wrap items-center gap-2">
         {onBuscaChange ? (
-          <div className="min-w-0 basis-full sm:flex-1 sm:basis-64">
+          <div className={cn("min-w-0 basis-full sm:flex-1 sm:basis-64", buscaCompacta && "sm:max-w-130")}>
             <Input
               type="search"
               aria-label={rotuloBusca}
@@ -127,7 +133,7 @@ export function FilterBar({
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="secondary" leadingIcon={SlidersHorizontal}>
-                {ativos.length > 0 ? `Filtros (${ativos.length})` : "Filtros"}
+                {ativos.length > 0 ? `${rotuloFiltros} (${ativos.length})` : rotuloFiltros}
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -164,34 +170,36 @@ export function FilterBar({
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
-        {ativos.length > 0 ? (
-          <>
-            <ul aria-label="Filtros aplicados" className="flex max-w-full min-w-0 flex-wrap items-center gap-2">
-              {ativos.map((f) => (
-                <li key={f.id} className="max-w-full min-w-0">
-                  <Tag
-                    onRemove={f.onRemover}
-                    removeLabel={`Remover filtro: ${f.rotulo}`}
-                    title={f.rotulo}
-                    className="max-w-full min-w-0 shrink"
-                  >
-                    <span className="min-w-0 truncate">{f.rotulo}</span>
-                  </Tag>
-                </li>
-              ))}
-            </ul>
-            {onLimparTudo ? (
-              <Button variant="link" onClick={onLimparTudo}>
-                Limpar tudo
-              </Button>
-            ) : null}
-          </>
-        ) : null}
-        <p role="status" className="tnum ml-auto min-w-0 text-sm break-words text-text-muted">
-          {textoContagem(total, estado, rotuloItem)}
-        </p>
-      </div>
+      {ativos.length > 0 || total !== undefined || estado === "carregando" ? (
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {ativos.length > 0 ? (
+            <>
+              <ul aria-label="Filtros aplicados" className="flex max-w-full min-w-0 flex-wrap items-center gap-2">
+                {ativos.map((f) => (
+                  <li key={f.id} className="max-w-full min-w-0">
+                    <Tag
+                      onRemove={f.onRemover}
+                      removeLabel={`Remover filtro: ${f.rotulo}`}
+                      title={f.rotulo}
+                      className="max-w-full min-w-0 shrink"
+                    >
+                      <span className="min-w-0 truncate">{f.rotulo}</span>
+                    </Tag>
+                  </li>
+                ))}
+              </ul>
+              {onLimparTudo ? (
+                <Button variant="link" onClick={onLimparTudo}>
+                  Limpar tudo
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+          <p role="status" className="tnum ml-auto min-w-0 text-sm break-words text-text-muted">
+            {textoContagem(total, estado, rotuloItem)}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

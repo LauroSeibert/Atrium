@@ -24,7 +24,7 @@ O Tailwind teve os defaults de cor, raio, sombra, fonte e easing zerados: valore
 | Pedra     | `#D9D2C3` | Barras de períodos não atuais, pontos vazios                                                                 |
 | Latão     | `#9A7B4F` | **Único acento**, só em preenchimentos e marcas: período atual, progresso, item ativo, ponto de notificação |
 
-Princípios: **os números são o herói** (serifa nos KPIs, mono no dinheiro de tabela); **fios em vez de caixas** (poucos cards, nunca card dentro de card); **um acento, com parcimônia** (2–5 usos por tela, nunca texto, botão ou fundo grande); **tinta para o que importa**; **calmo, depois denso** (cabeçalho editorial, depois os dados); **só neutros quentes**. Na dúvida: tire uma borda, tire uma cor, dê espaço.
+Princípios: **os números são o herói** (serifa nos KPIs; dinheiro de tabela em Geist com algarismos tabulares); **fios em vez de caixas** (poucos cards, nunca card dentro de card); **um acento, com parcimônia** (2–5 usos por tela, nunca texto, botão ou fundo grande); **tinta para o que importa**; **calmo, depois denso** (cabeçalho editorial, depois os dados); **só neutros quentes**. Na dúvida: tire uma borda, tire uma cor, dê espaço.
 
 ## 3. Escalas
 
@@ -82,7 +82,7 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 
 > Nomes no CSS: os tokens de forma/movimento usam prefixos próprios em `tokens.css` (`--corner-*`, `--elevation-*`, `--easing-*`, `--weight-*`, `--line-height-*`, `--letter-spacing-*`) e o Tailwind os expõe com os nomes do guia (`--radius-*`, `--shadow-*`, `--ease-*`, `--font-weight-*`, `--leading-*`, `--tracking-*`). Os defaults do Tailwind nesses namespaces foram zerados.
 
-- **Fontes (`next/font`):** **Instrument Serif** (`font-serif`, utilitário `display`) para títulos de página, de seção e de card, números de KPI e dinheiro grande, sempre peso 400 e nunca em corpo de texto; **Geist** (`font-sans`) para a interface; **Geist Mono** (utilitário `num`, com algarismos tabulares) para dinheiro em tabelas e listas, horários, códigos (AT-0020, CT-2026-0020) e eixos de gráfico.
+- **Fontes (`next/font`):** **Instrument Serif** (`font-serif`, utilitário `display`) para títulos de página, de seção e de card, números de KPI e dinheiro grande, sempre peso 400 e nunca em corpo de texto; **Geist** (`font-sans`) para todo o resto, inclusive números, dinheiro, datas, horários e códigos (AT-0020, CT-2026-0020), com o utilitário `num` (algarismos tabulares) onde os números alinham em coluna. **Tipografia v2: só essas duas famílias.** Não há fonte mono; `npm run check:hex` reprova `font-mono` e Geist Mono. Serifa fala (títulos, números de destaque), Geist trabalha (tudo que se lê, compara ou digita); nunca serifa dentro de tabela, lista, pílula, botão ou formulário.
 - **Escala:** `text-2xs 11` (eyebrow, eixos) · `xs 12` (pílulas) · `caption 13` (metadados, variações) · `sm 14` (UI) · `md 15` · `base 16` · `lg 18` · `xl 22` (dinheiro em grade de métricas) · serifa: `2xl 30` (card) · `3xl 40` (seção) · `4xl` 44→64 (KPI) · `5xl` 44→68 (H1) · `6xl` 52→88 (resultado do mês). Os três últimos usam `clamp()` para caber em 390 px.
 - **Utilitários:** `eyebrow` (11 px, 500, caixa alta, tracking 0,14em, `text-muted`), `display`, `num`, `unidade` (unidade a ~45% do número, em `text-2`). `Destaque` (`ui/Typography`) separa "R$", "mi", "mil" e ",00" do número sozinho.
 - **Espaçamento:** grade de 4 px. Calhas 20/40/56 px, conteúdo máx. 1240 px; cabeçalho de página 56 px acima e 36–44 px abaixo; cards com 30 × 32 px de padding (20 no celular); 24 px entre cards, 40–56 px entre faixas.
@@ -95,10 +95,10 @@ Registradas em [`adjustments.json`](./adjustments.json) e exibidas na página de
 
 ## 7. Logo
 
-Monograma: um "A" em Instrument Serif num quadrado de 32 px (raio 9) em tinta, com fio de latão; ao lado, "Atrium" em Instrument Serif 27 px.
+Monograma: o átrio da casa romana visto de cima, num quadrado de 32 px (raio 9) em tinta com fio de latão. As quatro águas do telhado descem para a abertura central (as horizontais em `--on-ink-strong`, as laterais em `--on-ink-muted`) e, no centro, o impluvium em latão. Ao lado, "Atrium" em Instrument Serif 27 px.
 
-- Componente: `src/components/brand/AtriumLogo.tsx` (`<AtriumMark />` e `<AtriumLogo />`), só tokens (`--sidebar`, `--accent`, `--on-ink-strong`, `--text`).
-- Favicon `src/app/icon.svg` e arquivos avulsos em [`brand/`](./brand/) (com fonte de fallback serifada, pois SVG solto não carrega a webfont).
+- Componente: `src/components/brand/AtriumLogo.tsx` (`<AtriumMark />` e `<AtriumLogo />`), só tokens (`--sidebar`, `--accent`, `--on-ink-strong`, `--on-ink-muted`, `--text`).
+- Favicon `src/app/icon.svg` e arquivos avulsos em [`brand/`](./brand/) (o monograma é só forma; o nome nos logos avulsos usa fonte de fallback serifada, pois SVG solto não carrega a webfont).
 
 ## 8. Ilustrações
 
@@ -240,7 +240,7 @@ Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), tod
 | `PageSkeleton`                   | `loading.tsx` de cada rota: forma final de cabeçalho + conteúdo (lista, painel ou detalhe), sem salto de layout.                                                                                               | RNF-07, RNF-09      |
 | `TransicaoDeRota`                | `template.tsx` do grupo `(dashboard)`: fade + 8 px ao trocar de módulo (`--dur-slow`, `ease-enter`); com movimento reduzido, 1 ms.                                                                             | Guia §7             |
 
-**Sidebar (refinamento):** em tinta nos dois temas (`.tinta` + `--sidebar`), 248 px (72 recolhida), itens de 40 px, grupos com rótulo em eyebrow, item ativo em `--ink-active` (`--primary-subtle` dentro de `.tinta`) e texto mais claro; contadores em mono sobre trilho de tinta. O menu do celular usa a mesma tinta.
+**Sidebar (refinamento):** em tinta nos dois temas (`.tinta` + `--sidebar`), 248 px (72 recolhida), itens de 40 px, grupos com rótulo em eyebrow, item ativo em `--ink-active` (`--primary-subtle` dentro de `.tinta`) e texto mais claro; contadores em Geist `.num` sobre trilho de tinta. O menu do celular usa a mesma tinta.
 
 **Persistência (RNF-16):** tema pelo `next-themes`; sidebar recolhida em `localStorage` (`atrium:sidebar-recolhida`) via `usePreferencia` (`src/lib/preferencias.ts`), tolerante a storage bloqueado. **Movimento em JS:** `src/lib/motion.ts` lê `--dur-*`/`--easing-*` do CSS; nenhuma duração literal no `motion`.
 
@@ -251,11 +251,12 @@ Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), tod
 - **Esqueleto de toda tela:** cabeçalho editorial (`PageHeader` com `eyebrow` "Seção · contexto", H1 em serifa, uma linha de resumo opcional, ações à direita, no máximo um botão primário) → faixa principal → linhas de apoio → lista ou tabela.
 - **KPIs:** `StatGroup` + `StatCard variante="celula"`: sem caixa, fio de tinta em cima e fio claro embaixo, divisórias verticais; eyebrow → número em serifa com unidades menores → variação com seta, sinal e "vs. …". Sem mini-linhas decorativas.
 - **Painel em tinta (um por tela):** `tinta bg-ink-panel` (meta do mês, resultado do mês, resumo da semana, valor do contrato); progresso em trilho `--ink-track` com preenchimento latão.
-- **Grade de métricas:** um card com `gap-px` sobre `--border`; eyebrow + valor mono 22 px; inadimplência em `--danger` no rótulo e no valor.
+- **Grade de métricas:** um card com `gap-px` sobre `--border`; eyebrow + valor 22 px em Geist `.num`; inadimplência em `--danger` no rótulo e no valor.
 - **Listas:** linhas com `border-border-soft` no topo, sem zebra; [data ou hora] [título 15/500 + meta] [avatar, valor ou pílula]. Bloco de data: eyebrow do dia + número em serifa.
-- **Tabelas:** sem fios entre colunas; cabeçalho em eyebrow; dinheiro em mono à direita; status em pílula à direita; rolagem horizontal no celular.
+- **Tabelas:** sem fios entre colunas; cabeçalho em Geist 12/500 `--text-muted`, sem caixa alta (o eyebrow fica só para o eyebrow da página e rótulos de KPI); dinheiro em Geist `.num` à direita; rolagem horizontal no celular.
+- **Telas de listagem (padrão de listagem densa, referência: Contratos):** `PageHeader densidade="lista"` (H1 44 px, topo de 32 px, conteúdo até 1480 px); abaixo, `AbasDeStatus` no lugar da faixa de KPIs (contagem em serifa 30 px + rótulo 14 px, sublinhado de 2 px em tinta, contagem de risco em `--danger`; clicar filtra); uma linha de filtros (busca até 520 px, filtro rápido, "Mais filtros", ordenação à direita); `DataTable densidade="lista"` com `rotuloContagem` (tabela e rodapé num só cartão, cabeçalho em `--surface-header`, linhas de 64 px, no máximo 2 linhas por célula com reticências e o texto inteiro no `title`, datas curtas `13/12/26` e `→` em intervalos). Com linhas selecionadas, a barra de filtros vira a `BarraDeLote` em tinta.
 - **Pílulas:** só contorno (`--line-strong`), texto `--text-2`; risco/atraso com `--danger-line` e `--danger`. Nada de chip cheio colorido; a cor entra no ponto de 6 px.
-- **Gráficos:** barras em pedra e só o período atual em latão, com o valor num chip; locações em `--stone-2` empilhadas; linha de base em tinta, grade tracejada, eixos em mono 11 px; sempre com resumo acessível e alternativa Tabela.
-- **Imóveis:** ladrilho 4:3 em `--surface-sunken`, raio 16, foto ou ilustração em traço; pílula "Venda/Locação" no canto; código mono, título 16/500, bairro em legenda.
+- **Gráficos:** barras em pedra e só o período atual em latão, com o valor num chip; locações em `--stone-2` empilhadas; linha de base em tinta, grade tracejada, eixos em Geist 11 px com algarismos tabulares; sempre com resumo acessível e alternativa Tabela.
+- **Imóveis:** ladrilho 4:3 em `--surface-sunken`, raio 16, foto ou ilustração em traço; pílula "Venda/Locação" no canto; código em Geist `.num`, título 16/500, bairro em legenda.
 - **Estados:** vazio = frase em serifa + uma linha + um botão fantasma; carregando = esqueletos na forma final; erro = legenda em `--danger` com "Tentar novamente".
 - **Botões:** primário em tinta (no escuro inverte), fantasma com fio, link de texto com sublinhado fino; destrutivo também em tinta, com o rótulo dizendo o que se perde (nunca vermelho cheio).

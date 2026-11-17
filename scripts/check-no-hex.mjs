@@ -60,3 +60,32 @@ if (found) {
   process.exit(1);
 }
 console.log("✓ Nenhuma cor literal fora de src/styles/tokens.css.");
+
+// Tipografia v2 (DESIGN.md §2.3): só Instrument Serif + Geist. Números alinham com `.num`, nunca com mono.
+const MONO = /\bfont-mono\b|Geist_Mono|geist-mono|font-family-mono|monospace/;
+let mono = 0;
+for (const d of DIRS) {
+  let files = [];
+  try {
+    files = walk(resolve(root, d));
+  } catch {
+    continue;
+  }
+  for (const file of files) {
+    const rel = relative(root, file).split(sep).join("/");
+    if (!EXTS.has(extname(file))) continue;
+    readFileSync(file, "utf8")
+      .split("\n")
+      .forEach((line, i) => {
+        if (MONO.test(line)) {
+          mono++;
+          console.error(`  ${rel}:${i + 1}  fonte mono  →  use Geist com a classe num`);
+        }
+      });
+  }
+}
+if (mono) {
+  console.error(`✗ ${mono} uso(s) de fonte mono.`);
+  process.exit(1);
+}
+console.log("✓ Nenhuma fonte mono (Tipografia v2).");

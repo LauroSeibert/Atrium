@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { SkipLink } from "./SkipLink";
 
 export type AppShellProps = {
@@ -15,7 +16,7 @@ export type AppShellProps = {
 
 /**
  * Esqueleto do painel (Fase 7): skip link, sidebar fixa à esquerda, topbar fixa no topo e área de
- * conteúdo com largura máxima de 1240 px (+ calhas) e padding responsivo. Só layout: nada de dados aqui.
+ * conteúdo com largura máxima de 1240 px (1480 px nas listagens densas, + calhas) e padding responsivo. Só layout: nada de dados aqui.
  */
 export function AppShell({ sidebar, sidebarCompacta, topbar, mobileNav, children }: AppShellProps) {
   return (
@@ -31,7 +32,11 @@ export function AppShell({ sidebar, sidebarCompacta, topbar, mobileNav, children
         <main
           id="conteudo"
           tabIndex={-1}
-          className="mx-auto w-full max-w-338 flex-1 px-5 pt-8 pb-24 outline-none md:px-10 md:pt-12 md:pb-20 xl:px-14 xl:pt-14"
+          className={cn(
+            "mx-auto w-full max-w-338 flex-1 px-5 pt-8 pb-24 outline-none md:px-10 md:pt-12 md:pb-20 xl:px-14 xl:pt-14",
+            // Telas de listagem densa (PageHeader densidade="lista"): 1480 px de conteúdo e topo de 32 px.
+            "has-[[data-pagina=lista]]:max-w-398 md:has-[[data-pagina=lista]]:pt-8 xl:has-[[data-pagina=lista]]:pt-8",
+          )}
         >
           {children}
         </main>

@@ -112,6 +112,7 @@ describe("formatData", () => {
   it("estilos com Date", () => {
     expect(formatData(d)).toBe("14/11/2026");
     expect(formatData(d, "curta")).toBe("14/11/2026");
+    expect(formatData(d, "tabela")).toBe("14/11/26");
     expect(formatData(d, "longa")).toBe("14 de novembro de 2026");
     expect(formatData(d, "mesAno")).toBe("novembro de 2026");
   });

@@ -6,10 +6,11 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
-export type TableDensity = "comfortable" | "compact";
+export type TableDensity = "comfortable" | "compact" | "lista";
 const DensityContext = createContext<TableDensity>("comfortable");
 
-const rowHeight = { comfortable: "h-14", compact: "h-10" } as const;
+const rowHeight = { comfortable: "h-14", compact: "h-10", lista: "h-16" } as const;
+const headHeight = { comfortable: "h-14", compact: "h-10", lista: "h-11" } as const;
 
 export type TableProps = ComponentProps<"table"> & {
   /** Nome da região rolável (obrigatório: a tabela rola por teclado). */
@@ -21,7 +22,8 @@ export type TableProps = ComponentProps<"table"> & {
 
 /**
  * Tabela dentro de uma região rolável e focável (WCAG 2.1.1). Sem fios entre colunas: cabeçalho em
- * eyebrow e um fio suave no topo de cada linha. Linhas 56 px (confortável) ou 40 px (compacta).
+ * Geist 12/500 (sem caixa alta) e um fio suave no topo de cada linha. Linhas 56 px (confortável),
+ * 40 px (compacta) ou 64 px (lista: padrão de listagem densa, cabeçalho em `surface-header`).
  */
 export function Table({
   "aria-label": ariaLabel,
@@ -61,10 +63,12 @@ export function TableBody({ className, ...props }: ComponentProps<"tbody">) {
 }
 
 export function TableRow({ className, ...props }: ComponentProps<"tr">) {
+  const density = useContext(DensityContext);
   return (
     <tr
       className={cn(
-        "border-b border-border-soft transition-colors duration-(--dur-fast) ease-standard hover:bg-bg",
+        "border-b border-border-soft transition-colors duration-(--dur-fast) ease-standard",
+        density === "lista" ? "hover:bg-surface-header" : "hover:bg-bg",
         "data-[state=selected]:bg-surface-muted",
         className,
       )}
@@ -102,8 +106,9 @@ export function TableHead({
       scope={scope}
       aria-sort={sortable ? sortDirection : undefined}
       className={cn(
-        "eyebrow border-b border-border px-4 whitespace-nowrap first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6",
-        rowHeight[density],
+        "border-b border-border px-4 text-xs font-medium whitespace-nowrap text-text-muted first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6",
+        headHeight[density],
+        density === "lista" && "bg-surface-header",
         align === "right" ? "text-right" : "text-left",
         className,
       )}

@@ -119,7 +119,6 @@ push();
 push("  /* tipografia */");
 push(`  --font-family-serif: ${tokens.font.family.serif.$value.join(", ")};`);
 push(`  --font-family-sans: ${tokens.font.family.sans.$value.join(", ")};`);
-push(`  --font-family-mono: ${tokens.font.family.mono.$value.join(", ")};`);
 for (const [k, n] of entries(tokens.font.size)) push(`  --font-size-${k}: ${n.$value};`);
 for (const [k, n] of entries(tokens.font["line-height"])) push(`  --line-height-${k}: ${n.$value};`);
 for (const [k, n] of entries(tokens.font.weight)) push(`  --weight-${k}: ${n.$value};`);
