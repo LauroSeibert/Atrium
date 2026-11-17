@@ -1,7 +1,7 @@
 "use client";
 /**
  * Contratos — lista (RF-40, RF-41, RF-47, RF-49; RF-06 estado na URL), no padrão de listagem densa do
- * DESIGN.md: cabeçalho compacto, abas de status com as contagens, barra de filtros numa linha e tabela
+ * DESIGN.md: cabeçalho compacto, abas de status com as contagens, barra de filtros numa linha (tipo e vencimento à vista) e tabela
  * com no máximo 2 linhas por célula. Status de exibição e próximo vencimento vêm derivados do domínio.
  */
 import { Download } from "lucide-react";
@@ -11,8 +11,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ContractCard, ContractCardSkeleton } from "@/components/patterns/ContractCard";
 import { AbasDeStatus } from "@/components/patterns/AbasDeStatus";
 import { BarraDeLote, type DataTableAcaoEmLote, type DataTableColuna } from "@/components/patterns/DataTable";
-import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
-import { IntervaloDeDatas } from "@/components/patterns/IntervaloDeDatas";
+import { FilterBar } from "@/components/patterns/FilterBar";
+import { FiltroDeDatas } from "@/components/patterns/FiltroDeDatas";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { STATUS_CONTRATO_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
@@ -156,35 +156,9 @@ export function TelaContratos() {
 
   const total = "dados" in estado && estado.dados ? estado.dados.total : undefined;
 
-  // Status mora nas abas. Chips só para o que fica escondido no Popover, com o mínimo de texto:
-  // "Venda", "Vencimento 01/12/26 → 15/12/26".
-  const ativos: FiltroAtivo[] = [
-    ...(abaAtiva ? [] : status).map((s) => ({
-      id: `status-${s}`,
-      rotulo: STATUS_CONTRATO_UI[s].rotulo,
-      onRemover: () => url.definir({ status: status.filter((x) => x !== s) }),
-    })),
-    ...(tipo
-      ? [{ id: "tipo", rotulo: TIPO_CONTRATO_ROTULO[tipo], onRemover: () => url.definir({ tipo: undefined }) }]
-      : []),
-    ...(de || ate
-      ? [
-          {
-            id: "vencimento",
-            rotulo:
-              de && ate
-                ? `Vencimento ${formatData(de, "tabela")} → ${formatData(ate, "tabela")}`
-                : de
-                  ? `Vencimento desde ${formatData(de, "tabela")}`
-                  : `Vencimento até ${formatData(ate!, "tabela")}`,
-            onRemover: () => url.definir({ de: undefined, ate: undefined }),
-          },
-        ]
-      : []),
-  ];
   const limparFiltros = () =>
     url.definir({ tipo: undefined, status: undefined, de: undefined, ate: undefined, busca: undefined });
-  const temFiltro = ativos.length > 0 || busca !== "" || tipo !== undefined || status.length > 0;
+  const temFiltro = busca !== "" || tipo !== undefined || status.length > 0 || de !== undefined || ate !== undefined;
 
   const exportarVisiveis = () => {
     if (!("dados" in estado) || !estado.dados) return;
@@ -306,31 +280,26 @@ export function TelaContratos() {
     ) : undefined,
   };
 
-  // Popover: cada grupo com um rótulo curto e os controles na mesma linha (o "Fechar" alinha com o
-  // primeiro rótulo). Sem repetir o nome do filtro nas opções.
-  const filtrosPopover = (
+  // Poucos filtros: ficam à vista na linha (sem botão "Filtros" nem linha de chips que empurra a lista).
+  // O próprio controle mostra o valor aplicado.
+  const filtrosAVista = (
     <>
-      <div role="group" aria-labelledby="filtro-tipo" className="flex flex-col gap-2">
-        <p id="filtro-tipo" className="text-sm font-medium text-text">
-          Tipo
-        </p>
-        <SegmentedControl
-          aria-label="Tipo"
-          className="w-full"
-          value={tipo ?? "todos"}
-          onValueChange={(v) => url.definir({ tipo: v === "todos" ? undefined : v })}
-          options={[
-            { value: "todos", label: "Todos" },
-            ...TIPOS.map((t) => ({ value: t, label: TIPO_CONTRATO_ROTULO[t] })),
-          ]}
-        />
-      </div>
-      <IntervaloDeDatas
+      <SegmentedControl
+        aria-label="Tipo"
+        value={tipo ?? "todos"}
+        onValueChange={(v) => url.definir({ tipo: v === "todos" ? undefined : v })}
+        options={[
+          { value: "todos", label: "Todos" },
+          ...TIPOS.map((t) => ({ value: t, label: TIPO_CONTRATO_ROTULO[t] })),
+        ]}
+      />
+      <FiltroDeDatas
         rotulo="Vencimento"
         de={de ?? ""}
         ate={ate ?? ""}
         onDeChange={(v) => url.definir({ de: v })}
         onAteChange={(v) => url.definir({ ate: v })}
+        onLimpar={() => url.definir({ de: undefined, ate: undefined })}
       />
     </>
   );
@@ -372,9 +341,7 @@ export function TelaContratos() {
               buscaCompacta
               rotuloBusca="Buscar contratos"
               placeholderBusca="Número, parte ou código do imóvel"
-              filtros={filtrosPopover}
-              ativos={ativos}
-              onLimparTudo={ativos.length > 0 ? limparFiltros : undefined}
+              aVista={filtrosAVista}
               ordenacao={
                 <Select
                   aria-label="Ordenar por"

@@ -83,15 +83,22 @@ describe("TelaContratos (RF-40, RF-41, RF-47)", () => {
     expect(replace).toHaveBeenCalledWith(expect.stringContaining("status=inadimplente"), expect.anything());
   });
 
-  it("tipo e vencimento ficam em Filtros, numa linha cada, e gravam na URL", async () => {
+  it("tipo e vencimento ficam à vista na barra, sem botão Filtros, e gravam na URL", async () => {
+    busca = new URLSearchParams("de=2026-12-01&ate=2026-12-15");
     render(<TelaContratos />);
     await screen.findByRole("region", { name: "Contratos" });
-    await userEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    await userEvent.click(await screen.findByRole("radio", { name: "Venda" }));
+    expect(screen.queryByRole("button", { name: /^Filtros/ })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: "Venda" }));
     expect(replace).toHaveBeenCalledWith(expect.stringContaining("tipo=venda"), expect.anything());
-    const vencimento = screen.getByRole("group", { name: "Vencimento" });
+    // O botão mostra o intervalo aplicado; o Popover só tem os campos.
+    const botao = screen.getByRole("button", { name: "Vencimento: de 01/12/26 até 15/12/26" });
+    expect(botao).toHaveTextContent("01/12/26 → 15/12/26");
+    await userEvent.click(botao);
+    const vencimento = await screen.findByRole("group", { name: "Vencimento" });
     expect(within(vencimento).getByRole("textbox", { name: "Vencimento a partir de" })).toBeInTheDocument();
     expect(within(vencimento).getByRole("textbox", { name: "Vencimento até" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Limpar" }));
+    expect(replace).toHaveBeenLastCalledWith(expect.not.stringContaining("de="), expect.anything());
   });
 
   it("erro de carregamento oferece tentar de novo", async () => {
