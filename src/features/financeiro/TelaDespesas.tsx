@@ -9,14 +9,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CartaoFinanceiro, CartaoFinanceiroSkeleton } from "@/components/patterns/CartaoFinanceiro";
 import type { DataTableColuna } from "@/components/patterns/DataTable";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
+import { IntervaloDeDatas } from "@/components/patterns/IntervaloDeDatas";
 import { CATEGORIA_DESPESA_ROTULO, STATUS_DESPESA_UI } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { LinkCodigo } from "@/components/patterns/LinkCodigo";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { DateInput } from "@/components/ui/DateInput";
-import { Field } from "@/components/ui/Field";
 import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
 import { CATEGORIAS_DESPESA, STATUS_DESPESA, type CategoriaDespesa, type StatusDespesa } from "@/domain";
@@ -166,11 +165,7 @@ export function TelaDespesas() {
     {
       id: "status",
       cabecalho: "Status",
-      celula: (l) => (
-        <Badge tone={STATUS_DESPESA_UI[l.status].tom}>
-          {STATUS_DESPESA_UI[l.status].rotulo}
-        </Badge>
-      ),
+      celula: (l) => <Badge tone={STATUS_DESPESA_UI[l.status].tom}>{STATUS_DESPESA_UI[l.status].rotulo}</Badge>,
     },
     { id: "acoes", cabecalho: <span className="sr-only">Ações</span>, alinhamento: "direita", celula: acoes },
   ];
@@ -199,12 +194,13 @@ export function TelaDespesas() {
           />
         ))}
       </fieldset>
-      <Field label="Vencimento a partir de">
-        {(c) => <DateInput {...c} value={de ?? ""} onValueChange={(v) => url.definir({ de: v })} />}
-      </Field>
-      <Field label="Vencimento até">
-        {(c) => <DateInput {...c} value={ate ?? ""} onValueChange={(v) => url.definir({ ate: v })} />}
-      </Field>
+      <IntervaloDeDatas
+        rotulo="Vencimento"
+        de={de ?? ""}
+        ate={ate ?? ""}
+        onDeChange={(v) => url.definir({ de: v })}
+        onAteChange={(v) => url.definir({ ate: v })}
+      />
     </>
   );
 

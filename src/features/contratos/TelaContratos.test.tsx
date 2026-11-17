@@ -83,12 +83,15 @@ describe("TelaContratos (RF-40, RF-41, RF-47)", () => {
     expect(replace).toHaveBeenCalledWith(expect.stringContaining("status=inadimplente"), expect.anything());
   });
 
-  it("marcar um status em Mais filtros grava na URL", async () => {
+  it("tipo e vencimento ficam em Filtros, numa linha cada, e gravam na URL", async () => {
     render(<TelaContratos />);
     await screen.findByRole("region", { name: "Contratos" });
-    await userEvent.click(screen.getByRole("button", { name: "Mais filtros" }));
-    await userEvent.click(await screen.findByRole("checkbox", { name: "Encerrado" }));
-    expect(replace).toHaveBeenCalledWith(expect.stringContaining("status=encerrado"), expect.anything());
+    await userEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    await userEvent.click(await screen.findByRole("radio", { name: "Venda" }));
+    expect(replace).toHaveBeenCalledWith(expect.stringContaining("tipo=venda"), expect.anything());
+    const vencimento = screen.getByRole("group", { name: "Vencimento" });
+    expect(within(vencimento).getByRole("textbox", { name: "Vencimento a partir de" })).toBeInTheDocument();
+    expect(within(vencimento).getByRole("textbox", { name: "Vencimento até" })).toBeInTheDocument();
   });
 
   it("erro de carregamento oferece tentar de novo", async () => {

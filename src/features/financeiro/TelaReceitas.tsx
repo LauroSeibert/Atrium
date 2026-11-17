@@ -9,13 +9,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CartaoFinanceiro, CartaoFinanceiroSkeleton } from "@/components/patterns/CartaoFinanceiro";
 import type { DataTableColuna } from "@/components/patterns/DataTable";
 import { FilterBar, type FiltroAtivo } from "@/components/patterns/FilterBar";
+import { IntervaloDeDatas } from "@/components/patterns/IntervaloDeDatas";
 import { STATUS_PARCELA_UI, TIPO_CONTRATO_ROTULO } from "@/components/patterns/rotulos";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { LinkCodigo } from "@/components/patterns/LinkCodigo";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { DateInput } from "@/components/ui/DateInput";
 import { Field } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import type { TableDensity } from "@/components/ui/Table";
@@ -166,11 +166,7 @@ export function TelaReceitas() {
     {
       id: "status",
       cabecalho: "Status",
-      celula: (l) => (
-        <Badge tone={STATUS_PARCELA_UI[l.status].tom}>
-          {STATUS_PARCELA_UI[l.status].rotulo}
-        </Badge>
-      ),
+      celula: (l) => <Badge tone={STATUS_PARCELA_UI[l.status].tom}>{STATUS_PARCELA_UI[l.status].rotulo}</Badge>,
     },
     {
       id: "atraso",
@@ -195,7 +191,7 @@ export function TelaReceitas() {
             value={tipo ?? "todos"}
             onValueChange={(v) => url.definir({ tipo: v === "todos" ? undefined : v })}
             options={[
-              { value: "todos", label: "Todos os tipos" },
+              { value: "todos", label: "Todos" },
               ...TIPOS.map((t) => ({ value: t, label: TIPO_CONTRATO_ROTULO[t] })),
             ]}
           />
@@ -212,12 +208,13 @@ export function TelaReceitas() {
           />
         ))}
       </fieldset>
-      <Field label="Vencimento a partir de">
-        {(c) => <DateInput {...c} value={de ?? ""} onValueChange={(v) => url.definir({ de: v })} />}
-      </Field>
-      <Field label="Vencimento até">
-        {(c) => <DateInput {...c} value={ate ?? ""} onValueChange={(v) => url.definir({ ate: v })} />}
-      </Field>
+      <IntervaloDeDatas
+        rotulo="Vencimento"
+        de={de ?? ""}
+        ate={ate ?? ""}
+        onDeChange={(v) => url.definir({ de: v })}
+        onAteChange={(v) => url.definir({ ate: v })}
+      />
     </>
   );
 

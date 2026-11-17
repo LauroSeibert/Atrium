@@ -37,7 +37,7 @@ export function PopoverContent({
         {children}
         {showClose ? (
           <PopoverPrimitive.Close asChild>
-            <Button variant="ghost" size="sm" icon={X} aria-label="Fechar" className="absolute top-2 right-2" />
+            <Button variant="ghost" size="sm" icon={X} aria-label="Fechar" className="absolute top-2.5 right-2.5" />
           </PopoverPrimitive.Close>
         ) : null}
       </PopoverPrimitive.Content>

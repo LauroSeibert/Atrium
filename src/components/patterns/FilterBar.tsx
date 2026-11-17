@@ -139,7 +139,7 @@ export function FilterBar({
             <PopoverContent
               align="start"
               showClose
-              className="flex max-h-96 w-96 max-w-full flex-col gap-4 overflow-y-auto pt-10"
+              className="flex max-h-96 w-96 max-w-full flex-col gap-4 overflow-y-auto [&>*:first-child]:pr-10"
             >
               {filtros}
               {maisFiltros ? (
