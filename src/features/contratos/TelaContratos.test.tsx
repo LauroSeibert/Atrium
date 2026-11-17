@@ -97,7 +97,8 @@ describe("TelaContratos (RF-40, RF-41, RF-47)", () => {
     const vencimento = await screen.findByRole("group", { name: "Vencimento" });
     expect(within(vencimento).getByRole("textbox", { name: "Vencimento a partir de" })).toBeInTheDocument();
     expect(within(vencimento).getByRole("textbox", { name: "Vencimento até" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Limpar" }));
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(screen.getByRole("button", { name: "Limpar vencimento" }));
     expect(replace).toHaveBeenLastCalledWith(expect.not.stringContaining("de="), expect.anything());
   });
 

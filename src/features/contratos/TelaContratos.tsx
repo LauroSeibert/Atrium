@@ -4,13 +4,13 @@
  * DESIGN.md: cabeçalho compacto, abas de status com as contagens, barra de filtros numa linha (tipo e vencimento à vista) e tabela
  * com no máximo 2 linhas por célula. Status de exibição e próximo vencimento vêm derivados do domínio.
  */
-import { Download } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContractCard, ContractCardSkeleton } from "@/components/patterns/ContractCard";
 import { AbasDeStatus } from "@/components/patterns/AbasDeStatus";
-import { BarraDeLote, type DataTableAcaoEmLote, type DataTableColuna } from "@/components/patterns/DataTable";
+import type { DataTableColuna } from "@/components/patterns/DataTable";
+import { MenuExportar, type FormatoExportacao } from "@/components/patterns/MenuExportar";
 import { FilterBar } from "@/components/patterns/FilterBar";
 import { FiltroDeDatas } from "@/components/patterns/FiltroDeDatas";
 import { ListaResponsiva } from "@/components/patterns/ListaResponsiva";
@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { toast } from "@/components/ui/Toast";
-import { PERMITIDO, type StatusExibicaoContrato, type TipoContrato } from "@/domain";
+import { type StatusExibicaoContrato, type TipoContrato } from "@/domain";
 import { DEBOUNCE_BUSCA_MS, useParametrosUrl } from "@/features/dados/useParametrosUrl";
 import { useConsulta } from "@/features/dados/useConsulta";
 import { cn } from "@/lib/cn";
@@ -28,7 +28,8 @@ import { baixarCsv } from "@/lib/csv";
 import { formatData, formatMoeda } from "@/lib/format";
 import { useTelaLarga } from "@/lib/useMidia";
 import { fakeApi } from "@/mocks/services/fakeApi";
-import { gerarCsv } from "./csv";
+import { gerarCsv, gerarLinhasPdf } from "./csv";
+import { baixarPdfTabela } from "@/lib/pdf";
 import type { LinhaContrato } from "./tipos";
 
 const POR_PAGINA = 10;
@@ -160,42 +161,36 @@ export function TelaContratos() {
     url.definir({ tipo: undefined, status: undefined, de: undefined, ate: undefined, busca: undefined });
   const temFiltro = busca !== "" || tipo !== undefined || status.length > 0 || de !== undefined || ate !== undefined;
 
-  const exportarVisiveis = () => {
-    if (!("dados" in estado) || !estado.dados) return;
-    baixarCsv("contratos.csv", gerarCsv(estado.dados.itens));
-    toast({
-      tone: "success",
-      title: "CSV gerado",
-      description: `${estado.dados.itens.length} contratos na tabela visível.`,
-    });
-  };
-
-  /** Seleção atravessa páginas: busca os contratos escolhidos, não só os da página atual. */
-  const exportarSelecionados = (ids: string[]) => {
-    fakeApi.listContratos({}, { pagina: 1, porPagina: 100_000 }, ordem).then(
-      (todos) => {
-        const escolhidos = todos.itens.filter((l) => ids.includes(l.contrato.id));
-        baixarCsv("contratos-selecionados.csv", gerarCsv(escolhidos));
+  /** Exporta os selecionados (a seleção atravessa páginas) ou, sem seleção, tudo o que os filtros pegam. */
+  const exportar = (formato: FormatoExportacao) => {
+    const ids = selecionados;
+    const consulta =
+      ids.length > 0
+        ? fakeApi.listContratos({}, { pagina: 1, porPagina: 100_000 }, ordem)
+        : fakeApi.listContratos(filtros, { pagina: 1, porPagina: 100_000 }, ordem);
+    consulta
+      .then(async (todos) => {
+        const itens = ids.length > 0 ? todos.itens.filter((l) => ids.includes(l.contrato.id)) : todos.itens;
+        const nome = ids.length > 0 ? "contratos-selecionados" : "contratos";
+        if (formato === "csv") baixarCsv(`${nome}.csv`, gerarCsv(itens));
+        else {
+          const { cabecalho, linhas } = gerarLinhasPdf(itens);
+          await baixarPdfTabela(`${nome}.pdf`, "Contratos", cabecalho, linhas);
+        }
         toast({
           tone: "success",
-          title: "CSV gerado",
-          description:
-            escolhidos.length === 1 ? "1 contrato selecionado." : `${escolhidos.length} contratos selecionados.`,
+          title: `${formato.toUpperCase()} gerado`,
+          description: itens.length === 1 ? "1 contrato." : `${itens.length} contratos.`,
         });
-      },
-      () => toast({ tone: "error", title: "Não foi possível gerar o CSV", description: "Tente de novo." }),
-    );
+      })
+      .catch(() =>
+        toast({
+          tone: "error",
+          title: `Não foi possível gerar o ${formato.toUpperCase()}`,
+          description: "Tente de novo.",
+        }),
+      );
   };
-
-  const acoesEmLote: DataTableAcaoEmLote[] = [
-    {
-      id: "exportar-csv",
-      rotulo: "Exportar CSV",
-      icone: Download,
-      permissao: PERMITIDO,
-      onExecutar: exportarSelecionados,
-    },
-  ];
 
   const colunas: DataTableColuna<LinhaContrato>[] = [
     {
@@ -311,9 +306,11 @@ export function TelaContratos() {
         eyebrow="Operação · carteira"
         titulo="Contratos"
         acoes={
-          <Button variant="secondary" leadingIcon={Download} onClick={exportarVisiveis} disabled={!total}>
-            Exportar CSV
-          </Button>
+          <MenuExportar
+            selecionados={telaLarga ? selecionados.length : 0}
+            onExportar={exportar}
+            disabled={!total && selecionados.length === 0}
+          />
         }
       />
       <div className="flex min-w-0 flex-col">
@@ -325,33 +322,23 @@ export function TelaContratos() {
           className="mt-3"
         />
         <div className="py-4">
-          {telaLarga && selecionados.length > 0 ? (
-            <BarraDeLote
-              variante="tinta"
-              quantidade={selecionados.length}
-              acoes={acoesEmLote}
-              selecionados={selecionados}
-              onLimpar={() => setSelecionados([])}
-            />
-          ) : (
-            <FilterBar
-              busca={busca}
-              onBuscaChange={(b) => url.definir({ busca: b })}
-              debounceMs={DEBOUNCE_BUSCA_MS}
-              buscaCompacta
-              rotuloBusca="Buscar contratos"
-              placeholderBusca="Número, parte ou código do imóvel"
-              aVista={filtrosAVista}
-              ordenacao={
-                <Select
-                  aria-label="Ordenar por"
-                  value={ordem}
-                  onValueChange={(v) => url.definir({ ordem: v === "recentes" ? undefined : v })}
-                  options={Object.entries(ORDENS).map(([value, label]) => ({ value, label }))}
-                />
-              }
-            />
-          )}
+          <FilterBar
+            busca={busca}
+            onBuscaChange={(b) => url.definir({ busca: b })}
+            debounceMs={DEBOUNCE_BUSCA_MS}
+            buscaCompacta
+            rotuloBusca="Buscar contratos"
+            placeholderBusca="Número, parte ou código do imóvel"
+            aVista={filtrosAVista}
+            ordenacao={
+              <Select
+                aria-label="Ordenar por"
+                value={ordem}
+                onValueChange={(v) => url.definir({ ordem: v === "recentes" ? undefined : v })}
+                options={Object.entries(ORDENS).map(([value, label]) => ({ value, label }))}
+              />
+            }
+          />
         </div>
 
         <ListaResponsiva
@@ -368,7 +355,6 @@ export function TelaContratos() {
             selecionados,
             onSelecaoChange: setSelecionados,
             rotuloSelecao: (l) => `Selecionar ${l.contrato.numero}`,
-            acoesEmLote,
             rotuloContagem: ["contrato", "contratos"],
             barraDeLote: "externa",
             larguraMinima: "min-w-240",
