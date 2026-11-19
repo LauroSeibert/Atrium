@@ -7,6 +7,7 @@ import { FachadaPredio } from "./FachadaPredio";
 import { FachadaSobrado } from "./FachadaSobrado";
 import { FachadaTerrea } from "./FachadaTerrea";
 import { FachadaTerreno } from "./FachadaTerreno";
+import { FachadaLinha } from "./FachadaLinha";
 
 export type FachadaVariante =
   "terrea" | "sobrado" | "moderna" | "predio" | "cobertura" | "campo" | "comercial" | "terreno";
@@ -35,8 +36,11 @@ const COMPONENTES = {
 
 export type SvgFachadaProps = { variant: FachadaVariante } & ComponentProps<typeof FachadaTerrea>;
 
-/** Ilustração de fachada por tipo de imóvel (Fase 5 §5.4). */
-export function SvgFachada({ variant, ...props }: SvgFachadaProps) {
+/** Ilustração de fachada por tipo de imóvel (Fase 5 §5.4). `estilo="linha"` (padrão) segue o DESIGN.md. */
+export function SvgFachada({ variant, estilo = "linha", ...props }: SvgFachadaProps & { estilo?: "linha" | "cheia" }) {
+  if (estilo === "linha") {
+    return <FachadaLinha variante={variant} {...props} />;
+  }
   const Componente = COMPONENTES[variant];
   return <Componente {...props} />;
 }

@@ -98,8 +98,8 @@ export function TelaRepasses() {
 
   return (
     <>
-      <PageHeader eyebrow="Financeiro · repasses" titulo="Repasses" />
-      <div className="flex min-w-0 flex-col gap-4">
+      <PageHeader densidade="lista" eyebrow="Financeiro · repasses" titulo="Repasses" />
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           aVista={
             <Select

@@ -98,7 +98,7 @@ export function TelaContatos() {
       cabecalho: "Telefone",
       celula: (c) =>
         c.telefone ? (
-          <span className="num whitespace-nowrap text-caption">{formatTelefone(c.telefone)}</span>
+          <span className="num text-caption whitespace-nowrap">{formatTelefone(c.telefone)}</span>
         ) : (
           <span className="text-text-muted">—</span>
         ),
@@ -114,7 +114,7 @@ export function TelaContatos() {
       id: "vinculos",
       cabecalho: "Vínculos",
       celula: (c) => (
-        <span className="num whitespace-nowrap text-caption text-text-muted">
+        <span className="num text-caption whitespace-nowrap text-text-muted">
           {c.imovelIds.length} imóv. · {c.contratoIds.length} contr.
         </span>
       ),
@@ -152,6 +152,7 @@ export function TelaContatos() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Comercial · pessoas"
         titulo="Contatos"
         acaoPrimaria={
@@ -160,7 +161,7 @@ export function TelaContatos() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => url.definir({ busca: b })}

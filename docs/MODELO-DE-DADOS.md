@@ -37,16 +37,16 @@ erDiagram
 
 ### Corretor
 
-| Campo           | Tipo                               | Notas                                     |
-| --------------- | ---------------------------------- | ----------------------------------------- |
-| id              | `cor_…`                            |                                           |
+| Campo           | Tipo                               | Notas                                                   |
+| --------------- | ---------------------------------- | ------------------------------------------------------- |
+| id              | `cor_…`                            |                                                         |
 | nome            | string                             | no máximo 3 palavras; inclui 1 nome longo de 3 palavras |
-| email, telefone | string                             | fictícios, sem dados reais                |
-| creci           | string                             | formato `CRECI-SP 123456-F` fictício      |
-| avatar          | `{ iniciais, variante? }`          | ilustração SVG ou iniciais (Fase 5)       |
-| papel           | `gestor \| corretor \| financeiro` | usado pelo seletor de persona (RF-08)     |
-| metaMensal      | centavos                           | para "meta x realizado" no dashboard      |
-| ativo           | boolean                            |                                           |
+| email, telefone | string                             | fictícios, sem dados reais                              |
+| creci           | string                             | formato `CRECI-SP 123456-F` fictício                    |
+| avatar          | `{ iniciais, variante? }`          | ilustração SVG ou iniciais (Fase 5)                     |
+| papel           | `gestor \| corretor \| financeiro` | usado pelo seletor de persona (RF-08)                   |
+| metaMensal      | centavos                           | para "meta x realizado" no dashboard                    |
+| ativo           | boolean                            |                                                         |
 
 ### Imovel
 
@@ -262,7 +262,7 @@ Garantidas pelo gerador do mock **e** pelas máquinas de estado do domínio, que
 
 ## 4. Volume e casos de borda (para a Fase 5)
 
-~48 imóveis · ~60 leads · ~85 negociações (1–3 por lead) · ~30 contratos · ~40 contatos · ~50 anúncios · ~60 documentos (todos com `arquivoId: null`: baixam o PDF de demonstração) · ~45 despesas · 8 corretores · 12 meses de métricas · ~120 visitas · ~600 atividades (anúncios, documentos e despesas só entram no feed nos últimos 60 dias; toda comissão e despesa paga tem Atividade e registro de `pagaEm`, como no domínio).
+~48 imóveis · ~60 leads · ~85 negociações (1–3 por lead) · ~36 contratos (vendas encerradas espalhadas pelos 12 meses, para a receita não ter meses vazios) · ~40 contatos · ~50 anúncios · ~60 documentos (todos com `arquivoId: null`: baixam o PDF de demonstração) · ~45 despesas · 8 corretores · 12 meses de métricas · ~120 visitas · ~600 atividades (anúncios, documentos e despesas só entram no feed nos últimos 60 dias; toda comissão e despesa paga tem Atividade e registro de `pagaEm`, como no domínio).
 Casos embutidos: nome longo (3 palavras, nunca mais) e título muito longo; imóvel sem cômodos (terreno) e sem ilustração (fallback); lead sem contato; contrato vencido e contrato com 3 parcelas atrasadas; valores extremos (aluguel R$ 900 e venda R$ 12 mi); coluna do kanban vazia ("contato"); lead com 3 negociações em etapas diferentes (proposta, visita, perdido); negociação aberta sem imóvel; despesas avulsas (sem contrato) e atrasadas; filtro sem resultado.
 Coerência das negociações: a principal herda a etapa histórica do lead (o contrato vinculado aponta para ela); as demais vêm de imóveis vistos ou com visita agendada (`visita` se a visita está agendada, senão `perdido`). Contatos proprietários têm o mesmo nome do vendedor/locador nas partes do contrato.
 

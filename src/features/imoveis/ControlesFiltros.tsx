@@ -3,12 +3,11 @@
 import { useState, type ReactNode } from "react";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
-import { FINALIDADE_ROTULO, STATUS_IMOVEL_UI, TIPO_IMOVEL_ROTULO } from "@/components/patterns/rotulos";
-import { FINALIDADES, STATUS_IMOVEL, TIPOS_IMOVEL } from "@/domain";
+import { STATUS_IMOVEL_UI, TIPO_IMOVEL_ROTULO } from "@/components/patterns/rotulos";
+import { STATUS_IMOVEL, TIPOS_IMOVEL } from "@/domain";
 import type { Parametros } from "@/features/dados/useParametrosUrl";
 import type { ParametrosImoveis } from "./filtros";
 
@@ -39,18 +38,6 @@ export function FiltrosPrincipais({ p, onMudar }: { p: ParametrosImoveis; onMuda
             onCheckedChange={(m) => onMudar({ tipo: alternar(p.tipos, t, m === true) })}
           />
         ))}
-      </Grupo>
-      <Grupo titulo="Finalidade">
-        <RadioGroup
-          aria-label="Finalidade"
-          value={p.finalidade ?? "todas"}
-          onValueChange={(v) => onMudar({ finalidade: v === "todas" ? undefined : v })}
-        >
-          <RadioGroupItem value="todas" label="Todas" />
-          {FINALIDADES.map((f) => (
-            <RadioGroupItem key={f} value={f} label={FINALIDADE_ROTULO[f]} />
-          ))}
-        </RadioGroup>
       </Grupo>
       <Grupo titulo="Status">
         {STATUS_IMOVEL.map((s) => (

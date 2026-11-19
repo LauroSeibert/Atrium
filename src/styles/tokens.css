@@ -117,6 +117,7 @@
   --font-size-2xl: 30px;
   --font-size-3xl: 40px;
   --font-size-lista: 44px;
+  --font-size-preco: 34px;
   --font-size-4xl: clamp(44px, 3.2vw + 20px, 64px);
   --font-size-5xl: clamp(44px, 4vw + 20px, 68px);
   --font-size-6xl: clamp(52px, 5vw + 20px, 88px);

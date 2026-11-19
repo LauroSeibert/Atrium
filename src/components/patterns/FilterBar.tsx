@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronUp, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Tag } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -38,11 +38,16 @@ export type FilterBarProps = {
   rotuloFiltros?: string;
   /** Busca com largura máxima de 520 px (listagem densa), em vez de ocupar a linha. */
   buscaCompacta?: boolean;
+  /**
+   * Listagem densa: sem linha de chips (aplicar filtro não empurra a lista). O botão mostra "Filtros (N)"
+   * com um X colado que limpa tudo.
+   */
+  compacta?: boolean;
   /** Filtros aplicados; viram chips removíveis e definem o N do botão. */
   ativos?: FiltroAtivo[];
   onLimparTudo?: () => void;
 
-  /** Total de resultados anunciado em `role="status"`. */
+  /** Total de resultados, anunciado só a leitores de tela em `role="status"` (não aparece na tela). */
   total?: number;
   /** `carregando` troca o contador por "Buscando…". */
   estado?: "pronto" | "carregando";
@@ -74,6 +79,7 @@ export function FilterBar({
   maisFiltros,
   rotuloFiltros = "Filtros",
   buscaCompacta = false,
+  compacta = false,
   ativos = [],
   onLimparTudo,
   total,
@@ -124,80 +130,94 @@ export function FilterBar({
           </div>
         ) : null}
         {aVista}
-        {aVista && onLimparTudo ? (
+        {aVista && onLimparTudo && !compacta ? (
           <Button variant="ghost" onClick={onLimparTudo}>
             Limpar filtros
           </Button>
         ) : null}
         {temFiltros ? (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="secondary" leadingIcon={SlidersHorizontal}>
-                {ativos.length > 0 ? `${rotuloFiltros} (${ativos.length})` : rotuloFiltros}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              showClose
-              className="flex max-h-96 w-96 max-w-full flex-col gap-4 overflow-y-auto [&>*:first-child]:pr-10"
-            >
-              {filtros}
-              {maisFiltros ? (
-                <div className="flex flex-col gap-4">
-                  <Button
-                    variant="link"
-                    className="self-start"
-                    trailingIcon={maisAberto ? ChevronUp : ChevronDown}
-                    aria-expanded={maisAberto}
-                    aria-controls="filtros-mais"
-                    onClick={() => setMaisAberto((v) => !v)}
-                  >
-                    Mais filtros
-                  </Button>
-                  <div id="filtros-mais" hidden={!maisAberto}>
-                    <div className="flex flex-col gap-4">{maisFiltros}</div>
+          <div className="inline-flex">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="secondary"
+                  leadingIcon={SlidersHorizontal}
+                  className={cn(compacta && "h-11", compacta && ativos.length > 0 && onLimparTudo && "rounded-r-none")}
+                >
+                  {ativos.length > 0 ? `${rotuloFiltros} (${ativos.length})` : rotuloFiltros}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                showClose
+                className="flex max-h-96 w-96 max-w-full flex-col gap-4 overflow-y-auto [&>*:first-child]:pr-10"
+              >
+                {filtros}
+                {maisFiltros ? (
+                  <div className="flex flex-col gap-4">
+                    <Button
+                      variant="link"
+                      className="self-start"
+                      trailingIcon={maisAberto ? ChevronUp : ChevronDown}
+                      aria-expanded={maisAberto}
+                      aria-controls="filtros-mais"
+                      onClick={() => setMaisAberto((v) => !v)}
+                    >
+                      Mais filtros
+                    </Button>
+                    <div id="filtros-mais" hidden={!maisAberto}>
+                      <div className="flex flex-col gap-4">{maisFiltros}</div>
+                    </div>
                   </div>
-                </div>
-              ) : null}
-            </PopoverContent>
-          </Popover>
+                ) : null}
+              </PopoverContent>
+            </Popover>
+            {compacta && ativos.length > 0 && onLimparTudo ? (
+              <Button
+                variant="secondary"
+                icon={X}
+                aria-label="Limpar filtros"
+                className="-ml-px h-11 w-11 rounded-l-none text-text-muted hover:text-text"
+                onClick={onLimparTudo}
+              />
+            ) : null}
+          </div>
+        ) : null}
+        {/* Contagem só para leitor de tela (WCAG 4.1.3): na tela ela gastava espaço da lista sem ajudar a decidir. */}
+        {total !== undefined || estado === "carregando" ? (
+          <p role="status" className="sr-only">
+            {textoContagem(total, estado, rotuloItem)}
+          </p>
         ) : null}
         {ordenacao || visualizacao ? (
-          <div className="flex max-w-full min-w-0 items-center gap-2 sm:ml-auto">
+          <div className="flex max-w-full min-w-0 items-center gap-2">
             {ordenacao ? <div className="min-w-0 flex-1 sm:w-44 sm:flex-none">{ordenacao}</div> : null}
             {visualizacao}
           </div>
         ) : null}
       </div>
 
-      {ativos.length > 0 || total !== undefined || estado === "carregando" ? (
+      {!compacta && ativos.length > 0 ? (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {ativos.length > 0 ? (
-            <>
-              <ul aria-label="Filtros aplicados" className="flex max-w-full min-w-0 flex-wrap items-center gap-2">
-                {ativos.map((f) => (
-                  <li key={f.id} className="max-w-full min-w-0">
-                    <Tag
-                      onRemove={f.onRemover}
-                      removeLabel={`Remover filtro: ${f.rotulo}`}
-                      title={f.rotulo}
-                      className="max-w-full min-w-0 shrink"
-                    >
-                      <span className="min-w-0 truncate">{f.rotulo}</span>
-                    </Tag>
-                  </li>
-                ))}
-              </ul>
-              {onLimparTudo ? (
-                <Button variant="link" onClick={onLimparTudo}>
-                  Limpar tudo
-                </Button>
-              ) : null}
-            </>
+          <ul aria-label="Filtros aplicados" className="flex max-w-full min-w-0 flex-wrap items-center gap-2">
+            {ativos.map((f) => (
+              <li key={f.id} className="max-w-full min-w-0">
+                <Tag
+                  onRemove={f.onRemover}
+                  removeLabel={`Remover filtro: ${f.rotulo}`}
+                  title={f.rotulo}
+                  className="max-w-full min-w-0 shrink"
+                >
+                  <span className="min-w-0 truncate">{f.rotulo}</span>
+                </Tag>
+              </li>
+            ))}
+          </ul>
+          {onLimparTudo ? (
+            <Button variant="link" onClick={onLimparTudo}>
+              Limpar tudo
+            </Button>
           ) : null}
-          <p role="status" className="tnum ml-auto min-w-0 text-sm break-words text-text-muted">
-            {textoContagem(total, estado, rotuloItem)}
-          </p>
         </div>
       ) : null}
     </div>

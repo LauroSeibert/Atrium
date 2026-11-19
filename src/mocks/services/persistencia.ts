@@ -1,10 +1,10 @@
 import { validarBase, type Base } from "@/domain";
 
 /** Persistência do mock (REQUISITOS: alterações sobrevivem ao recarregar; RF-51 restaura). */
-/** v2: negociações, contatos, anúncios, documentos e despesas (BRIEF-MENU). Dado v1 é descartado. */
-const CHAVE = "atrium:mock:v2";
+/** v2: negociações, contatos, anúncios, documentos e despesas (BRIEF-MENU). v3: mock com receita em todos os meses. */
+const CHAVE = "atrium:mock:v3";
 /** Chaves de versões anteriores, removidas ao carregar para não ocupar a cota. */
-const CHAVES_ANTIGAS = ["atrium:mock:v1"];
+const CHAVES_ANTIGAS = ["atrium:mock:v1", "atrium:mock:v2"];
 
 export type Salvo = { base: Base; usuarioAtualId: string; lidas: string[] };
 

@@ -85,7 +85,7 @@ describe("gerarBase: volumes (MODELO §4)", () => {
     expect(base.corretores).toHaveLength(8);
     expect(base.imoveis).toHaveLength(48);
     expect(base.leads).toHaveLength(60);
-    expect(base.contratos).toHaveLength(30);
+    expect(base.contratos).toHaveLength(36);
     expect(base.visitas.length).toBeGreaterThanOrEqual(100);
     expect(base.visitas.length).toBeLessThanOrEqual(140);
     expect(base.atividades.length).toBeGreaterThanOrEqual(450);
@@ -110,7 +110,7 @@ describe("gerarBase: volumes (MODELO §4)", () => {
 
   it("mix de contratos", () => {
     const n = (s: string) => base.contratos.filter((c) => c.status === s).length;
-    expect([n("rascunho"), n("ativo"), n("encerrado"), n("cancelado")]).toEqual([3, 18, 6, 3]);
+    expect([n("rascunho"), n("ativo"), n("encerrado"), n("cancelado")]).toEqual([3, 18, 12, 3]);
     for (const c of base.contratos.filter((x) => x.status === "cancelado")) expect(c.motivoCancelamento).toBeTruthy();
     for (const c of base.contratos.filter((x) => x.tipo === "venda")) {
       expect(c.parcelas.length).toBeLessThanOrEqual(4);

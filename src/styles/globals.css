@@ -102,6 +102,8 @@
   --text-md--line-height: var(--line-height-body);
   --text-lista: var(--font-size-lista);
   --text-lista--line-height: var(--line-height-display);
+  --text-preco: var(--font-size-preco);
+  --text-preco--line-height: var(--line-height-display);
   --text-4xl: var(--font-size-4xl);
   --text-4xl--line-height: var(--line-height-display);
   --text-5xl: var(--font-size-5xl);
@@ -173,6 +175,11 @@
     -webkit-font-smoothing: antialiased;
     /* Reserva o espaço da barra de rolagem: abrir menus/modais (que travam a rolagem) não desloca a página. */
     scrollbar-gutter: stable;
+  }
+  /* A trava de rolagem do Radix (react-remove-scroll) compensa a barra com margin-right; com o gutter
+     reservado acima isso empurraria a página para a esquerda. Mais específico que o estilo injetado. */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
   /* Tailwind v4 tirou o cursor de mão dos botões; tudo que é clicável volta a mostrar. */
   button:not(:disabled),
@@ -319,7 +326,7 @@
  * Tipografia editorial (DESIGN_SYSTEM §6). Utilitários próprios em vez de combinações soltas:
  * - `eyebrow`: rótulo em caixa alta acima de títulos e KPIs (11 px, 500, tracking 0.14em, text-muted).
  * - `display`: Instrument Serif, sempre peso 400 (nunca negrito).
- * - `num`: Geist Mono com algarismos tabulares (dinheiro em tabelas e listas, horários, códigos).
+ * - `num`: Geist com algarismos tabulares (dinheiro em tabelas e listas, horários, códigos).
  */
 @utility eyebrow {
   font-family: var(--font-family-sans);
@@ -345,6 +352,14 @@
   font-size: 0.45em;
   letter-spacing: 0;
   color: var(--text-2);
+}
+
+/* Faixa que rola na horizontal (abas de status no celular) sem mostrar barra de rolagem. */
+@utility sem-barra {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Barra de ação inferior (RF-63): respeita a área segura do iPhone sem valor literal. */

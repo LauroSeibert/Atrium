@@ -60,14 +60,27 @@ const FOCO = "outline-none focus-visible:outline-2 focus-visible:outline-offset-
 const LINHA =
   "group relative flex w-full items-center gap-3 rounded-lg px-3 font-regular transition-colors duration-(--dur-fast) ease-standard";
 
-function Indicador({ transicao }: { transicao: Contexto["transicao"] }) {
+/**
+ * Destaque do item ativo em três camadas, porque só fundo sutil não basta para baixa visão:
+ * fundo com mais contraste que o hover, rótulo em peso médio e uma barra de alto contraste à esquerda,
+ * fora do fundo e centrada no respiro entre a borda da tela e ele. Barra de 4 px:
+ * desktop (nav px-3.5 = 14 px) → 5 | 4 | 5; drawer de toque (nav px-3 = 12 px) → 4 | 4 | 4.
+ */
+const BARRA_ATIVO = {
+  padrao: "absolute inset-y-2 -left-2.25 w-1 rounded-full bg-primary",
+  toque: "absolute inset-y-2 -left-2 w-1 rounded-full bg-primary",
+} as const;
+
+function Indicador({ transicao, tamanho }: Pick<Contexto, "transicao" | "tamanho">) {
   return (
     <motion.span
       layoutId="indicador-ativo"
       transition={transicao}
       aria-hidden="true"
-      className="absolute inset-0 rounded-lg bg-primary-subtle"
-    />
+      className="absolute inset-0 rounded-lg bg-ink-track"
+    >
+      <span className={BARRA_ATIVO[tamanho]} />
+    </motion.span>
   );
 }
 
@@ -97,14 +110,15 @@ function LinkItem({ item, ctx, filho = false }: { item: ItemNavegacao; ctx: Cont
         alvo(tamanho),
         filho && "pl-10.5 text-caption",
         compacto && "w-11 justify-center px-0",
-        ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
+        ativo ? "font-medium text-text" : "text-text-muted hover:bg-surface-muted hover:text-text",
       )}
     >
       {ativo ? (
         ctx.flutuante ? (
-          <span aria-hidden="true" className="absolute inset-0 rounded-lg bg-primary-subtle" />
+          // Painel flutuante fica fora da tinta e sem respiro até a borda: fundo claro do tema, sem barra.
+          <span aria-hidden="true" className="absolute inset-0 rounded-lg bg-surface-sunken" />
         ) : (
-          <Indicador transicao={transicao} />
+          <Indicador transicao={transicao} tamanho={tamanho} />
         )
       ) : null}
       {filho ? null : <Icon icon={item.icone} size={18} className="relative shrink-0" />}
@@ -114,7 +128,7 @@ function LinkItem({ item, ctx, filho = false }: { item: ItemNavegacao; ctx: Cont
         <span
           aria-hidden="true"
           className={cn(
-            "num relative inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-sunken px-2 text-2xs",
+            "relative inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-sunken px-2 num text-2xs",
             TOM_CONTADOR[item.contador.tom],
             compacto && "absolute -top-1 -right-1 ring-2 ring-bg",
           )}
@@ -149,10 +163,14 @@ function Submenu({ item, ctx }: { item: ItemComSubmenu; ctx: Contexto }) {
   const [flutuanteAberto, setFlutuanteAberto] = useState(false);
   // Pai ativo mostra o indicador só quando os filhos não estão à vista.
   const indicadorNoPai = ativo && (recolhida || !aberto);
-  const aparencia = ativo ? "text-text" : "text-text-muted hover:bg-surface-muted hover:text-text";
+  const aparencia = indicadorNoPai
+    ? "font-medium text-text"
+    : ativo
+      ? "text-text"
+      : "text-text-muted hover:bg-surface-muted hover:text-text";
   const conteudo = (
     <>
-      {indicadorNoPai ? <Indicador transicao={transicao} /> : null}
+      {indicadorNoPai ? <Indicador transicao={transicao} tamanho={tamanho} /> : null}
       <Icon icon={item.icone} size={18} className="relative shrink-0" />
       {recolhida ? null : (
         <>
@@ -257,7 +275,7 @@ function Grupo({ grupo, ctx }: { grupo: GrupoNavegacao; ctx: Contexto }) {
   }
 
   const classeRotulo = cn(
-    "eyebrow flex w-full items-center gap-1 rounded-md px-3 text-text-muted",
+    "flex w-full items-center gap-1 rounded-md px-3 eyebrow text-text-muted",
     ctx.tamanho === "toque" ? "h-11" : "mt-5 mb-1 h-6",
   );
   return (

@@ -160,10 +160,11 @@ export function TelaAgenda() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow={hoje ? `Comercial · ${intervalo(hoje, PERIODOS[periodo].dias)}` : "Comercial"}
         titulo="Agenda"
       />
-      <div className="flex flex-col gap-6">
+      <div className="mt-3 flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-3">
           <SegmentedControl
             aria-label="Tipo de compromisso"

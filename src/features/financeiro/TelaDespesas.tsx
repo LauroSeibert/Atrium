@@ -207,6 +207,7 @@ export function TelaDespesas() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Financeiro · despesas"
         titulo="Despesas"
         acaoPrimaria={
@@ -220,7 +221,7 @@ export function TelaDespesas() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => url.definir({ busca: b })}

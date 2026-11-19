@@ -33,17 +33,17 @@ describe("TelaImoveis (RF-20…23, RF-28, RF-49)", () => {
     expect(screen.getAllByRole("article").length).toBe(Math.min(12, total));
   });
 
-  it("filtrar por finalidade (URL) muda o resultado e mostra o chip", async () => {
+  it("finalidade fica à vista na barra e grava na URL", async () => {
     const venda = (await fakeApi.listImoveis({ finalidade: "venda" }, { pagina: 1, porPagina: 12 })).total;
     const user = userEvent.setup();
     montar();
     await screen.findByRole("list", { name: "Imóveis" });
-    await user.click(screen.getByRole("button", { name: /^Filtros/ }));
-    await user.click(await screen.findByRole("radio", { name: "Venda" }));
+    await user.click(screen.getByRole("radio", { name: "Venda" }));
     await waitFor(() => expect(navegacao.url()).toContain("finalidade=venda"));
     expect(await screen.findByText(new RegExp(`${venda.toLocaleString("pt-BR")} imóve`))).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "Filtros aplicados" })).toHaveTextContent("Finalidade: Venda");
-    await user.click(screen.getByRole("button", { name: "Limpar tudo" }));
+    // Sem linha de chips: aplicar filtro não empurra a lista.
+    expect(screen.queryByRole("list", { name: "Filtros aplicados" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "Todos" }));
     await waitFor(() => expect(navegacao.url()).not.toContain("finalidade"));
   });
 

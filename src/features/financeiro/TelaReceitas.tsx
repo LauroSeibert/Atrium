@@ -221,6 +221,7 @@ export function TelaReceitas() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Financeiro · receitas"
         titulo="Receitas"
         acoes={
@@ -229,7 +230,7 @@ export function TelaReceitas() {
           </Button>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => url.definir({ busca: b })}

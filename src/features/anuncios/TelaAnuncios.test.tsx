@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Toaster, useToastStore } from "@/components/ui/Toast";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 import { __reiniciarParaTeste, fakeApi } from "@/mocks/services/fakeApi";
 
 vi.mock("next/navigation", () => ({
@@ -27,10 +28,10 @@ beforeEach(() => {
 
 const renderTela = () =>
   render(
-    <>
+    <TooltipProvider>
       <TelaAnuncios />
       <Toaster />
-    </>,
+    </TooltipProvider>,
   );
 
 describe("TelaAnuncios (RF-75)", () => {

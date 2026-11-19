@@ -223,7 +223,8 @@ test.describe("layout nos breakpoints", () => {
         if (largura === 1920) {
           const caixa = await page.locator("#conteudo").boundingBox();
           expect(caixa?.width ?? 0).toBeGreaterThan(0);
-          expect(caixa?.width ?? Infinity).toBeLessThanOrEqual(1440);
+          // Listagens densas (DESIGN.md: list page pattern) vão a 1480 px de conteúdo + calhas.
+          expect(caixa?.width ?? Infinity).toBeLessThanOrEqual(rota === "/imoveis" ? 1600 : 1440);
         }
       });
     }

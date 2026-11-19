@@ -129,9 +129,7 @@ export function TelaComissoes() {
       cabecalho: "Status",
       celula: (l) => (
         <span className="flex flex-col gap-0.5">
-          <Badge tone={STATUS_COMISSAO_UI[l.status].tom}>
-            {STATUS_COMISSAO_UI[l.status].rotulo}
-          </Badge>
+          <Badge tone={STATUS_COMISSAO_UI[l.status].tom}>{STATUS_COMISSAO_UI[l.status].rotulo}</Badge>
           {l.pagaEm ? <span className="tnum text-xs text-text-muted">{formatData(l.pagaEm)}</span> : null}
         </span>
       ),
@@ -176,8 +174,8 @@ export function TelaComissoes() {
 
   return (
     <>
-      <PageHeader eyebrow="Financeiro · comissões" titulo="Comissões" />
-      <div className="flex min-w-0 flex-col gap-4">
+      <PageHeader densidade="lista" eyebrow="Financeiro · comissões" titulo="Comissões" />
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           aVista={filtrosBarra}
           onLimparTudo={temFiltro ? limparFiltros : undefined}

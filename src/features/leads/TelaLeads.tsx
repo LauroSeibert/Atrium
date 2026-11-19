@@ -238,7 +238,7 @@ export function TelaLeads() {
   if (falhaBase) {
     return (
       <>
-        <PageHeader titulo="Leads" />
+        <PageHeader densidade="lista" titulo="Leads" />
         <ErrorState
           titulo="Não foi possível carregar os leads"
           onTentarNovamente={() => {
@@ -254,6 +254,7 @@ export function TelaLeads() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Comercial · funil"
         titulo="Leads"
         acaoPrimaria={
@@ -262,7 +263,7 @@ export function TelaLeads() {
           </AcaoLink>
         }
       />
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="mt-3 flex min-w-0 flex-col gap-4">
         <FilterBar
           busca={busca}
           onBuscaChange={(b) => definir({ busca: b })}

@@ -29,7 +29,15 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { TableDensity } from "@/components/ui/Table";
 import { toast } from "@/components/ui/Toast";
-import { opcoesLoteImovel, PERMITIDO, recortePadrao, type Corretor, type Imovel, type TransicaoImovel } from "@/domain";
+import {
+  FINALIDADES,
+  opcoesLoteImovel,
+  PERMITIDO,
+  recortePadrao,
+  type Corretor,
+  type Imovel,
+  type TransicaoImovel,
+} from "@/domain";
 import { formatArea, formatMoeda } from "@/lib/format";
 import { baixarCsv } from "@/lib/csv";
 import { usePreferencia } from "@/lib/preferencias";
@@ -63,9 +71,9 @@ const ROTULO_ORDEM: { value: OrdemImoveis; label: string }[] = [
 
 function SkeletonListagem() {
   return (
-    <div role="status" aria-busy="true" aria-label="Carregando imóveis" className="flex flex-col gap-4">
+    <div role="status" aria-busy="true" aria-label="Carregando imóveis" className="mt-3 flex flex-col gap-4">
       <Skeleton className="h-10 w-full rounded-md" />
-      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 6 }, (_, i) => (
           <PropertyCardSkeleton key={i} />
         ))}
@@ -79,6 +87,7 @@ export function TelaImoveis() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Operação · carteira"
         titulo="Imóveis"
         acaoPrimaria={
@@ -204,10 +213,13 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   ];
 
   const chips = construirChips(p, corretorEfetivo, (id) => nomeDe(id) ?? "—", usuario.id);
-  const ativos: FiltroAtivo[] = chips.map((c) => ({ id: c.id, rotulo: c.rotulo, onRemover: () => definir(c.remover) }));
+  // Finalidade fica à vista na barra; o N do botão Filtros conta só o que está dentro do Popover.
+  const ativos: FiltroAtivo[] = chips
+    .filter((c) => c.id !== "finalidade")
+    .map((c) => ({ id: c.id, rotulo: c.rotulo, onRemover: () => definir(c.remover) }));
   const limparTudo = () =>
     definir({ ...Object.fromEntries(CHAVES_FILTRO.map((k) => [k, undefined])), corretor: "todos" });
-  const semFiltros = ativos.length === 0 && p.busca.trim() === "";
+  const semFiltros = chips.length === 0 && p.busca.trim() === "";
   const aoBuscar = useCallback((q: string) => definir({ q }), [definir]);
 
   const vazio = semFiltros ? (
@@ -308,8 +320,22 @@ function Listagem({ usuario }: { usuario: Corretor }) {
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="mt-3 flex min-w-0 flex-col">
       <FilterBar
+        compacta
+        buscaCompacta
+        className="border-b border-border pb-7"
+        aVista={
+          <SegmentedControl
+            aria-label="Finalidade"
+            value={p.finalidade ?? "todas"}
+            onValueChange={(v) => definir({ finalidade: v === "todas" ? undefined : v })}
+            options={[
+              { value: "todas", label: "Todos" },
+              ...FINALIDADES.map((f) => ({ value: f, label: FINALIDADE_ROTULO[f] })),
+            ]}
+          />
+        }
         busca={p.busca}
         onBuscaChange={aoBuscar}
         debounceMs={DEBOUNCE_BUSCA_MS}
@@ -351,7 +377,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
         }
       />
 
-      <section aria-label="Lista de imóveis" className="min-w-0">
+      <section aria-label="Lista de imóveis" className="min-w-0 pt-8">
         {mostrarTabela ? (
           <DataTable<ImovelComTransicoes>
             aria-label="Imóveis"
@@ -399,7 +425,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                 role="status"
                 aria-busy="true"
                 aria-label="Carregando imóveis"
-                className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
                 {Array.from({ length: 6 }, (_, i) =>
                   view === "lista" ? (
@@ -422,7 +448,7 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                   className={
                     view === "lista"
                       ? "flex flex-col"
-                      : "grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+                      : "grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                   }
                 >
                   {d.itens.map((i) => {
@@ -443,8 +469,6 @@ function Listagem({ usuario }: { usuario: Corretor }) {
                 <Pagination
                   page={d.pagina}
                   pageCount={d.totalPaginas}
-                  pageSize={d.porPagina}
-                  total={d.total}
                   onPageChange={(n) => definir({ pagina: String(n) })}
                   className="min-w-0 justify-center sm:justify-between [&_ul]:flex-wrap [&_ul]:justify-center"
                 />

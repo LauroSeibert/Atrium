@@ -216,10 +216,11 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   ]);
   const papeisVenda = r.embaralhar<Papel>([
     ...rep(7, "ativo" as const),
-    ...rep(3, "encerrado" as const),
+    // 9 vendas encerradas: cerca de uma escritura por mês nos 12 meses do gráfico (demonstração).
+    ...rep(9, "encerrado" as const),
     "cancelado",
     "rascunho",
-    ...rep(16, "livre" as const),
+    ...rep(10, "livre" as const),
   ]);
   const tiposLoc: TipoImovel[] = r.embaralhar([
     ...rep(11, "apartamento" as const),
@@ -257,9 +258,9 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
     })),
   ]);
   const statusLivres = r.embaralhar<StatusImovel>([
-    ...rep(4, "reservado" as const),
-    ...rep(4, "inativo" as const),
-    ...rep(10, "disponivel" as const),
+    ...rep(3, "reservado" as const),
+    ...rep(2, "inativo" as const),
+    ...rep(7, "disponivel" as const),
   ]);
   let rascunhoVendaReservado = false;
   const specs: Especificacao[] = espBruta.map((e) => {
@@ -534,6 +535,10 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   const ordenados = [...naoLivres].sort((a, b) =>
     a.finalidade === b.finalidade ? 0 : a.finalidade === "venda" ? -1 : 1,
   );
+  let vendasEncerradas = 0;
+  let locacoesAtivas = 0;
+  let vendasAtivas = 0;
+  const diaDeHoje = Number(hojeData.slice(8, 10));
   let jaTresAtrasadas = false;
   let jaVencido = false;
   for (const im of ordenados) {
@@ -558,17 +563,25 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       if (papel === "ativo") {
         status = "ativo";
         const n = spec.extremo === "maximo" ? 4 : r.ponderado([1, 2, 3, 4], [1, 3, 3, 3]);
-        const d = n === 1 ? r.inteiro(8, 20) : r.inteiro(5, (n - 1) * 30 - 3);
+        const dSorteado = n === 1 ? r.inteiro(8, 20) : r.inteiro(5, (n - 1) * 30 - 3);
+        // Demonstração: 1 em cada 3 vendas ativas é assinada no mês corrente, para a "Meta do mês"
+        // ter comissão de venda (e não só a de aluguéis) e o mês atual não aparecer vazio.
+        const doMes = vendasAtivas++ % 3 === 0 && spec.extremo !== "maximo" && diaDeHoje > 1;
+        const d = doMes ? 1 + (dSorteado % (diaDeHoje - 1)) : dSorteado;
         inicio = dataRel(d);
         const base = gerarParcelas({ tipo, valor, inicio, fim: inicio }, n);
         fim = addDias(base[n - 1]!.vencimento, r.inteiro(15, 30));
-        parcelas = pagar(base, { tipo: "atrasadas", k: n === 1 ? 1 : r.chance(0.2) ? 1 : 0 });
+        const atrasadas = n === 1 ? 1 : r.chance(0.2) ? 1 : 0;
+        parcelas = pagar(base, { tipo: "atrasadas", k: doMes && n > 1 ? 0 : atrasadas });
         assinaturaDias = d + r.inteiro(0, 3);
         comissaoPaga = d > 20;
       } else if (papel === "encerrado") {
         status = "encerrado";
+        // Demonstração: uma venda encerrada por mês, de ~11 a ~3 meses atrás (1–3 parcelas mensais),
+        // para a receita de vendas não ter meses vazios; as ativas cobrem os meses recentes.
         const n = r.inteiro(1, 3);
-        const d = r.inteiro(120, 300);
+        const mesesAtras = 11 - (vendasEncerradas++ % 9); // de 11 a 3 meses atrás, um por mês
+        const d = diasAtras(addDias(addMeses(`${hojeData.slice(0, 8)}01`, -mesesAtras), r.inteiro(120, 300) % 20));
         inicio = dataRel(d);
         const base = gerarParcelas({ tipo, valor, inicio, fim: inicio }, n);
         fim = addDias(base[n - 1]!.vencimento, r.inteiro(10, 25));
@@ -612,8 +625,13 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
           inicio = clamp(dataRel(r.inteiro(150, 250)));
           k = 3;
         } else {
-          inicio = clamp(dataRel(r.inteiro(25, 330)));
+          const dSorteado = r.inteiro(25, 330);
           k = r.ponderado([0, 1, 2], [6, 2, 1]);
+          // Demonstração: 1 em cada 4 locações ativas começa no mês corrente (entre o dia 1 e ontem), para
+          // "Meta do mês" e "contratos fechados" nunca aparecerem zerados.
+          const doMes = locacoesAtivas++ % 4 === 1 && spec.extremo !== "minimo" && diaDeHoje > 1;
+          inicio = clamp(dataRel(doMes ? 1 + (dSorteado % (diaDeHoje - 1)) : dSorteado));
+          if (doMes) k = 0;
           if (spec.extremo === "minimo") {
             especial = "minimo";
             k = 0;
@@ -849,7 +867,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       nome:
         lead?.nome ??
         (comercial
-          ? `${r.escolher(["Alfa", "Boa Vista", "Delta", "Horizonte", "Nova Era"])} Serviços Ltda.`
+          ? `${r.escolher(["Alfa", "Aurora", "Delta", "Horizonte", "Vértice"])} Serviços Ltda.`
           : nomeCompleto(r)),
       documento: comercial && !lead ? cnpjFicticio(r) : cpfFicticio(r),
     };
@@ -1130,7 +1148,9 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
   // ----- documentos (RF-76) ----------------------------------------------------------------
   // Só metadados: `arquivoId: null` baixa um PDF de demonstração.
   const documentos: Documento[] = [];
-  for (const e of comContrato) {
+  for (const [i, e] of comContrato.entries()) {
+    // Teto de 60, mas reservando ao menos um documento para cada contrato que ainda falta.
+    const teto = 60 - (comContrato.length - 1 - i);
     const c = e.contrato;
     const num = numeros.get(c.id)!;
     const im = imovelDe.get(c.imovelId)!;
@@ -1148,7 +1168,7 @@ function construir(opcoes: OpcoesGerador): { base: Base; casos: CasosDeBorda } {
       lista.push({ tipo: "certidao", nome: "Certidão negativa de débitos.pdf", mime: "application/pdf" });
     if (r.chance(0.25)) lista.push({ tipo: "comprovante", nome: "Comprovante de renda.png", mime: "image/png" });
     for (const item of lista) {
-      if (documentos.length >= 60) break;
+      if (documentos.length >= teto) break;
       const mime = item.nome.endsWith(".jpg") ? "image/jpeg" : item.mime;
       const dias = Math.max(0, e.criadoDias - r.inteiro(0, 6));
       documentos.push({

@@ -110,7 +110,10 @@ function lerVariacao(v: VariacaoKpi, sentido: SentidoKpi, comparacao: string, po
 const COR_TOM = { bom: "text-success", ruim: "text-danger", neutro: "text-text-muted" } as const;
 
 /** Célula: respiro editorial, alinhada à esquerda da faixa; card: padding de painel. */
+type Variante = "card" | "celula" | "compacta";
+
 const PADDING = {
+  compacta: "py-4 pr-4 pl-4 odd:pl-0 sm:pr-7 sm:pl-7 sm:odd:pl-0 lg:odd:pl-7 lg:first:pl-0",
   celula: "py-6 pr-4 pl-4 odd:pl-0 sm:pt-6.5 sm:pr-7 sm:pb-7.5 sm:pl-7 sm:odd:pl-0 lg:odd:pl-7 lg:first:pl-0",
   card: "p-5 sm:px-7 sm:py-6.5",
 } as const;
@@ -179,8 +182,9 @@ export type StatCardProps = {
   /**
    * `card` (padrão): painel próprio com borda. `celula`: sem caixa, para viver dentro de um
    * `StatGroup` (faixa única com divisórias), que é como o dashboard e o financeiro mostram KPIs.
+   * `compacta`: célula baixa, número menor, para listagens em que os KPIs são só contexto (ex.: Anúncios).
    */
-  variante?: "card" | "celula";
+  variante?: Variante;
   className?: string;
 };
 
@@ -219,22 +223,17 @@ export function StatGroup({
   );
 }
 
-export function StatCardSkeleton({
-  className,
-  variante = "card",
-}: {
-  className?: string;
-  variante?: "card" | "celula";
-}) {
+export function StatCardSkeleton({ className, variante = "card" }: { className?: string; variante?: Variante }) {
   const Caixa = variante === "card" ? Card : "div";
+  const compacta = variante === "compacta";
   return (
-    <Caixa aria-busy="true" className={cn("flex flex-col gap-4", PADDING[variante], className)}>
+    <Caixa aria-busy="true" className={cn("flex flex-col", compacta ? "gap-2" : "gap-4", PADDING[variante], className)}>
       <span className="sr-only" role="status">
         Carregando indicador
       </span>
       <Skeleton className="h-3 w-1/2" />
-      <Skeleton className="h-14 w-2/3" />
-      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className={cn("w-2/3", compacta ? "h-8" : "h-14")} />
+      {compacta ? null : <Skeleton className="h-4 w-3/4" />}
     </Caixa>
   );
 }
@@ -266,18 +265,20 @@ function Corpo({
   const serie = kpi.tendencia ?? [];
   const Caixa = variante === "card" ? Card : "div";
   return (
-    <Caixa
-      className={cn("flex h-full min-w-0 flex-col", PADDING[variante])}
-      role="group"
-      aria-labelledby={`${id}-r`}
-    >
+    <Caixa className={cn("flex h-full min-w-0 flex-col", PADDING[variante])} role="group" aria-labelledby={`${id}-r`}>
       <p id={`${id}-r`} className="eyebrow">
         {rotulo}
       </p>
-      <p className={cn("mt-4.5 mb-3.5 min-w-0 [overflow-wrap:anywhere]", kpi.tom === "alerta" ? "text-danger" : "text-text")}>
+      <p
+        className={cn(
+          variante === "compacta" ? "mt-1.5" : "mt-4.5 mb-3.5",
+          "min-w-0 [overflow-wrap:anywhere]",
+          kpi.tom === "alerta" ? "text-danger" : "text-text",
+        )}
+      >
         <Destaque
           valor={formatar(kpi.valor)}
-          size={formato === "moedaCompleta" || variante === "card" ? "3xl" : "4xl"}
+          size={variante === "compacta" ? "2xl" : formato === "moedaCompleta" || variante === "card" ? "3xl" : "4xl"}
           className={kpi.tom === "alerta" ? "[&_.unidade]:text-danger" : undefined}
         />
       </p>

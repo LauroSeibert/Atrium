@@ -87,8 +87,8 @@ export type DataTableProps<T extends object> = {
   linhasSkeleton?: number;
   vazio?: Pick<EmptyStateProps, "titulo" | "descricao" | "acao" | "ilustracao">;
   /**
-   * Padrão de listagem densa (DESIGN.md): tabela e rodapé num só cartão, com o total ("30 contratos",
-   * anunciado em `role="status"`) à esquerda e as páginas à direita. Singular e plural do item.
+   * Total da listagem ("30 contratos"), anunciado só a leitores de tela em `role="status"`; na tela o rodapé
+   * mostra apenas as páginas. Singular e plural do item.
    */
   rotuloContagem?: readonly [singular: string, plural: string];
   /**
@@ -137,7 +137,7 @@ export function BarraDeLote({
         className,
       )}
     >
-      <p aria-hidden="true" className="num mr-1 text-sm font-medium whitespace-nowrap text-text">
+      <p aria-hidden="true" className="mr-1 num text-sm font-medium whitespace-nowrap text-text">
         {quantidade === 1 ? "1 selecionado" : `${quantidade} selecionados`}
       </p>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -361,7 +361,8 @@ export function DataTable<T extends object>({
               <TableBody>
                 {pagina.itens.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={totalColunas} className="h-auto">
+                    {/* Células não têm padding vertical (altura fixa da linha): o vazio precisa do próprio respiro. */}
+                    <TableCell colSpan={totalColunas} className="h-auto pt-10 pb-6">
                       <EmptyState
                         tamanho="compacto"
                         titulo={vazio?.titulo ?? "Nenhum resultado"}
@@ -406,24 +407,18 @@ export function DataTable<T extends object>({
                 )}
               </TableBody>
             </Table>
+            {/* Total só para leitor de tela: na tela ocupava espaço da lista sem ajudar a decidir. */}
             {rotuloContagem ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-soft py-2 pr-3 pl-5 sm:pl-6">
-                <p role="status" className="num text-caption text-text-muted">
-                  {pagina.total === 1 ? `1 ${rotuloContagem[0]}` : `${pagina.total.toLocaleString("pt-BR")} ${rotuloContagem[1]}`}
-                </p>
-                {pagina.totalPaginas > 1 ? (
-                  <Pagination page={pagina.pagina} pageCount={pagina.totalPaginas} onPageChange={onPaginaChange} />
-                ) : null}
+              <p role="status" className="sr-only">
+                {pagina.total === 1
+                  ? `1 ${rotuloContagem[0]}`
+                  : `${pagina.total.toLocaleString("pt-BR")} ${rotuloContagem[1]}`}
+              </p>
+            ) : null}
+            {pagina.totalPaginas > 1 ? (
+              <div className="flex justify-end border-t border-border-soft py-2 pr-3 pl-5 sm:pl-6">
+                <Pagination page={pagina.pagina} pageCount={pagina.totalPaginas} onPageChange={onPaginaChange} />
               </div>
-            ) : pagina.total > 0 ? (
-              <Pagination
-                page={pagina.pagina}
-                pageCount={pagina.totalPaginas}
-                pageSize={pagina.porPagina}
-                total={pagina.total}
-                onPageChange={onPaginaChange}
-                className="min-w-0 justify-center sm:justify-between [&_ul]:flex-wrap [&_ul]:justify-center"
-              />
             ) : null}
           </div>
         )}

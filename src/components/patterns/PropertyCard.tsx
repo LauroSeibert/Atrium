@@ -18,7 +18,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/DropdownMenu";
 import { Icon } from "../ui/Icon";
-import { Destaque } from "../ui/Typography";
+import { Destaque, partesDestaque } from "../ui/Typography";
 import { Skeleton } from "../ui/Skeleton";
 import { PropertyImage } from "./PropertyImage";
 import { FINALIDADE_ROTULO, STATUS_IMOVEL_UI } from "./rotulos";
@@ -170,22 +170,35 @@ export function BotaoFavorito({
 export function MenuAcoesImovel({
   imovel,
   acoes,
+  variante = "sobreImagem",
   className,
 }: {
   imovel: Imovel;
   acoes: AcaoImovel[];
+  /** `discreto`: botão fantasma de 32 px no rodapé do cartão. */
+  variante?: "sobreImagem" | "discreto";
   className?: string;
 }) {
   if (acoes.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="secondary"
-          icon={MoreHorizontal}
-          aria-label={`Mais ações do imóvel ${imovel.codigo}`}
-          className={cn(alvo, "relative z-10 rounded-full border-transparent bg-surface/90", className)}
-        />
+        {variante === "discreto" ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={MoreHorizontal}
+            aria-label={`Mais ações do imóvel ${imovel.codigo}`}
+            className={cn(alvo, "relative z-10 -mr-1.5", className)}
+          />
+        ) : (
+          <Button
+            variant="secondary"
+            icon={MoreHorizontal}
+            aria-label={`Mais ações do imóvel ${imovel.codigo}`}
+            className={cn(alvo, "relative z-10 rounded-full border-transparent bg-surface/90", className)}
+          />
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {acoes.map((a) => (
@@ -237,33 +250,95 @@ export function ResponsavelImovel({ corretor }: { corretor?: Pick<Corretor, "nom
   );
 }
 
-/** Cartão de imóvel para a grade (RF-20, RF-28): o ladrilho é o objeto, sem caixa em volta. */
+/** Quartos, vagas e área por extenso ("3 quartos · 1 vaga · 184 m²"), com ícone: ritmo do board de Imóveis. */
+function SpecsPorExtenso({ imovel }: { imovel: Imovel }) {
+  const terreno = imovel.tipo === "terreno";
+  const itens: { icone: LucideIcon; texto: string; sr?: string }[] = [
+    ...(terreno || imovel.quartos === 0
+      ? []
+      : [{ icone: BedDouble, texto: `${imovel.quartos} ${imovel.quartos === 1 ? "quarto" : "quartos"}` }]),
+    ...(terreno ? [] : [{ icone: Car, texto: `${imovel.vagas} ${imovel.vagas === 1 ? "vaga" : "vagas"}` }]),
+    {
+      icone: Maximize2,
+      texto: formatArea(terreno ? imovel.areaTotal : imovel.areaUtil),
+      sr: terreno ? "de área total" : "de área útil",
+    },
+  ];
+  return (
+    <ul aria-label="Características" className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-caption text-text-2">
+      {itens.map((i) => (
+        <li key={i.texto} className="inline-flex items-center gap-1.5 num">
+          <Icon icon={i.icone} size={16} className="text-text-muted" />
+          {i.texto}
+          {i.sr ? <span className="sr-only"> {i.sr}</span> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Cartão de imóvel para a grade (RF-20, RF-28), no ritmo do board "Imóveis (card hierarchy)":
+ * imagem → 18 → título (2 linhas) → 4 → bairro → 18 → preço em serifa → 12 → características →
+ * 18 + fio + 12 → corretor · código · ⋯. Espaço dentro de um grupo ≤ ¼ do espaço entre grupos.
+ */
 export function PropertyCard({ imovel, corretor, href, acoes = [], onAlternarFavorito, className }: PropertyItemProps) {
+  const locacao = imovel.finalidade === "locacao";
+  const [, numero] = partesDestaque(formatMoeda(imovel.preco, { semCentavos: true }));
+  const status = imovel.status === "disponivel" ? null : STATUS_IMOVEL_UI[imovel.status].rotulo;
   return (
     <article
       aria-label={`${imovel.codigo}: ${imovel.titulo}`}
-      className={cn("group relative flex h-full min-w-0 flex-col gap-4", className)}
+      className={cn("group relative flex h-full min-w-0 flex-col", className)}
     >
-      <div className="relative overflow-hidden rounded-lg">
-        <PropertyImage
-          tipo={imovel.tipo}
-          fachada={imovel.fachada}
-          decorativa
-          className="transition-transform duration-(--dur-slow) ease-standard group-hover:scale-102 motion-reduce:group-hover:scale-100"
-        />
-        <PilulaFinalidade imovel={imovel} className="absolute top-3 left-3" />
-        <div className="absolute top-2 right-2 flex gap-1.5">
-          <BotaoFavorito imovel={imovel} onAlternarFavorito={onAlternarFavorito} />
-          <MenuAcoesImovel imovel={imovel} acoes={acoes} />
+      <div className="relative">
+        <PropertyImage tipo={imovel.tipo} fachada={imovel.fachada} decorativa />
+        <div className="absolute top-3 left-3 flex gap-1.5">
+          <PilulaFinalidade imovel={imovel} />
+          {status ? (
+            <span className="tinta inline-flex items-center rounded-full bg-ink-panel px-2.5 py-1 text-2xs font-medium tracking-wide text-on-ink-strong uppercase">
+              {status}
+            </span>
+          ) : null}
         </div>
+        <BotaoFavorito imovel={imovel} onAlternarFavorito={onAlternarFavorito} className="absolute top-2.5 right-2.5" />
       </div>
-      <div className="flex flex-1 flex-col gap-1">
-        <CodigoStatusImovel imovel={imovel} />
-        <TituloImovel imovel={imovel} href={href} />
-        <p className="truncate text-caption text-text-muted">{imovel.endereco.bairro}</p>
-        <PrecoImovel imovel={imovel} className="mt-2" />
-        <SpecsImovel imovel={imovel} className="mt-auto pt-2 text-xs text-text-2" />
-        <ResponsavelImovel corretor={corretor} />
+      <div className="pt-4.5">
+        <h3 className="leading-snug min-h-11 text-base font-medium text-text">
+          <Link
+            href={href}
+            title={imovel.titulo}
+            className="line-clamp-2 rounded-sm decoration-border-strong underline-offset-4 group-hover:underline after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {imovel.titulo}
+          </Link>
+        </h3>
+        <p className="mt-1 truncate text-caption text-text-muted">{imovel.endereco.bairro}</p>
+      </div>
+      <p className="mt-4.5 text-text">
+        <span className="tnum display text-preco">
+          <span className="text-lg text-text-2">R$ </span>
+          {numero}
+        </span>
+        {locacao ? <span className="text-caption text-text-muted"> /mês</span> : null}
+      </p>
+      <SpecsPorExtenso imovel={imovel} />
+      <div className="mt-auto pt-4.5">
+        <div className="flex min-h-11 items-center gap-2.5 border-t border-border pt-3">
+          {corretor ? (
+            <>
+              <Avatar name={corretor.nome} size={24} />
+              <p className="min-w-0 flex-1 truncate text-xs text-text-2" title={corretor.nome}>
+                <span className="sr-only">Responsável: </span>
+                {corretor.nome}
+              </p>
+            </>
+          ) : (
+            <span className="flex-1" />
+          )}
+          <span className="num text-xs text-text-muted">{imovel.codigo}</span>
+          <MenuAcoesImovel imovel={imovel} acoes={acoes} variante="discreto" />
+        </div>
       </div>
     </article>
   );

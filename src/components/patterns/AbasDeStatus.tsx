@@ -35,7 +35,7 @@ export function AbasDeStatus<Id extends string>({
   className,
 }: AbasDeStatusProps<Id>) {
   return (
-    <div className={cn("-mx-1 overflow-x-auto border-b border-border px-1", className)}>
+    <div className={cn("-mx-1 sem-barra overflow-x-auto overflow-y-hidden border-b border-border px-1", className)}>
       <div role="group" aria-label={ariaLabel} className="flex w-max gap-8">
         {abas.map((a) => {
           const on = a.id === ativa;
@@ -55,7 +55,7 @@ export function AbasDeStatus<Id extends string>({
             >
               <span
                 className={cn(
-                  "display min-w-4 text-2xl leading-none",
+                  "min-w-4 display text-2xl leading-none",
                   alerta ? "text-danger" : "text-text",
                   a.contagem === undefined && "text-text-muted",
                 )}

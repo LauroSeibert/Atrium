@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertDialog as AlertPrimitive } from "radix-ui";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Button } from "../ui/Button";
 import { Field } from "../ui/Field";
@@ -28,6 +28,8 @@ export type ConfirmDestructiveProps = {
   titulo: string;
   /** Frase de contexto opcional acima da lista de impactos. */
   descricao?: string;
+  /** Números do item que ajudam a decidir (ex.: publicado em, visualizações, contatos), em faixa acima dos impactos. */
+  resumo?: { rotulo: string; valor: ReactNode }[];
   /** O que acontece ao confirmar, um item por consequência. */
   impactos: string[];
   motivo?: CampoMotivo;
@@ -40,6 +42,7 @@ export type ConfirmDestructiveProps = {
 
 function Corpo({
   descricao,
+  resumo,
   impactos,
   motivo,
   rotuloConfirmar,
@@ -69,6 +72,16 @@ function Corpo({
       <div className="flex flex-col gap-3">
         {descricao ? (
           <AlertPrimitive.Description className="text-sm text-text-muted">{descricao}</AlertPrimitive.Description>
+        ) : null}
+        {resumo && resumo.length > 0 ? (
+          <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-md border border-border bg-border">
+            {resumo.map((r) => (
+              <div key={r.rotulo} className="flex min-w-0 flex-col gap-1 bg-surface px-3 py-2.5">
+                <dt className="text-caption text-text-muted">{r.rotulo}</dt>
+                <dd className="num text-sm font-medium text-text">{r.valor}</dd>
+              </div>
+            ))}
+          </dl>
         ) : null}
         <ul
           aria-label="O que acontece ao confirmar"

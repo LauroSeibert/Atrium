@@ -36,12 +36,12 @@ function renderizar(props: Partial<DataTableProps<Linha>> = {}) {
 }
 
 describe("DataTable", () => {
-  it("renderiza linhas, região rolável nomeada e resumo de paginação", async () => {
+  it("renderiza linhas, região rolável nomeada e paginação sem total visível", async () => {
     const onPaginaChange = vi.fn();
     renderizar({ onPaginaChange });
     expect(screen.getByRole("region", { name: "Linhas" })).toHaveAttribute("tabindex", "0");
     expect(screen.getAllByRole("row")).toHaveLength(4);
-    expect(screen.getByText("Mostrando 1–20 de 143")).toBeInTheDocument();
+    expect(screen.queryByText(/de 143/)).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button", { name: "Página 2" }));
     expect(onPaginaChange).toHaveBeenCalledWith(2);
   });

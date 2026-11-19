@@ -3,7 +3,7 @@
  * Anúncios (RF-75, demonstração): um anúncio por imóvel × canal.
  * O que cada linha pode fazer vem de `transicoes` (domínio); o alerta "imóvel indisponível" é derivado no fakeApi.
  */
-import { TriangleAlert } from "lucide-react";
+import { Archive, Pause, Play, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { rotaDoImovel } from "@/components/layout/navegacao";
@@ -28,6 +28,7 @@ import {
 import { Field } from "@/components/ui/Field";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Tooltip } from "@/components/ui/Tooltip";
 import type { TableDensity } from "@/components/ui/Table";
 import { CANAIS_ANUNCIO, STATUS_ANUNCIO, type CanalAnuncio, type StatusAnuncio } from "@/domain";
 import { faseConfirmacaoDe, useEscrita } from "@/features/dados/escrita";
@@ -50,6 +51,12 @@ const ROTULO_ACAO: Record<StatusAnuncio, Partial<Record<StatusAnuncio, string>>>
   publicado: { pausado: "Pausar", encerrado: "Encerrar" },
   pausado: { publicado: "Retomar", encerrado: "Encerrar" },
   encerrado: {},
+};
+/** Ícone de cada ação pelo status de destino; o rótulo vai no tooltip e no nome acessível. */
+const ICONE_ACAO: Partial<Record<StatusAnuncio, LucideIcon>> = {
+  publicado: Play,
+  pausado: Pause,
+  encerrado: Archive,
 };
 const SUCESSO: Record<StatusAnuncio, string> = {
   rascunho: "Anúncio em rascunho",
@@ -264,22 +271,22 @@ export function TelaAnuncios() {
       id: "acoes",
       cabecalho: <span className="sr-only">Ações</span>,
       celula: (a) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-1">
           {a.transicoes.map((t) => {
             const rotulo = ROTULO_ACAO[a.status][t.para] ?? STATUS_ANUNCIO_UI[t.para].rotulo;
             const titulo = a.imovel?.codigo ?? "anúncio";
             return (
-              <Button
-                key={t.para}
-                variant="secondary"
-                size="touch"
-                aria-label={`${rotulo} ${titulo} em ${CANAL_ANUNCIO_ROTULO[a.canal]}`}
-                loading={enviandoLinha(andamento, a.id)}
-                disabled={andamento.fase === "enviando"}
-                onClick={() => (t.exigeConfirmacao ? setEncerrando(a) : void mudar(a, t.para))}
-              >
-                {rotulo}
-              </Button>
+              <Tooltip key={t.para} content={rotulo}>
+                <Button
+                  variant="ghost"
+                  size="touch"
+                  icon={ICONE_ACAO[t.para] ?? Play}
+                  aria-label={`${rotulo} ${titulo} em ${CANAL_ANUNCIO_ROTULO[a.canal]}`}
+                  loading={enviandoLinha(andamento, a.id)}
+                  disabled={andamento.fase === "enviando"}
+                  onClick={() => (t.exigeConfirmacao ? setEncerrando(a) : void mudar(a, t.para))}
+                />
+              </Tooltip>
             );
           })}
         </div>
@@ -332,6 +339,7 @@ export function TelaAnuncios() {
   return (
     <>
       <PageHeader
+        densidade="lista"
         eyebrow="Operação · portais"
         titulo="Anúncios"
         acaoPrimaria={
@@ -342,23 +350,23 @@ export function TelaAnuncios() {
       />
       {/* Se a carteira falha, a tabela já mostra o erro com "Tentar de novo"; os indicadores só somem. */}
       {todos.estado.fase === "error" ? null : (
-        <StatGroup aria-label="Indicadores" colunas={3} className="mb-10">
+        <StatGroup aria-label="Indicadores" colunas={3} className="mt-3 mb-8">
           <StatCard
-            variante="celula"
+            variante="compacta"
             rotulo="Anúncios ativos"
             tendencia={false}
             estado={mapear(todos.estado, (l) => ({ valor: l.filter((a) => a.status === "publicado").length }))}
             onTentarNovamente={todos.recarregar}
           />
           <StatCard
-            variante="celula"
+            variante="compacta"
             rotulo="Visualizações"
             tendencia={false}
             estado={mapear(todos.estado, (l) => ({ valor: l.reduce((t, a) => t + a.visualizacoes, 0) }))}
             onTentarNovamente={todos.recarregar}
           />
           <StatCard
-            variante="celula"
+            variante="compacta"
             rotulo="Contatos"
             tendencia={false}
             estado={mapear(todos.estado, (l) => ({ valor: l.reduce((t, a) => t + a.contatos, 0) }))}
@@ -403,6 +411,18 @@ export function TelaAnuncios() {
           }
         }}
         titulo={encerrando?.imovel ? `Encerrar o anúncio de ${encerrando.imovel.codigo}?` : "Encerrar o anúncio?"}
+        resumo={
+          encerrando
+            ? [
+                {
+                  rotulo: "Publicado em",
+                  valor: encerrando.publicadoEm ? formatData(encerrando.publicadoEm) : "—",
+                },
+                { rotulo: "Visualizações", valor: formatNumero(encerrando.visualizacoes) },
+                { rotulo: "Contatos", valor: formatNumero(encerrando.contatos) },
+              ]
+            : undefined
+        }
         impactos={["O anúncio encerrado não muda mais.", "Dá para desfazer logo depois pelo aviso."]}
         rotuloConfirmar="Encerrar anúncio"
         rotuloVoltar="Manter anúncio"
