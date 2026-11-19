@@ -162,7 +162,7 @@ export function Destaque({ valor, size = "4xl", className, ...props }: DestaqueP
     "6xl": "text-6xl tracking-tight",
   } as const;
   return (
-    <span className={cn("display tnum leading-display", tamanhos[size], className)} {...props}>
+    <span className={cn("tnum display leading-display", tamanhos[size], className)} {...props}>
       {antes ? <span className="unidade">{antes}</span> : null}
       {numero}
       {depois ? <span className="unidade">{depois}</span> : null}

@@ -145,7 +145,7 @@ export function TableCell({
       className={cn(
         "px-4 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6",
         rowHeight[density],
-        align === "right" ? "num text-right" : "text-left",
+        align === "right" ? "text-right num" : "text-left",
         className,
       )}
       {...props}

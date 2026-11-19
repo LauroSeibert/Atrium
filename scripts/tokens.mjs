@@ -77,7 +77,12 @@ const scaleTokens = (scale, desc) => {
 // Neutros quentes: nenhum cinza frio; todo neutro puxa levemente para o matiz da tinta.
 const warm = {};
 for (const step of STEPS) {
-  warm[step] = formatHex({ mode: "oklch", l: Math.min(TARGET_L[step] + 0.01, 0.99), c: 0.012, h: ink.h ?? 85 }).toUpperCase();
+  warm[step] = formatHex({
+    mode: "oklch",
+    l: Math.min(TARGET_L[step] + 0.01, 0.99),
+    c: 0.012,
+    h: ink.h ?? 85,
+  }).toUpperCase();
 }
 
 tokens.color.scale = {

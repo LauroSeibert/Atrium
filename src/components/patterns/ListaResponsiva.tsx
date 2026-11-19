@@ -27,7 +27,13 @@ export type ListaResponsivaProps<T extends object> = {
   /** Seleção e ações em lote (só na tabela). */
   tabela?: Pick<
     DataTableProps<T>,
-    "selecionados" | "onSelecaoChange" | "rotuloSelecao" | "acoesEmLote" | "rotuloContagem" | "barraDeLote" | "larguraMinima"
+    | "selecionados"
+    | "onSelecaoChange"
+    | "rotuloSelecao"
+    | "acoesEmLote"
+    | "rotuloContagem"
+    | "barraDeLote"
+    | "larguraMinima"
   >;
 };
 

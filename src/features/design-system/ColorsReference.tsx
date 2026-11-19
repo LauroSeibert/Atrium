@@ -25,11 +25,41 @@ const fmtRatio = (n: number) =>
 const swatch = (cssVar: string): CSSProperties => ({ backgroundColor: `var(--${cssVar})` });
 
 const brandColors = [
-  { token: "brand-porcelain", name: "Porcelana", value: tokens.color.brand.porcelain.$value, share: 70, role: "Fundo do app" },
-  { token: "brand-paper", name: "Papel", value: tokens.color.brand.paper.$value, share: 15, role: "Cards, inputs, popovers" },
-  { token: "brand-ink", name: "Tinta", value: tokens.color.brand.ink.$value, share: 10, role: "Texto, sidebar, painel de destaque, botão primário" },
-  { token: "brand-stone", name: "Pedra", value: tokens.color.brand.stone.$value, share: 3, role: "Barras de períodos não atuais" },
-  { token: "brand-brass", name: "Latão", value: tokens.color.brand.brass.$value, share: 2, role: "Único acento: período atual, progresso, ativo" },
+  {
+    token: "brand-porcelain",
+    name: "Porcelana",
+    value: tokens.color.brand.porcelain.$value,
+    share: 70,
+    role: "Fundo do app",
+  },
+  {
+    token: "brand-paper",
+    name: "Papel",
+    value: tokens.color.brand.paper.$value,
+    share: 15,
+    role: "Cards, inputs, popovers",
+  },
+  {
+    token: "brand-ink",
+    name: "Tinta",
+    value: tokens.color.brand.ink.$value,
+    share: 10,
+    role: "Texto, sidebar, painel de destaque, botão primário",
+  },
+  {
+    token: "brand-stone",
+    name: "Pedra",
+    value: tokens.color.brand.stone.$value,
+    share: 3,
+    role: "Barras de períodos não atuais",
+  },
+  {
+    token: "brand-brass",
+    name: "Latão",
+    value: tokens.color.brand.brass.$value,
+    share: 2,
+    role: "Único acento: período atual, progresso, ativo",
+  },
 ];
 
 const adjustments = adjustmentsData.items.map((a) => ({

@@ -74,7 +74,7 @@ function Hero({ fin, rotulo }: { fin: Financeiro; rotulo: string }) {
     >
       <div className="min-w-0 flex-1">
         <Eyebrow>{rotulo}</Eyebrow>
-        <p className="mt-4 min-w-0 text-text [overflow-wrap:anywhere]">
+        <p className="mt-4 min-w-0 [overflow-wrap:anywhere] text-text">
           <Destaque valor={formatMoeda(fin.resultado)} size="6xl" />
         </p>
         <p className="mt-3.5 text-sm text-text-muted">Receita recebida menos despesas pagas.</p>
@@ -106,7 +106,7 @@ function Hero({ fin, rotulo }: { fin: Financeiro; rotulo: string }) {
                 <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-xs", i.cor)} />
                 {i.rotulo}
               </dt>
-              <dd className="num mt-1.5 text-md text-text">{formatPercentual(i.fracao)}</dd>
+              <dd className="mt-1.5 num text-md text-text">{formatPercentual(i.fracao)}</dd>
             </div>
           ))}
         </dl>
@@ -122,7 +122,7 @@ function Metrica({ rotulo, valor, alerta = false }: { rotulo: string; valor: num
       <p id={id} className={cn("eyebrow", alerta && "text-danger")}>
         {rotulo}
       </p>
-      <p className={cn("num mt-3.5 text-lg [overflow-wrap:anywhere]", alerta ? "text-danger" : "text-text")}>
+      <p className={cn("mt-3.5 num text-lg [overflow-wrap:anywhere]", alerta ? "text-danger" : "text-text")}>
         {formatMoeda(valor)}
       </p>
     </div>
@@ -158,7 +158,7 @@ function ProximosVencimentos({ linhas }: { linhas: LinhaReceitaTela[] }) {
       <TableBody>
         {linhas.map((l) => (
           <TableRow key={`${l.contratoId}:${l.numero}`} className="border-t border-b-0 hover:bg-transparent">
-            <TableCell className="num whitespace-nowrap pl-0 sm:first:pl-0">{formatData(l.vencimento)}</TableCell>
+            <TableCell className="pl-0 num whitespace-nowrap sm:first:pl-0">{formatData(l.vencimento)}</TableCell>
             <TableCell>
               <div className="flex min-w-0 flex-col gap-0.5">
                 <LinkCodigo href={`/contratos/${l.contratoId}`}>{l.numeroContrato}</LinkCodigo>
@@ -244,7 +244,13 @@ export function TelaFinanceiro() {
               onValueChange={(v) => url.definir({ periodo: v === "mesAtual" ? undefined : v })}
               options={PERIODOS.map((p) => ({ value: p, label: PERIODO_ROTULO[p] }))}
             />
-            <Button variant="secondary" leadingIcon={Download} className="max-md:h-11" disabled={!dados} onClick={() => dados && exportar(dados)}>
+            <Button
+              variant="secondary"
+              leadingIcon={Download}
+              className="max-md:h-11"
+              disabled={!dados}
+              onClick={() => dados && exportar(dados)}
+            >
               Exportar
             </Button>
           </>
@@ -268,7 +274,9 @@ export function TelaFinanceiro() {
               <>
                 <Hero
                   fin={d.fin}
-                  rotulo={periodo === "mesAtual" ? "Resultado do mês" : `Resultado · ${PERIODO_ROTULO[periodo].toLowerCase()}`}
+                  rotulo={
+                    periodo === "mesAtual" ? "Resultado do mês" : `Resultado · ${PERIODO_ROTULO[periodo].toLowerCase()}`
+                  }
                 />
                 <GradeMetricas fin={d.fin} />
               </>

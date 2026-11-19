@@ -87,7 +87,7 @@ export function TelaRelatorios() {
                   )}
                 >
                   <span className="min-w-0">
-                    <span className="display block text-2xl text-text">{def.titulo}</span>
+                    <span className="block display text-2xl text-text">{def.titulo}</span>
                     <span className="mt-1.5 block text-sm text-text-2">{def.descricao}</span>
                   </span>
                   <Icon

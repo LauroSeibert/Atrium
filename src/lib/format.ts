@@ -231,10 +231,7 @@ function paraDate(data: Date | string): Date | null {
  * @param data Date ou string ISO.
  * @param estilo Estilo de saída.
  */
-export function formatData(
-  data: Date | string,
-  estilo: "curta" | "tabela" | "longa" | "mesAno" = "curta",
-): string {
+export function formatData(data: Date | string, estilo: "curta" | "tabela" | "longa" | "mesAno" = "curta"): string {
   const d = paraDate(data);
   if (!d) return INVALIDO;
   switch (estilo) {

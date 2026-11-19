@@ -16,12 +16,12 @@ O Tailwind teve os defaults de cor, raio, sombra, fonte e easing zerados: valore
 
 > Reformulação de 2026-11-16 (`docs/BRIEF-REDESIGN.md` §2): o painel deve parecer um banco privado ou um estúdio de arquitetura, não um SaaS genérico. Substitui a fase "neutros + verde perene".
 
-| Cor       | HEX       | Onde entra                                                                                                   |
-| --------- | --------- | ------------------------------------------------------------------------------------------------------------ |
-| Porcelana | `#F6F4EF` | Fundo do app (`--bg`)                                                                                        |
-| Papel     | `#FFFFFF` | Cards, inputs, popovers (`--surface`)                                                                        |
-| Tinta     | `#17150F` | Texto, botão primário, sidebar (`--sidebar #121110`) e no máximo **um** painel de destaque por tela           |
-| Pedra     | `#D9D2C3` | Barras de períodos não atuais, pontos vazios                                                                 |
+| Cor       | HEX       | Onde entra                                                                                                  |
+| --------- | --------- | ----------------------------------------------------------------------------------------------------------- |
+| Porcelana | `#F6F4EF` | Fundo do app (`--bg`)                                                                                       |
+| Papel     | `#FFFFFF` | Cards, inputs, popovers (`--surface`)                                                                       |
+| Tinta     | `#17150F` | Texto, botão primário, sidebar (`--sidebar #121110`) e no máximo **um** painel de destaque por tela         |
+| Pedra     | `#D9D2C3` | Barras de períodos não atuais, pontos vazios                                                                |
 | Latão     | `#9A7B4F` | **Único acento**, só em preenchimentos e marcas: período atual, progresso, item ativo, ponto de notificação |
 
 Princípios: **os números são o herói** (serifa nos KPIs; dinheiro de tabela em Geist com algarismos tabulares); **fios em vez de caixas** (poucos cards, nunca card dentro de card); **um acento, com parcimônia** (2–5 usos por tela, nunca texto, botão ou fundo grande); **tinta para o que importa**; **calmo, depois denso** (cabeçalho editorial, depois os dados); **só neutros quentes**. Na dúvida: tire uma borda, tire uma cor, dê espaço.
@@ -47,7 +47,7 @@ Princípios: **os números são o herói** (serifa nos KPIs; dinheiro de tabela 
 | `--on-primary`                                                 | Texto/ícone sobre `--primary`                                                                                            | Texto sobre fundo claro                                                                                                                          |
 | `--ring`                                                       | Anel de foco: `outline: 2px solid var(--ring); outline-offset: 2px` (o offset é obrigatório: `ring` × `primary` < 3:1)   | Bordas comuns                                                                                                                                    |
 | `--success/-bg`, `--warning/-bg`, `--danger/-bg`, `--info/-bg` | Badges, alertas, validação. Texto colorido sobre `-bg` **ou** sobre `surface`                                            | Decoração (cor sempre acompanhada de ícone/texto)                                                                                                |
-| `--accent` (latão)                                             | Barra do período atual, preenchimento de progresso, ponto de notificação, amostra de legenda, item ativo de abas          | Texto (use `--accent-ink` se for indispensável), botões, fundos maiores que um trilho de progresso                                               |
+| `--accent` (latão)                                             | Barra do período atual, preenchimento de progresso, ponto de notificação, amostra de legenda, item ativo de abas         | Texto (use `--accent-ink` se for indispensável), botões, fundos maiores que um trilho de progresso                                               |
 | `--text-2`, `--placeholder`                                    | Texto de apoio e unidades (`R$`, `mi`); placeholder de input                                                             | Texto essencial                                                                                                                                  |
 | `--border-soft`, `--line-strong`                               | Divisória entre linhas dentro de cards; contorno de pílulas e do botão fantasma (decorativos)                            | Contorno de input (use `--border-strong`)                                                                                                        |
 | `--surface-sunken`                                             | Ladrilho de imagem/ilustração, trilho da semana                                                                          | Texto `text-muted` por cima                                                                                                                      |
@@ -229,7 +229,7 @@ Componentes em `src/components/layout/` (catálogo **Shell/** no Storybook), tod
 
 | Peça                             | Comportamento                                                                                                                                                                                                  | Requisitos          |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `AppShell`                       | Skip link → sidebar (≥ 1024 px) ou trilho de ícones (768–1023 px) → topbar fixa (64 px) → `<main id="conteudo">` com **conteúdo máx. 1240 px** (`max-w-338` com as calhas) e calhas de 20/40/56 px.                             | RNF-01, RNF-03      |
+| `AppShell`                       | Skip link → sidebar (≥ 1024 px) ou trilho de ícones (768–1023 px) → topbar fixa (64 px) → `<main id="conteudo">` com **conteúdo máx. 1240 px** (`max-w-338` com as calhas) e calhas de 20/40/56 px.            | RNF-01, RNF-03      |
 | `Sidebar` + `NavegacaoPrincipal` | Logo, 5 módulos + Configurações no rodapé. Item ativo com `aria-current="page"` e indicador que desliza (`motion` `layoutId`, `--dur-slow`). Recolhível (64 px, só ícones + tooltip, nome acessível completo). | RF-01, RF-60        |
 | Badges                           | Leads novos (`info`) e parcelas atrasadas (`danger`), calculados no domínio (`contadoresNavegacao`). Acima de 99 vira "99+"; o número exato fica no nome acessível.                                            | RF-62               |
 | `MobileNav`                      | Abaixo de 768 px a navegação vira drawer à esquerda (alvos de 44 px); escolher um item fecha. No tablet, `Sidebar recolhida fixa` (trilho).                                                                    | RF-01, RF-63        |

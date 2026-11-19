@@ -38,7 +38,7 @@ export function FiltroDeDatas({ rotulo, de, ate, onDeChange, onAteChange, onLimp
             size="lg"
             leadingIcon={CalendarDays}
             aria-label={acessivel}
-            className={cn(valor && "num rounded-r-none")}
+            className={cn(valor && "rounded-r-none num")}
           >
             {valor || rotulo}
           </Button>

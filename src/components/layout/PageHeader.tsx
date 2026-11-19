@@ -41,10 +41,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   const lista = densidade === "lista";
   return (
-    <header
-      data-pagina={densidade}
-      className={cn("flex flex-col gap-6", lista ? "pb-2" : "pb-9 md:pb-11", className)}
-    >
+    <header data-pagina={densidade} className={cn("flex flex-col gap-6", lista ? "pb-2" : "pb-9 md:pb-11", className)}>
       <div className="flex flex-col gap-5 md:flex-row md:flex-wrap md:items-end md:justify-between">
         <div className="flex min-w-0 flex-col">
           {eyebrow ? <p className={cn("eyebrow", lista ? "mb-2.5" : "mb-4")}>{eyebrow}</p> : null}

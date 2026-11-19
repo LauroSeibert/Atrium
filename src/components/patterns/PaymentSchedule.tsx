@@ -112,17 +112,17 @@ function Resumo({ resumo }: { resumo: ResumoCronograma }) {
     >
       <div>
         <dt className="eyebrow">Parcelas pagas</dt>
-        <dd className="num mt-1.5 text-md text-text">
+        <dd className="mt-1.5 num text-md text-text">
           {pagas} de {total}
         </dd>
       </div>
       <div>
         <dt className="eyebrow">Total recebido</dt>
-        <dd className="num mt-1.5 text-md text-text">{formatMoeda(recebido)}</dd>
+        <dd className="mt-1.5 num text-md text-text">{formatMoeda(recebido)}</dd>
       </div>
       <div>
         <dt className={cn("eyebrow", atrasadas > 0 && "text-danger")}>Em atraso</dt>
-        <dd className={cn("num mt-1.5 text-md", atrasadas > 0 ? "text-danger" : "text-text")}>
+        <dd className={cn("mt-1.5 num text-md", atrasadas > 0 ? "text-danger" : "text-text")}>
           {atrasadas === 0
             ? "Nenhuma"
             : `${atrasadas} ${atrasadas === 1 ? "parcela" : "parcelas"} · ${formatMoeda(emAtraso)}`}
@@ -149,14 +149,21 @@ function Cronograma({
       {/* 360 px: lista empilhada. */}
       <ul aria-label="Parcelas" className="flex flex-col md:hidden">
         {itens.map((item) => (
-          <li key={item.parcela.numero} className="flex flex-col gap-2 border-t border-border-soft py-4 first:border-t-0">
+          <li
+            key={item.parcela.numero}
+            className="flex flex-col gap-2 border-t border-border-soft py-4 first:border-t-0"
+          >
             <div className="flex items-start justify-between gap-2">
-              <span className="text-md font-medium text-text">Parcela <span className="num">{item.parcela.numero}</span></span>
+              <span className="text-md font-medium text-text">
+                Parcela <span className="num">{item.parcela.numero}</span>
+              </span>
               <StatusBadge status={item.status} />
             </div>
             <div className="flex items-baseline justify-between gap-2 text-sm">
               <span className="tnum text-text-muted">Vence em {formatData(item.parcela.vencimento)}</span>
-              <span className={cn("num text-text", item.status === "atrasado" && "text-danger")}>{formatMoeda(item.parcela.valor)}</span>
+              <span className={cn("num text-text", item.status === "atrasado" && "text-danger")}>
+                {formatMoeda(item.parcela.valor)}
+              </span>
             </div>
             {item.status === "atrasado" ? <p className="text-sm text-danger">{textoAtraso(item.diasAtraso)}</p> : null}
             <AcaoDaParcela
@@ -186,7 +193,9 @@ function Cronograma({
               <TableRow key={item.parcela.numero}>
                 <TableCell className="tnum font-medium">{item.parcela.numero}</TableCell>
                 <TableCell className="tnum">{formatData(item.parcela.vencimento)}</TableCell>
-                <TableCell align="right" className={cn("num", item.status === "atrasado" && "text-danger")}>{formatMoeda(item.parcela.valor)}</TableCell>
+                <TableCell align="right" className={cn("num", item.status === "atrasado" && "text-danger")}>
+                  {formatMoeda(item.parcela.valor)}
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={item.status} />

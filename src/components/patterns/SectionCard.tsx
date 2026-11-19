@@ -38,12 +38,7 @@ export function SectionCard({
         variante === "aberta" && "border-b border-border pb-4",
       )}
     >
-      <Heading
-        id={id}
-        level={headingLevel}
-        size={headingLevel === 2 ? "2xl" : "xl"}
-        className="min-w-0 break-words"
-      >
+      <Heading id={id} level={headingLevel} size={headingLevel === 2 ? "2xl" : "xl"} className="min-w-0 break-words">
         {titulo}
       </Heading>
       {acoes ? <div className="flex shrink-0 items-center gap-2">{acoes}</div> : null}

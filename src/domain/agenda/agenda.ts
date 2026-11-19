@@ -122,6 +122,8 @@ export function resumoAgenda(dias: readonly DiaAgenda[]): ResumoAgenda {
     visitas,
     vencimentos,
     aReceber,
-    porCorretor: [...porCorretor].map(([corretorId, n]) => ({ corretorId, visitas: n })).sort((a, z) => z.visitas - a.visitas),
+    porCorretor: [...porCorretor]
+      .map(([corretorId, n]) => ({ corretorId, visitas: n }))
+      .sort((a, z) => z.visitas - a.visitas),
   };
 }

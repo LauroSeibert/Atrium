@@ -378,10 +378,7 @@ export function KanbanBoardSkeleton({ etapas = ETAPAS }: { etapas?: readonly Eta
       className="relative flex w-full max-w-full min-w-0 items-start gap-4 overflow-x-auto pb-2"
     >
       {etapas.map((e, i) => (
-        <div
-          key={e}
-          className="flex w-72 shrink-0 flex-col gap-3 p-2 sm:w-80"
-        >
+        <div key={e} className="flex w-72 shrink-0 flex-col gap-3 p-2 sm:w-80">
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="h-4 w-1/3" />
           {Array.from({ length: 2 + (i % 2) }, (_, k) => (
